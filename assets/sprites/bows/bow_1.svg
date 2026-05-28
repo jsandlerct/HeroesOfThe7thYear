@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Bow body: deep arc curving left -->
+  <path d="M 38,4 Q 10,32 38,60" fill="none" stroke="black" stroke-width="3" stroke-linecap="round"/>
+  <!-- Bowstring -->
+  <line x1="38" y1="4" x2="38" y2="60" stroke="black" stroke-width="1.2"/>
+  <!-- Arrow shaft (horizontal, at y=32) -->
+  <line x1="12" y1="32" x2="38" y2="32" stroke="black" stroke-width="1.5"/>
+  <!-- Arrowhead pointing left -->
+  <polygon points="9,32 16,29 16,35" fill="black"/>
+  <!-- Fletching at string end (right side) -->
+  <polygon points="38,32 44,28 42,32" fill="black"/>
+  <polygon points="38,32 44,36 42,32" fill="black"/>
+</svg>

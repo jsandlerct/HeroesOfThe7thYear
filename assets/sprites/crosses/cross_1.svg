@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="white"/>
+  <!-- Equal-arm cross: arm width=14, extends 17px each direction from center (32,32) -->
+  <rect x="25" y="8"  width="14" height="48" fill="black"/>
+  <rect x="8"  y="25" width="48" height="14" fill="black"/>
+</svg>

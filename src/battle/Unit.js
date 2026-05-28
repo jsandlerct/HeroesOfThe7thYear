@@ -1,0 +1,143 @@
+import {
+  TILE, UNIT_W, UNIT_H, UNIT_R,
+  MAX_LEVEL, XP_THRESHOLDS, HEALER_HEAL_S,
+  HP_BAR_H, HP_BAR_Y_GAP,
+  COLOR_HP_BAR_BG, COLOR_HP_HIGH, COLOR_HP_MED, COLOR_HP_LOW,
+  HP_THRESH_MED, HP_THRESH_LOW,
+} from '../data/constants.js';
+
+let _nextId = 0;
+
+const PLAYER_ICON_PREFIX = {
+  warrior:  'sword',
+  archer:   'bow',
+  mage:     'comet',
+  healer:   'cross',
+  captain:  'star',
+  engineer: 'trebuchet',
+};
+
+export class Unit {
+  constructor(type, def, team, x, y, scene) {
+    this.id    = _nextId++;
+    this.type  = type;
+    this.team  = team;
+    this.x     = x;
+    this.y     = y;
+
+    this.maxHp     = def.hp;
+    this.hp        = def.hp;
+    this.dmg       = def.dmg;
+    this.atkSpeed  = def.atkSpeed;
+    this.atkTimer  = Math.random() * def.atkSpeed;
+    this.range     = def.range;
+    this.armor     = def.armor ?? 0;
+    this.moveSpeed = def.moveSpeed ?? 0;
+
+    this.color            = def.color ?? 0xffffff;
+    this.ignoresArmor     = def.ignoresArmor     ?? false;
+    this.cannotDamageWall = def.cannotDamageWall ?? false;
+    this.isElite          = def.isElite          ?? false;
+    this.isAoe            = def.isAoe            ?? false;
+    this.aoeRadius        = def.aoeRadius        ?? 0;
+    this.isHealer         = def.isHealer         ?? false;
+    this.healTimer        = this.isHealer ? HEALER_HEAL_S : 0;
+
+    this.hasCaptainAura = def.hasCaptainAura ?? false;
+    this.hasGeneralAura = def.hasGeneralAura ?? false;
+    this.auraRadius     = def.auraRadius     ?? 0;
+    this.auraDmgBonus   = def.auraDmgBonus   ?? 0;
+
+    this.isInReserve = false;
+    this.reserveSlot = null;
+    this.waypoint    = null;
+
+    this.moveDelay    = 0;
+    this.isStationary = false;
+    this.isOnWall     = false;
+    this.wallSection  = null;
+    this.isRouting    = false;
+    this.isDead       = false;
+
+    this.target       = null;
+    this.lastAttacker = null;
+    this.damageTaken  = 0;
+    this.damageBy     = {};
+    this.xp           = 0;
+    this.level        = 1;
+
+    const px    = x * TILE;
+    const py    = y * TILE;
+    const scale = def.spriteScale ?? 1;
+    const sw    = UNIT_W * scale;
+    const sh    = UNIT_H * scale;
+    const spriteR = UNIT_R * scale;
+    this._spriteHalfH = team === 'player' ? spriteR : sh / 2;
+    this._barW        = sw;
+    this.collisionRadius = (sw / 2) / TILE;
+
+    if (team === 'player') {
+      this.sprite = scene.add.circle(px, py, spriteR, def.color).setDepth(4);
+      const prefix = PLAYER_ICON_PREFIX[type];
+      if (prefix) {
+        this.icon = scene.add.image(px, py, `${prefix}_${this.level}`)
+          .setDisplaySize(sw, sh).setDepth(4)
+          .setBlendMode(Phaser.BlendModes.MULTIPLY);
+      }
+    } else {
+      this.sprite = scene.add.rectangle(px, py, sw, sh, def.color).setDepth(4);
+      this.icon = scene.add.image(px, py, `enemy_${type}`)
+        .setDisplaySize(sw, sh).setDepth(4)
+        .setBlendMode(Phaser.BlendModes.MULTIPLY);
+    }
+    this._displayedLevel = this.level;
+
+    const barY = py - this._spriteHalfH - HP_BAR_Y_GAP;
+    this.hpBarBg = scene.add.rectangle(px - sw / 2, barY, sw, HP_BAR_H, COLOR_HP_BAR_BG)
+      .setOrigin(0, 0.5).setDepth(5);
+    this.hpBarFg = scene.add.rectangle(px - sw / 2, barY, sw, HP_BAR_H, COLOR_HP_HIGH)
+      .setOrigin(0, 0.5).setDepth(5);
+  }
+
+  syncSprite() {
+    const px = this.x * TILE;
+    const py = this.y * TILE;
+    this.sprite.setPosition(px, py);
+
+    if (this.icon) {
+      this.icon.setPosition(px, py);
+      if (this.team === 'player' && this.level !== this._displayedLevel) {
+        const prefix = PLAYER_ICON_PREFIX[this.type];
+        this.icon.setTexture(`${prefix}_${this.level}`);
+        this._displayedLevel = this.level;
+      }
+    }
+
+    const barY = py - this._spriteHalfH - HP_BAR_Y_GAP;
+    this.hpBarBg.setPosition(px - this._barW / 2, barY);
+    this.hpBarFg.setPosition(px - this._barW / 2, barY);
+    const pct   = this.hp / this.maxHp;
+    this.hpBarFg.setDisplaySize(Math.max(0, Math.floor(pct * this._barW)), HP_BAR_H);
+    const color = pct > HP_THRESH_MED ? COLOR_HP_HIGH
+                : pct > HP_THRESH_LOW ? COLOR_HP_MED
+                : COLOR_HP_LOW;
+    this.hpBarFg.setFillStyle(color);
+  }
+
+  destroySprites() {
+    this.sprite.destroy();
+    if (this.icon) this.icon.destroy();
+    this.hpBarBg.destroy();
+    this.hpBarFg.destroy();
+  }
+
+  awardXp(amount) {
+    this.xp += amount;
+  }
+
+  applyLevelUps() {
+    while (this.level < MAX_LEVEL && this.xp >= XP_THRESHOLDS[this.level]) {
+      this.level++;
+    }
+  }
+}

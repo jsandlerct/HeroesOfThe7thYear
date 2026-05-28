@@ -1,0 +1,195 @@
+# DECISIONS.md — Heroes of the Seventh Year
+
+> These decisions are locked. Do not relitigate them.  
+> New decisions go at the bottom of the relevant section with a date.  
+> Format: `[YYYY-MM-DD] Decision description`
+
+---
+
+## Architecture
+
+- [2025-05-27] Tech stack: HTML5 + Phaser (latest) for battle phase, HTML/CSS for off-season UI, shared JavaScript state object bridging both
+- [2025-05-27] Phaser owns the battle canvas entirely; off-season UI is pure HTML/CSS layered over or alongside canvas
+- [2025-05-27] All game logic (combat resolution, targeting, XP math) runs in JavaScript; Phaser handles visual rendering only
+- [2025-05-27] Unit animations use sprite sheets only — no individual images
+- [2025-05-27] All unit, enemy, and building stats are defined in src/data/ — never hardcoded
+- [2026-05-28] All constants and magic numbers live in src/data/constants.js — no raw literals elsewhere in the codebase
+
+---
+
+## Game Structure
+
+- [2025-05-27] Each campaign year = one off-season phase + one battle phase, no exceptions
+- [2025-05-27] Difficulty determines campaign length: Easy = 10 years, Medium = 20 years, Hard = 30 years
+- [2025-05-27] First 10 years are the learning ramp regardless of difficulty — same threat curve, campaign simply ends at different points
+- [2025-05-27] Game over condition: all player units dead (total wipe) — not wall breach alone
+- [2025-05-27] Primary win condition: survive to end of campaign. Score = total heroes graduated (survived 7 years)
+
+---
+
+## Battle Phase
+
+- [2025-05-27] Map is 12 tiles wide × 16 tiles tall
+- [2025-05-27] Wall divides map horizontally; 3 sections (Left, Center, Right), each 4 tiles wide
+- [2026-05-27] Wall sits at row 11 (0-indexed) — ~10 enemy rows of approach, ~4 player rows behind wall
+- [2026-05-27] Engineers are deployed stationary on the player side of the wall (row 12), NOT on the wall itself — they shoot over it at range 11
+- [2025-05-27] Warriors and Captains are NEVER assigned to wall sections — always in reserve
+- [2025-05-27] 3 reserve slots on both player side and enemy side
+- [2025-05-27] Reserve units start at edge of map and move in when deployed
+- [2025-05-27] Units assigned to wall sections cannot move during battle
+- [2025-05-27] Wall is a barrier with HP — melee enemies cannot reach player units until wall is breached
+- [2025-05-27] Goblins cannot damage the wall — they target player units only (ranged)
+- [2025-05-27] Melee enemies (Orcs, Ogres, Generals) attack wall HP directly
+- [2025-05-27] Catapults deal AoE damage that hits both wall HP and player units on wall
+- [2025-05-27] Wall grants damage reduction bonus to all units on it: 1% per foot of height (Level 1 = +10%, Level 2/3 = +20%, Level 4/5 = +30%)
+- [2025-05-27] On wall breach: units on wall drop to ground, lose damage reduction bonus; breaching enemies target nearest ground unit
+- [2025-05-27] After breach: Engineers and reserve units on player side become valid targets
+- [2025-05-27] Each year has 3 possible enemy composition variations, randomly selected at battle start
+- [2025-05-27] Enemy rout condition: all active Ogres + Generals + Catapults dead AND remaining enemies < 50% of starting count AND player units outnumber remaining enemies
+- [2025-05-27] Routed enemies flee toward top of screen; can still be attacked during retreat
+- [2025-05-27] Round ends when: all enemies off screen (victory) OR all player units dead (game over)
+
+---
+
+## Targeting
+
+- [2025-05-27] Warrior / Captain: nearest enemy
+- [2025-05-27] Archer: furthest enemy in range
+- [2025-05-27] Mage: nearest elite (Ogre/General/Catapult); if none in range, furthest in range
+- [2025-05-27] Engineer: furthest enemy in range
+- [2025-05-27] Healer: lowest HP% friendly within 2 tiles
+- [2025-05-27] Orc / Ogre / General: nearest wall section; on breach, nearest ground unit
+- [2025-05-27] Goblin: furthest player unit in range; advances until in range
+- [2026-05-28] Catapult: nearest wall section (same as melee); on breach, nearest player unit
+- [2026-05-28] AoE splash damage does not affect units that are on a wall (wall provides cover)
+- [2026-05-28] Enemy targeting override: if any wall is breached OR any player unit has crossed to the enemy side (y < WALL_ROW), all wall-targeting enemies (orc/ogre/general/catapult) switch to targeting player units instead; reverts to wall-targeting if neither condition holds
+
+---
+
+## Unit Stats & Progression
+
+- [2025-05-27] Attack speed floor: 0.5 seconds minimum for all units regardless of building bonuses
+- [2025-05-27] Weaponsmith damage bonus applies to Warriors, Archers, and Captains only (not Mages or Engineers)
+- [2025-05-27] Weaponsmith bonus is applied before Captain aura calculation
+- [2025-05-27] Captain aura: +25% DMG to all friendlies in 3×3 tile area (additive)
+- [2025-05-27] Sparring Ground attack speed bonus applies to both Warriors and Captains
+- [2025-05-27] Max 5 Captains total (Officer Academy max 5 levels = 5 capacity)
+- [2025-05-27] Healer heals lowest HP% friendly within 2 tiles to full every 10s (not partial heal)
+- [2025-05-27] Mage ignores target armor entirely
+- [2025-05-27] Engineer deals AoE damage at range 11 (near-full map width, trebuchet-style)
+- [2025-05-27] XP awards: killing blow = 2 XP; assist (≥30% HP dealt) = 1 XP; took damage = 1 XP
+- [2025-05-27] Elite kill bonus: killing blow on Ogre/General/Catapult = 6 XP (tripled)
+- [2025-05-27] Level thresholds: L2=5 XP, L3=10 XP, L4=20 XP, L5=30 XP
+- [2025-05-27] Level up stats per level: Warrior +10 HP/+3 DMG; Archer +5 HP/+2 DMG; Mage +3 HP/+10 DMG; Healer +5 HP/+1 DMG; Captain +15 HP/+3 DMG; Engineer +5 HP/+10 DMG
+- [2025-05-27] Injuries prevent XP gain and off-season participation; Healers and Hospitals reduce recovery time
+
+---
+
+## Elite Units & Kill Announcements
+
+- [2025-05-27] Ogre, General, and Catapult are elite units
+- [2025-05-27] On elite kill: display on-screen announcement showing which player unit landed killing blow
+- [2025-05-27] Elite kills award 6 XP for killing blow (3× standard)
+
+---
+
+## Buildings & Economy
+
+- [2025-05-27] Building dependency tree: Barracks → Archery Range → Scout Academy / Siege Workshop; Barracks → Sparring Ground → Officer Academy → Monument; Library → Mage Workshop / Hospital; Artisan Workshop → Armory / Weaponsmith / Siege Workshop (also requires Archery Range)
+- [2025-05-27] All blank building costs default to 200 gold per level
+- [2025-05-27] Armory: +7% armor per level (additive, all units)
+- [2025-05-27] Weaponsmith: +10% DMG multiplier per level (Warriors, Archers, Captains only)
+- [2025-05-27] Monument tracks hero names for bonus accounting; stores up to 5 heroes' worth of attack speed bonus (-0.1s per hero, max -0.5s total)
+- [2025-05-27] Hospital: -1.0s heal interval per level (applies to healer healing cooldown, not attack speed)
+- [2025-05-27] Mason: repairs/builds 50 HP of wall damage per Mason per off-season
+
+---
+
+## Gold & Recruits
+
+- [2025-05-27] Gold per off-season: 100 base + 1 per missing wall HP + 200 per fully destroyed segment
+- [2025-05-27] Gold is spent first; recruits arrive after all spending is complete
+- [2025-05-27] Recruits fill all empty housing slots after spending
+- [2025-05-27] Recruit composition: random but skews toward 50/50 balance based on current roster (not capacity)
+- [2025-05-27] Only archetypes supported by existing buildings can appear in recruit pool
+- [2025-05-27] King sends additional resources as comeback mechanic when player suffers serious losses
+
+---
+
+## Wall
+
+- [2025-05-27] Wall upgraded per segment independently
+- [2025-05-27] Wall Level 1: Height 10, Thickness 1, HP 200, Cost 100
+- [2025-05-27] Wall Level 2: Height 20, Thickness 1, HP 300, Cost 200
+- [2025-05-27] Wall Level 3: Height 20, Thickness 2, HP 400, Cost 300
+- [2025-05-27] Wall Level 4: Height 30, Thickness 2, HP 500, Cost 400
+- [2025-05-27] Wall Level 5: Height 30, Thickness 3, HP 600, Cost 500
+- [2025-05-27] Ladder mechanic deferred to V2 — wall height has no gameplay effect in V1 beyond damage reduction bonus
+
+---
+
+## Progression & Legacy
+
+- [2025-05-27] Seven-year arc: recruits who survive 7 years leave as heroes (base ~10% chance to stay)
+- [2025-05-27] Veterans who stay become super units (exact advantages TBD — see Open Questions)
+- [2025-05-27] Legacy/mentorship system: departing heroes leave passive buff to future recruits in their archetype (exact mechanics TBD)
+- [2025-05-27] Goblin stats kept as-is for now; armor scaling to be evaluated during playtesting
+
+---
+
+## Move Speeds
+
+- [2026-05-27] Move speed values (tiles/second): Slow = 0.5, Med = 1.0, Fast = 2.0
+- [2026-05-27] These are Sprint 1 starting values — to be tuned during playtesting
+
+---
+
+## Unit Icons
+
+- [2026-05-28] Ogre icon: custom ogre image (placeholder rectangle currently) — image forthcoming
+- [2026-05-28] Engineer icon: trebuchet image — image forthcoming
+
+---
+
+## Reserve System
+
+- [2026-05-28] 3 reserve slots per side (left/center/right), each aligned with its wall section center; capacity 25 units per slot
+- [2026-05-28] Reserve zones are rows 0–1 (enemy, red highlight) and rows 14–15 (player, blue highlight); no label
+- [2026-05-28] Reserve units are stationary and inert until deployed — skipped by targeting, movement, and attack tick
+- [2026-05-28] Enemy reserve deployment logics: wait_for_breach (any breach triggers); left/center/right_after_Xs (real-clock 20 s OR any wall breach — whichever comes first, advance on that wall section)
+- [2026-05-28] Alarm condition: any player unit crosses into rows 0–7 instantly releases all undeployed enemy reserves
+- [2026-05-28] Rout threshold uses total starting enemy count (all units including reserves); alive count also includes reserves — rout requires all elites dead AND fewer than 50% of all starting enemies still alive
+- [2026-05-28] When rout triggers, any enemy reserves deployed afterward are immediately set to routing; round-end checks still operate on active (non-reserve) enemies only
+- [2026-05-28] Player deployment: pre-assigned to slots before battle; deployed via in-battle button → 6-option menu (Sortie Left/Center/Right, Reinforce Left/Center/Right); one-way, no recall
+- [2026-05-28] Wall breach auto-releases all undeployed player reserves immediately with no directional preset (normal targeting takes over)
+- [2026-05-28] Sortie: units advance through/past wall into enemy territory; normal targeting applies
+- [2026-05-28] Reinforce: Archers/Mages/Healers target that wall section; Warriors/Captains advance and fight near the wall
+- [2026-05-28] Enemy reserve compositions come from a per-year spreadsheet (TBD); placeholder used in stress test
+
+---
+
+## Sprint 1 Test Composition
+
+- [2026-05-28] Test composition — Player (39): Wall = 5 Archers + 1 Healer per section (18 total); Reserve = 5 Warriors + 1 Captain + 1 Mage per slot (21 total); 0 Engineers
+- [2026-05-28] Stress test composition — Enemy (85 total): Main battle (60): 5 Catapults + 25 Goblins + 25 Orcs + 5 Ogres; Reserve (25): left=10 Orcs (left_after_1minute), center=10 Goblins (center_after_1minute), right=5 Generals (wait_for_breach); main battle start at row 2+; ogres advance immediately, all others wait 1 second
+- [2026-05-27] Placeholder sprites: colored rectangles (no sprite sheets yet)
+
+---
+
+## Enemy Compositions
+
+- [2026-05-28] Enemy composition data lives in `src/data/compositions.js`, exported as `ENEMY_COMPOSITIONS` keyed by year number
+- [2026-05-28] Each year entry is an array of 3 options (index 0=A, 1=B, 2=C); option is randomly selected at battle start and stored in `GameState.enemyCompositionIndex`
+- [2026-05-28] Each composition option has: `left`, `center`, `right` lane unit arrays `[{type, count}]`; `reserves` array `[{slot, units, logic}]`; and `scoutingReport` string (for Sprint 3 Scout Academy reveal)
+- [2026-05-28] Years without a defined composition fall back to the stress test (85-unit hardcoded spawn) — currently year 99 is the stress test trigger
+- [2026-05-28] During development, `index.html` shows a test picker overlay (9 buttons: Year 1–3 × Option A–C, plus stress test) so specific compositions can be loaded without running the full campaign loop
+
+---
+
+## V2 Deferred (Do Not Implement in V1)
+
+- [2025-05-27] Ladder mechanics and wall height gameplay effects
+- [2025-05-27] Enemy Mages
+- [2025-05-27] Random events and crises (plague, defections, weather, political disruptions)
+- [2025-05-27] Morale / psychological system for individual units
+- [2025-05-27] Archer subtypes (longbow, crossbow, etc.)

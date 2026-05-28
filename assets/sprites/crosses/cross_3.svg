@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="white"/>
+  <!-- Cross 1: center (10,32), arm width=6, extends 7px → 20x20 -->
+  <rect x="7"  y="22" width="6"  height="20" fill="black"/>
+  <rect x="0"  y="29" width="20" height="6"  fill="black"/>
+  <!-- Cross 2: center (32,32) -->
+  <rect x="29" y="22" width="6"  height="20" fill="black"/>
+  <rect x="22" y="29" width="20" height="6"  fill="black"/>
+  <!-- Cross 3: center (54,32) -->
+  <rect x="51" y="22" width="6"  height="20" fill="black"/>
+  <rect x="44" y="29" width="20" height="6"  fill="black"/>
+</svg>

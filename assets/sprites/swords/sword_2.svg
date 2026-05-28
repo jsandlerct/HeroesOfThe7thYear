@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <!-- Left sword -->
+  <polygon points="22,4 19.5,46 24.5,46" fill="black"/>
+  <rect x="13" y="46" width="18" height="4" fill="black"/>
+  <rect x="20" y="50" width="4" height="7" fill="black"/>
+  <ellipse cx="22" cy="59" rx="3" ry="2.5" fill="black"/>
+
+  <!-- Right sword -->
+  <polygon points="42,4 39.5,46 44.5,46" fill="black"/>
+  <rect x="33" y="46" width="18" height="4" fill="black"/>
+  <rect x="40" y="50" width="4" height="7" fill="black"/>
+  <ellipse cx="42" cy="59" rx="3" ry="2.5" fill="black"/>
+</svg>

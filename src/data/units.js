@@ -1,0 +1,50 @@
+export const UNIT_DEFS = {
+  warrior: {
+    hp: 20, dmg: 5, atkSpeed: 2, range: 1, armor: 0.20,
+    lvlHp: 10, lvlDmg: 3,
+    moveSpeed: 1.5,
+    color: 0x4472C4,
+    wallUnit: false,
+  },
+  archer: {
+    hp: 10, dmg: 3, atkSpeed: 2, range: 5, armor: 0.10,
+    lvlHp: 5, lvlDmg: 2,
+    moveSpeed: 1.5,
+    color: 0x70AD47,
+    wallUnit: true,
+  },
+  mage: {
+    hp: 7, dmg: 7, atkSpeed: 5, range: 7, armor: 0,
+    lvlHp: 3, lvlDmg: 10,
+    ignoresArmor: true,
+    moveSpeed: 1.5,
+    color: 0x9B30FF,
+    wallUnit: true,
+  },
+  healer: {
+    hp: 10, dmg: 3, atkSpeed: 5, range: 1, armor: 0.10,
+    lvlHp: 5, lvlDmg: 1,
+    isHealer: true,
+    moveSpeed: 1.5,
+    color: 0xEEEEEE,
+    wallUnit: true,
+  },
+  captain: {
+    hp: 25, dmg: 5, atkSpeed: 2, range: 1, armor: 0.20,
+    lvlHp: 15, lvlDmg: 3,
+    moveSpeed: 1.5,
+    hasCaptainAura: true,
+    auraRadius: 1.5,
+    auraDmgBonus: 0.25,
+    color: 0xFFD700,
+    wallUnit: false,
+  },
+  engineer: {
+    hp: 10, dmg: 15, atkSpeed: 10, range: 11, armor: 0.10,
+    lvlHp: 5, lvlDmg: 10,
+    isAoe: true, aoeRadius: 1.5,
+    color: 0xFF6600,
+    spriteScale: 2,
+    wallUnit: false, // deployed behind the wall on player side, not on it
+  },
+};

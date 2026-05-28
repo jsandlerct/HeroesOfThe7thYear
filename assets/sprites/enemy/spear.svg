@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <rect width="64" height="64" fill="white"/>
+  <!-- Spearhead: elongated diamond/leaf shape at top -->
+  <polygon points="32,2 26,20 32,26 38,20" fill="black"/>
+  <!-- Shaft: narrow vertical pole -->
+  <rect x="30" y="24" width="4" height="34" fill="black"/>
+  <!-- Butt cap: small pointed end at bottom -->
+  <polygon points="30,58 34,58 32,63" fill="black"/>
+</svg>
