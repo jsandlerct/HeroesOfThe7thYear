@@ -70,6 +70,41 @@ Goal: Get a battle scene running with placeholder units moving on a 12×16 map. 
 
 ---
 
+## 🟠 Battle Interactivity
+
+Goal: Give the player meaningful in-battle controls beyond deploying reserves. Targeting preferences let the player direct unit-group focus without micromanaging individuals.
+
+### Layout Prep
+- [x] Reduce TILE constant from 50px to 40px; verify canvas renders correctly at 480×640
+- [x] Hide key/legend sidebar in production battle view (keep visible in test picker / dev mode)
+
+### Visual Feedback
+- [x] Blue glow on healed unit: 0.5s postFX glow on unit sprite when Healer heals a target
+
+### Targeting Preference UI
+- [x] Add `targetingPreference` to GameState: `{ melee: 'default', ranged: 'default', siege: 'default' }`
+- [x] Add targeting preference pre-check to targeting.js: if group preference is set and any enemy of that type exists on field, filter candidates to that type before standard targeting logic; else fall through to default
+- [x] Add three dropdowns below canvas in index.html: Melee (Warrior/Captain), Ranged (Archer/Mage), Siege (Engineer); Healer row labeled N/A and disabled
+- [x] Dropdown options: Default, Orc, Goblin, Ogre, General, Catapult
+- [x] Add note under Ranged dropdown: "Overrides Mage elite-targeting when set"
+- [x] Wire dropdowns to GameState.targetingPreference (onchange updates state immediately)
+
+---
+
+## 🎨 Visual Polish (In Progress)
+
+- [x] Aura glow: dim gold border on units within Captain (player) or General (enemy) aura range; healer blue glow temporarily suppresses it for its duration
+- [x] Slow-mo: move from in-canvas button to HTML checkbox in targeting controls bar, to the right of Siege dropdown; wire via GameState.sloMo
+- [x] Persist targeting preferences and slow-mo to localStorage (key: hotyPrefs); load and apply to UI on page init
+
+---
+
+## 🛠️ Testing Infrastructure
+
+- [x] Create testversion.html — clone of index.html with scenario chooser, key/legend, and all dev/test features; index.html is clean production experience (no picker, no sidebar, auto-starts Year 1 Option A)
+
+---
+
 ## 🟡 Sprint 2 — Off Season UI
 
 Goal: Build the off-season interface in HTML/CSS. Player can spend gold, build/upgrade buildings, and see incoming recruits. No persistence yet — state resets on reload.
@@ -169,6 +204,7 @@ Goal: Make the game actually playable end-to-end. Add enough visual and UX polis
 
 ## 📋 Backlog (Post-MVP)
 
+- [ ] Mobile layout — game is desktop-first in V1; mobile requires a separate design pass (scrollable/pannable viewport or responsive tile sizing); neither portrait nor landscape fits the 12×16 grid at playable tile sizes without a dedicated solution
 - [ ] Enemy composition spreadsheet — 3 variations per year across full campaign
 - [ ] Scout Academy intel reveal — decide: full composition or style hint only?
 - [ ] Captain unlock trigger — define: years of service? XP level? Both?

@@ -186,6 +186,38 @@
 
 ---
 
+## Battle UI & Layout
+
+- [2026-05-29] Tile size is 46px; canvas = 552×736 (adjusted from 40px after targeting controls moved to a single compact row)
+- [2026-05-29] Targeting controls rendered as one inline row below canvas: "Targeting: Melee [drop] Ranged [drop] Siege [drop]" — no Healer row, no notes
+- [2026-05-29] Status bar (Year / Enemies / Defenders) moved to top-center of canvas; FPS counter removed
+- [2026-05-29] Battle starts with a 3-2-1-FIGHT! countdown (1s per number, 0.7s for FIGHT!); game loop is frozen during countdown so player can set targeting preferences
+- [2026-05-29] Key/legend sidebar is hidden in production battle view — unit icons carry the visual identity; sidebar remains visible in dev/test picker view only
+- [2026-05-29] Targeting preference UI: three dropdowns (Melee, Ranged, Siege) displayed below the battle canvas
+- [2026-05-29] Healer is excluded from targeting preference UI — labeled N/A; it targets friendlies, not enemies
+- [2026-05-29] Each dropdown includes "Default" as first option, which means standard targeting rules apply for that group
+- [2026-05-29] Ranged group override applies to Mages — player accepts consequences (Mage may ignore elites); dropdown shows a brief warning note
+- [2026-05-29] Game is desktop-first for V1; mobile layout deferred to a later sprint
+- [2026-05-29] Healed units display a 0.5s blue postFX glow on their sprite; implemented via Phaser postFX.addGlow() removed by delayedCall
+- [2026-05-29] Healer healTimer initializes to 0 (not HEALER_HEAL_S) — healer fires as soon as it finds an injured ally, then 10s cooldown; original 10s startup delay caused healers to die before first heal
+- [2026-05-29] Healer XP: 1 XP per 50 HP healed (accumulated across heals, fractional HP tracked in healXpAccum)
+- [2026-05-29] Aura glow: units within a Captain or General aura radius show a dim gold postFX glow (AURA_GLOW_COLOR 0xccaa00, outer 3); healer blue heal glow temporarily suppresses the gold for its 500ms duration; after blue fades the gold naturally returns on next tick if still in aura
+- [2026-05-29] Targeting candidates exclude isInReserve units — reserve units are inert and must not be targetable by either side; also fixes mage elite targeting which previously could pick an out-of-range reserve General as "nearest elite" and fail to find in-range active elites
+- [2026-05-29] Mage elite targeting uses elitesInRange (filter before nearest) not nearElite + range check after; old approach silently fell back to non-elite targets when the globally-nearest elite was out of range
+- [2026-05-29] On rout trigger: all non-reserve, non-stationary player units have reinforceSection and waypoint cleared so they give chase; previously reinforce-hold warriors stayed frozen behind the wall because only wall breach released reinforceSection
+- [2026-05-29] Reinforce for archers/mages/healers: uses a waypoint to WALL_ROW+1 (same position as warriors) — waypoint clears on arrival so normal enemy targeting takes over; warriors/captains keep reinforceSection hold until breach; ranged units must NOT have wall segment set as target (causes them to attack/shoot the wall and refuse to move)
+- [2026-05-29] Slow-mo is a player-facing feature: moved from an in-canvas debug button to a "Slow Mo" checkbox in the HTML targeting controls bar (right-aligned, to the right of Siege dropdown); state lives in GameState.sloMo; BattleScene reads it each tick
+- [2026-05-29] Targeting preferences and slow-mo are persisted to localStorage under key 'hotyPrefs' (JSON: melee, ranged, siege, sloMo); loaded and applied to both GameState and UI elements on page init; shared between index.html and testversion.html
+
+---
+
+## Testing Infrastructure
+
+- [2026-05-29] Two HTML entry points: `index.html` = clean production experience (no test UI, auto-starts Year 1 with randomly selected composition); `testversion.html` = dev/test experience with scenario chooser, key/legend sidebar, and stress test button — both import the same JS modules
+- [2026-05-29] Random composition selection in `index.html` uses `Math.floor(Math.random() * 3)` at page load for Year 1
+
+---
+
 ## V2 Deferred (Do Not Implement in V1)
 
 - [2025-05-27] Ladder mechanics and wall height gameplay effects

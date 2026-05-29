@@ -1,5 +1,5 @@
 // ── Map layout ─────────────────────────────────────────────────────────────
-export const TILE           = 50;   // pixels per tile
+export const TILE           = 46;   // pixels per tile
 export const MAP_W          = 12;   // tiles wide
 export const MAP_H          = 16;   // tiles tall
 export const WALL_ROW       = 11;   // tile row the wall sits on (0-indexed)
@@ -35,13 +35,14 @@ export const ENEMY_SPAWN_SPACING = 0.8;  // row gap in spawn grid
 export const ENEMY_MOVE_DELAY    = 2.0;  // seconds before non-ogres start moving
 
 // ── Units ──────────────────────────────────────────────────────────────────
-export const UNIT_W  = 18;   // sprite width in pixels
-export const UNIT_H  = 18;   // sprite height in pixels
-export const UNIT_R  = 9;    // player unit circle radius in pixels
+export const UNIT_W  = 16;   // sprite width in pixels
+export const UNIT_H  = 16;   // sprite height in pixels
+export const UNIT_R  = 8;    // player unit circle radius in pixels
 export const MAX_LEVEL       = 5;
 export const XP_THRESHOLDS   = [0, 5, 10, 20, 30];  // XP needed to reach each level (index = current level)
-export const HEALER_HEAL_S   = 10;   // seconds between heals
-export const HEALER_HEAL_RANGE = 2;  // tiles
+export const HEALER_HEAL_S       = 10;   // seconds between heals
+export const HEALER_HEAL_RANGE   = 2;    // tiles
+export const HEALER_XP_PER_HP    = 50;  // HP healed per 1 XP awarded to healer
 export const HP_BAR_H        = 3;    // unit HP bar height in pixels
 export const HP_BAR_Y_GAP    = 4;    // pixels between sprite top and HP bar
 
@@ -58,7 +59,17 @@ export const PROJECTILE_STYLES = {
 export const PROJ_DEFAULT_STYLE = { color: 0xffffff, speed: 10, w: 10, h: 2, trebuchet: false };
 
 // ── Announcements ──────────────────────────────────────────────────────────
-export const ANNOUNCE_MS = 2500;
+export const ANNOUNCE_MS        = 2500;
+export const COUNTDOWN_STEP_MS  = 1000;  // ms per countdown number (3, 2, 1)
+export const COUNTDOWN_FIGHT_MS = 700;   // ms "FIGHT!" is shown before game starts
+
+// ── Visual: effects ───────────────────────────────────────────────────────
+export const HEAL_GLOW_MS    = 500;    // duration of blue glow on healed unit
+export const HEAL_GLOW_COLOR = 0x4488ff;
+export const HEAL_GLOW_OUTER = 6;     // postFX glow outer strength in pixels
+
+export const AURA_GLOW_COLOR = 0xccaa00;  // dim gold border on aura-buffed units
+export const AURA_GLOW_OUTER = 3;
 
 // ── Visual: map ────────────────────────────────────────────────────────────
 export const COLOR_ENEMY_TERRITORY  = 0x2d4a1e;

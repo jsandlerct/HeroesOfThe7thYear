@@ -1,9 +1,11 @@
 import {
   TILE, UNIT_W, UNIT_H, UNIT_R,
-  MAX_LEVEL, XP_THRESHOLDS, HEALER_HEAL_S,
+  MAX_LEVEL, XP_THRESHOLDS,
   HP_BAR_H, HP_BAR_Y_GAP,
   COLOR_HP_BAR_BG, COLOR_HP_HIGH, COLOR_HP_MED, COLOR_HP_LOW,
   HP_THRESH_MED, HP_THRESH_LOW,
+  HEAL_GLOW_MS, HEAL_GLOW_COLOR, HEAL_GLOW_OUTER,
+  AURA_GLOW_COLOR, AURA_GLOW_OUTER,
 } from '../data/constants.js';
 
 let _nextId = 0;
@@ -41,12 +43,15 @@ export class Unit {
     this.isAoe            = def.isAoe            ?? false;
     this.aoeRadius        = def.aoeRadius        ?? 0;
     this.isHealer         = def.isHealer         ?? false;
-    this.healTimer        = this.isHealer ? HEALER_HEAL_S : 0;
+    this.healTimer        = 0;
 
     this.hasCaptainAura = def.hasCaptainAura ?? false;
     this.hasGeneralAura = def.hasGeneralAura ?? false;
     this.auraRadius     = def.auraRadius     ?? 0;
     this.auraDmgBonus   = def.auraDmgBonus   ?? 0;
+
+    this._auraGlowFX       = null;
+    this._suppressAuraGlow = false;
 
     this.isInReserve = false;
     this.reserveSlot = null;
@@ -129,6 +134,29 @@ export class Unit {
     if (this.icon) this.icon.destroy();
     this.hpBarBg.destroy();
     this.hpBarFg.destroy();
+  }
+
+  setAuraGlow(active) {
+    if (active && !this._suppressAuraGlow && !this._auraGlowFX) {
+      this._auraGlowFX = this.sprite.postFX.addGlow(AURA_GLOW_COLOR, AURA_GLOW_OUTER, 0);
+    } else if (!active && this._auraGlowFX) {
+      this.sprite.postFX.remove(this._auraGlowFX);
+      this._auraGlowFX = null;
+    }
+  }
+
+  triggerHealGlow(scene) {
+    // Suppress gold aura glow for the duration of the blue heal glow
+    if (this._auraGlowFX) {
+      this.sprite.postFX.remove(this._auraGlowFX);
+      this._auraGlowFX = null;
+    }
+    this._suppressAuraGlow = true;
+    const glow = this.sprite.postFX.addGlow(HEAL_GLOW_COLOR, HEAL_GLOW_OUTER, 0);
+    scene.time.delayedCall(HEAL_GLOW_MS, () => {
+      if (!this.isDead) this.sprite.postFX.remove(glow);
+      this._suppressAuraGlow = false;
+    });
   }
 
   awardXp(amount) {

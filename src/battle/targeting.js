@@ -1,4 +1,11 @@
 import { WALL_ROW, HEALER_HEAL_RANGE } from '../data/constants.js';
+import { GameState } from '../state/GameState.js';
+
+const TARGETING_GROUP = {
+  warrior: 'melee',  captain: 'melee',
+  archer:  'ranged', mage:    'ranged',
+  engineer: 'siege',
+};
 
 export function tileDist(a, b) {
   return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2);
@@ -44,8 +51,18 @@ function playerPressureActive(playerUnits, wallSegments) {
 }
 
 export function findTarget(unit, allUnits, wallSegments) {
-  const playerUnits = allUnits.filter(u => u.team === 'player' && !u.isDead);
-  const enemyUnits  = allUnits.filter(u => u.team === 'enemy'  && !u.isDead && u.y >= 0);
+  const playerUnits = allUnits.filter(u => u.team === 'player' && !u.isDead && !u.isInReserve);
+  let   enemyUnits  = allUnits.filter(u => u.team === 'enemy'  && !u.isDead && !u.isInReserve && u.y >= 0);
+
+  // Apply targeting preference override for player units
+  if (unit.team === 'player') {
+    const group = TARGETING_GROUP[unit.type];
+    const pref  = group && GameState.targetingPreference[group];
+    if (pref && pref !== 'default') {
+      const preferred = enemyUnits.filter(e => e.type === pref);
+      if (preferred.length) enemyUnits = preferred;
+    }
+  }
 
   switch (unit.type) {
     case 'warrior':
@@ -60,8 +77,8 @@ export function findTarget(unit, allUnits, wallSegments) {
 
     case 'mage': {
       const elites = enemyUnits.filter(e => e.isElite);
-      const nearElite = nearest(unit, elites);
-      if (nearElite && tileDist(unit, nearElite) <= unit.range) return nearElite;
+      const elitesInRange = elites.filter(e => tileDist(unit, e) <= unit.range);
+      if (elitesInRange.length) return nearest(unit, elitesInRange);
       const inRange = farthestInRange(unit, enemyUnits);
       return inRange ?? nearest(unit, enemyUnits);
     }
@@ -100,7 +117,7 @@ export function findTarget(unit, allUnits, wallSegments) {
 
 export function findHealTarget(healer, allUnits) {
   const allies = allUnits.filter(u =>
-    u.team === healer.team && !u.isDead && u !== healer && u.hp < u.maxHp
+    u.team === healer.team && !u.isDead && !u.isInReserve && u !== healer && u.hp < u.maxHp
   );
   return lowestHpPct(healer, allies, HEALER_HEAL_RANGE);
 }

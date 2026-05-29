@@ -29,5 +29,13 @@ export const GameState = {
   // Persistent roster between battles (Sprint 3)
   roster: [],
 
+  sloMo: false,
+
+  targetingPreference: {
+    melee:  'default',  // warrior, captain
+    ranged: 'default',  // archer, mage
+    siege:  'default',  // engineer
+  },
+
   battleResult: null,
 };

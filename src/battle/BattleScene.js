@@ -13,7 +13,8 @@ import {
   ATK_RANGE_BUFFER, MAX_DR, ROUT_THRESHOLD,
   WALL_BLOCK_Y, WALL_BREACH_DROP, SLOMOER_SCALE, NUDGE_STOP_DIST,
   ENEMY_SPAWN_ROW, ENEMY_SPAWN_SPACING, ENEMY_MOVE_DELAY,
-  HEALER_HEAL_S, ANNOUNCE_MS,
+  HEALER_HEAL_S, HEALER_XP_PER_HP, ANNOUNCE_MS,
+  COUNTDOWN_STEP_MS, COUNTDOWN_FIGHT_MS,
   COLOR_ENEMY_TERRITORY, COLOR_PLAYER_TERRITORY, ALPHA_GRID,
   COLOR_ENEMY_RESERVE_ZONE, ALPHA_ENEMY_RESERVE_ZONE,
   COLOR_PLAYER_RESERVE_ZONE, ALPHA_PLAYER_RESERVE_ZONE,
@@ -48,8 +49,8 @@ export class BattleScene extends Phaser.Scene {
     this.units       = [];
     this.walls       = [];
     this.projectiles = [];
-    this.battleOver  = false;
-    this.sloMo       = false;
+    this.battleOver      = false;
+    this.countdownActive = true;
     this.startingEnemyCount       = 0;
     this.startingActiveEnemyCount = 0;
     this.battleTime      = 0;
@@ -69,6 +70,8 @@ export class BattleScene extends Phaser.Scene {
 
     this.startingEnemyCount       = this.units.filter(u => u.team === 'enemy').length;
     this.startingActiveEnemyCount = this.units.filter(u => u.team === 'enemy' && !u.isInReserve).length;
+
+    this._startCountdown();
 
     const rendererType = this.game.renderer.type === Phaser.WEBGL ? 'WebGL' : 'Canvas';
     console.log(`[BattleScene] Renderer: ${rendererType} | Units spawned: ${this.units.length}`);
@@ -322,45 +325,48 @@ export class BattleScene extends Phaser.Scene {
   // ─────────────────────────────────────────────
   // UI
   // ─────────────────────────────────────────────
+  _startCountdown() {
+    const W = MAP_W * TILE;
+    const H = MAP_H * TILE;
+    const style = {
+      fontSize: '96px', color: '#ffffff', fontStyle: 'bold',
+      stroke: '#000000', strokeThickness: 8,
+    };
+    const txt = this.add.text(W / 2, H / 2, '3', style)
+      .setOrigin(0.5, 0.5).setDepth(20);
+
+    this.time.delayedCall(COUNTDOWN_STEP_MS,     () => txt.setText('2'));
+    this.time.delayedCall(COUNTDOWN_STEP_MS * 2, () => txt.setText('1'));
+    this.time.delayedCall(COUNTDOWN_STEP_MS * 3, () => {
+      txt.setText('FIGHT!').setStyle({ ...style, fontSize: '64px', color: '#ffdd44' });
+    });
+    this.time.delayedCall(COUNTDOWN_STEP_MS * 3 + COUNTDOWN_FIGHT_MS, () => {
+      txt.destroy();
+      this.countdownActive = false;
+    });
+  }
+
+  // ─────────────────────────────────────────────
   _buildUI() {
     const W = MAP_W * TILE;
-    this.statusText = this.add.text(W / 2, MAP_H * TILE - 16, '', {
-      fontSize: '14px', color: '#ffffff', backgroundColor: '#00000088',
-      padding: { x: 6, y: 3 },
-    }).setOrigin(0.5, 1).setDepth(10);
+    this.statusText = this.add.text(W / 2, 10, '', {
+      fontSize: '13px', color: '#ffffff', backgroundColor: '#00000099',
+      padding: { x: 8, y: 3 },
+    }).setOrigin(0.5, 0).setDepth(10);
 
     this.announceText = this.add.text(W / 2, MAP_H * TILE / 2 - 40, '', {
       fontSize: '22px', color: '#ffdd44', fontStyle: 'bold',
       stroke: '#000000', strokeThickness: 4,
     }).setOrigin(0.5, 0.5).setDepth(11).setVisible(false);
 
-    this.fpsText = this.add.text(4, 4, '', {
-      fontSize: '11px', color: '#aaaaaa',
-    }).setDepth(11);
-
     this.timerText = this.add.text(W / 2, 6, '0:00', {
       fontSize: '16px', color: '#dddddd', fontStyle: 'bold',
       stroke: '#000000', strokeThickness: 3,
     }).setOrigin(0.5, 0).setDepth(11);
 
-    this.sloMoBtn = this.add.text(W - 8, 8, '[ SLOW MO: OFF ]', {
-      fontSize: '12px', color: '#cccccc',
-      backgroundColor: '#222222',
-      padding: { x: 6, y: 4 },
-    }).setOrigin(1, 0).setDepth(11).setInteractive({ useHandCursor: true });
-
-    this.sloMoBtn.on('pointerdown', () => {
-      this.sloMo = !this.sloMo;
-      this.sloMoBtn
-        .setText(this.sloMo ? '[ SLOW MO: ON  ]' : '[ SLOW MO: OFF ]')
-        .setColor(this.sloMo ? '#ffdd44' : '#cccccc');
-    });
-    this.sloMoBtn.on('pointerover',  () => this.sloMoBtn.setColor(this.sloMo ? '#ffe97a' : '#ffffff'));
-    this.sloMoBtn.on('pointerout',   () => this.sloMoBtn.setColor(this.sloMo ? '#ffdd44' : '#cccccc'));
-
     for (const slot of this.playerReserve) {
       const cx = (slot.startCol + WALL_SECTION_W / 2) * TILE;
-      const by = PLAYER_RESERVE_ROW * TILE + 6;
+      const by = (PLAYER_RESERVE_ROW + 1) * TILE + 6;
       const btn = this.add.text(cx, by, `DEPLOY\n(${slot.units.length})`, {
         fontSize: '10px', color: '#88aaff',
         backgroundColor: '#00000099',
@@ -377,7 +383,10 @@ export class BattleScene extends Phaser.Scene {
 
   _showAnnouncement(msg, color) {
     this.announceText.setText(msg).setColor(color ?? '#ffdd44').setVisible(true);
-    this.time.delayedCall(ANNOUNCE_MS, () => this.announceText.setVisible(false));
+    // Don't hide if the battle has already ended — _endBattle reuses this same text object
+    this.time.delayedCall(ANNOUNCE_MS, () => {
+      if (!this.battleOver) this.announceText.setVisible(false);
+    });
   }
 
   // ─────────────────────────────────────────────
@@ -387,37 +396,57 @@ export class BattleScene extends Phaser.Scene {
     if (slot.deployed) return;
     this._hideDeployMenu();
 
-    const OPTIONS = [
-      { label: 'Sortie Left',      action: 'sortie_left'      },
-      { label: 'Sortie Center',    action: 'sortie_center'    },
-      { label: 'Sortie Right',     action: 'sortie_right'     },
-      { label: 'Reinforce Left',   action: 'reinforce_left'   },
-      { label: 'Reinforce Center', action: 'reinforce_center' },
-      { label: 'Reinforce Right',  action: 'reinforce_right'  },
-      { label: 'Cancel',           action: null               },
+    const W       = MAP_W * TILE;
+    const x_L     = W / 4;
+    const x_C     = W / 2;
+    const x_R     = W * 3 / 4;
+    const rowH    = 28;
+    const yBase   = PLAYER_RESERVE_ROW * TILE - 8;
+    const y_sort  = yBase - rowH * 2;
+    const y_reinf = yBase - rowH;
+    const y_cncl  = yBase;
+
+    const ROWS = [
+      [
+        { label: 'Sortie L',    action: 'sortie_left',      x: x_L },
+        { label: 'Sortie C',    action: 'sortie_center',    x: x_C },
+        { label: 'Sortie R',    action: 'sortie_right',     x: x_R },
+      ],
+      [
+        { label: 'Reinforce L', action: 'reinforce_left',   x: x_L },
+        { label: 'Reinforce C', action: 'reinforce_center', x: x_C },
+        { label: 'Reinforce R', action: 'reinforce_right',  x: x_R },
+      ],
     ];
+    const ROW_Y = [y_sort, y_reinf];
 
-    const ax = (slot.startCol + WALL_SECTION_W / 2) * TILE;
-    const ay = PLAYER_RESERVE_ROW * TILE + 4;
-    const items = OPTIONS.map((opt, i) => {
-      const y = ay - (OPTIONS.length - i) * 22;
-      const item = this.add.text(ax, y, opt.label, {
-        fontSize: '11px',
-        color: opt.action ? '#ffffff' : '#888888',
-        backgroundColor: '#111111dd',
-        padding: { x: 7, y: 4 },
-      }).setOrigin(0.5, 0).setDepth(20).setInteractive({ useHandCursor: !!opt.action });
+    const bg = this.add.rectangle(W / 2, (y_sort + y_cncl) / 2, W - 24, rowH * 3 + 8, 0x000000, 0.80)
+      .setDepth(19);
 
-      if (opt.action) {
-        item.on('pointerover',  () => item.setColor('#ffdd44'));
-        item.on('pointerout',   () => item.setColor('#ffffff'));
-        item.on('pointerdown',  () => { this._deployPlayerSlot(slot, opt.action); this._hideDeployMenu(); });
-      } else {
-        item.on('pointerdown', () => this._hideDeployMenu());
-      }
-      return item;
-    });
-    this._deployMenu = items;
+    const makeBtn = (opt, y) => {
+      const btn = this.add.text(opt.x, y, opt.label, {
+        fontSize: '11px', color: '#ffffff',
+        backgroundColor: '#1a1a1aee', padding: { x: 9, y: 5 },
+      }).setOrigin(0.5, 0.5).setDepth(20).setInteractive({ useHandCursor: true });
+      btn.on('pointerover',  () => btn.setColor('#ffdd44'));
+      btn.on('pointerout',   () => btn.setColor('#ffffff'));
+      btn.on('pointerdown',  () => { this._deployPlayerSlot(slot, opt.action); this._hideDeployMenu(); });
+      return btn;
+    };
+
+    const cancel = this.add.text(x_C, y_cncl, 'Cancel', {
+      fontSize: '10px', color: '#777777',
+      backgroundColor: '#1a1a1aee', padding: { x: 9, y: 4 },
+    }).setOrigin(0.5, 0.5).setDepth(20).setInteractive({ useHandCursor: true });
+    cancel.on('pointerover',  () => cancel.setColor('#aaaaaa'));
+    cancel.on('pointerout',   () => cancel.setColor('#777777'));
+    cancel.on('pointerdown',  () => this._hideDeployMenu());
+
+    this._deployMenu = [
+      bg,
+      ...ROWS.flatMap((row, ri) => row.map(opt => makeBtn(opt, ROW_Y[ri]))),
+      cancel,
+    ];
   }
 
   _hideDeployMenu() {
@@ -444,7 +473,8 @@ export class BattleScene extends Phaser.Scene {
         u.waypoint = { x: targetWall.x, y: WALL_ROW };
       } else if (mode === 'reinforce' && targetWall) {
         if (['archer', 'mage', 'healer'].includes(u.type)) {
-          u.target = targetWall;
+          // Move to just behind the wall, then engage enemies normally once arrived
+          u.waypoint = { x: targetWall.x, y: WALL_ROW + 1 };
         } else {
           // Move to just behind wall, then hold until breach releases them
           u.waypoint = { x: targetWall.x, y: WALL_ROW + 1 };
@@ -529,11 +559,14 @@ export class BattleScene extends Phaser.Scene {
   // ─────────────────────────────────────────────
   update(time, delta) {
     if (this.battleOver) return;
-    const dt = (delta / 1000) * (this.sloMo ? SLOMOER_SCALE : 1);
+    if (this.countdownActive) {
+      for (const u of this.units) u.syncSprite();
+      return;
+    }
+    const dt = (delta / 1000) * (GameState.sloMo ? SLOMOER_SCALE : 1);
 
     this.battleTime += delta / 1000;
 
-    this.fpsText.setText(`FPS: ${Math.round(this.game.loop.actualFps)} | Units: ${this.units.length}`);
     const mins = Math.floor(this.battleTime / 60);
     const secs = Math.floor(this.battleTime % 60).toString().padStart(2, '0');
     this.timerText.setText(`${mins}:${secs}`);
@@ -545,6 +578,7 @@ export class BattleScene extends Phaser.Scene {
     this._tickUnits(dt);
     this._applySeparation();
     this._tickProjectiles(dt);
+    this._updateAuraGlows();
 
     for (const u of this.units) u.syncSprite();
 
@@ -552,6 +586,22 @@ export class BattleScene extends Phaser.Scene {
     this._checkReserves();
     this._checkRout();
     this._checkRoundEnd();
+  }
+
+  // ─────────────────────────────────────────────
+  // AURA GLOWS
+  // ─────────────────────────────────────────────
+  _updateAuraGlows() {
+    const providers = this.units.filter(u =>
+      !u.isDead && !u.isInReserve && (u.hasCaptainAura || u.hasGeneralAura)
+    );
+    for (const unit of this.units) {
+      if (unit.isDead || unit.isInReserve) continue;
+      const inAura = providers.some(p =>
+        p !== unit && p.team === unit.team && tileDist(unit, p) <= p.auraRadius
+      );
+      unit.setAuraGlow(inAura);
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -591,8 +641,11 @@ export class BattleScene extends Phaser.Scene {
       // Move toward target (non-stationary units)
       if (!unit.isStationary) {
         if (unit.waypoint) {
-          // Sortie waypoints clear once past wall; reinforce-hold waypoints only clear on breach
-          if (!unit.reinforceSection && unit.y <= WALL_ROW) {
+          const wdx = unit.waypoint.x - unit.x;
+          const wdy = unit.waypoint.y - unit.y;
+          const arrived = (wdx * wdx + wdy * wdy) < NUDGE_STOP_DIST * NUDGE_STOP_DIST;
+          // Sortie: clear when past wall; ranged reinforce: clear when arrived at destination
+          if (!unit.reinforceSection && (unit.y <= WALL_ROW || arrived)) {
             unit.waypoint = null;
           } else {
             this._nudgeToward(unit, unit.waypoint.x, unit.waypoint.y, dt);
@@ -612,8 +665,8 @@ export class BattleScene extends Phaser.Scene {
           } else {
             this._attackUnit(unit, tgt);
           }
+          unit.atkTimer += unit.atkSpeed;
         }
-        unit.atkTimer += unit.atkSpeed;
       }
 
       // Healer heal tick
@@ -621,8 +674,18 @@ export class BattleScene extends Phaser.Scene {
         unit.healTimer -= dt;
         if (unit.healTimer <= 0) {
           const healTgt = findHealTarget(unit, this.units);
-          if (healTgt) healTgt.hp = healTgt.maxHp;
-          unit.healTimer += HEALER_HEAL_S;
+          if (healTgt) {
+            const hpRestored = healTgt.maxHp - healTgt.hp;
+            healTgt.hp = healTgt.maxHp;
+            healTgt.triggerHealGlow(this);
+            unit.healXpAccum = (unit.healXpAccum ?? 0) + hpRestored;
+            const xpEarned = Math.floor(unit.healXpAccum / HEALER_XP_PER_HP);
+            if (xpEarned > 0) {
+              unit.awardXp(xpEarned);
+              unit.healXpAccum -= xpEarned * HEALER_XP_PER_HP;
+            }
+            unit.healTimer += HEALER_HEAL_S;
+          }
         }
       }
     }
@@ -863,6 +926,13 @@ export class BattleScene extends Phaser.Scene {
         playerAlive > allAlive.length) {
       this._routTriggered = true;
       for (const u of active) u.isRouting = true;
+      // Release reinforce-hold player units so they give chase
+      for (const u of this.units) {
+        if (u.team === 'player' && !u.isDead && !u.isInReserve && !u.isStationary) {
+          u.reinforceSection = null;
+          u.waypoint = null;
+        }
+      }
       this._showAnnouncement('ENEMY IS ROUTING!', '#44ff88');
     }
   }
