@@ -5,9 +5,7 @@
 import { PORTRAIT_BY_ID } from '../../data/portraits.js';
 
 function yearsLabel(n) {
-  if (n === 0) return 'First year of service';
-  if (n === 1) return '1 year of service';
-  return `${n} years of service`;
+  return `${n ?? 0} years of service`;
 }
 
 function classLabel(cls) {

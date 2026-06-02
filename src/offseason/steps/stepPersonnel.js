@@ -423,6 +423,26 @@ export function render(gs, wizardState, contentEl, wizard) {
     renderRows();
   };
 
+  // ── "Assign unassigned units" button ──────────────────────────────────────
+  const assignBtn = document.createElement('button');
+  assignBtn.className = 'os-btn';
+  assignBtn.textContent = 'Assign unassigned units';
+  assignBtn.style.cssText = 'margin-top:18px;';
+  assignBtn.onclick = () => {
+    const wallOpts    = ['wallLeft', 'wallCenter', 'wallRight'];
+    const reserveOpts = ['reserveLeft', 'reserveCenter', 'reserveRight'];
+    const wallClasses = new Set(['archer', 'mage']);
+    for (const u of allCombatants) {
+      if (wizardState.assignments[u.id]) continue;  // already assigned
+      const opts = wallClasses.has(u.class) ? wallOpts : reserveOpts;
+      wizardState.assignments[u.id] = opts[Math.floor(Math.random() * opts.length)];
+    }
+    renderRows();
+    updateWarnings();
+    refreshNextButton();
+  };
+  contentEl.appendChild(assignBtn);
+
   // Initial render
   renderRows();
   updateWarnings();

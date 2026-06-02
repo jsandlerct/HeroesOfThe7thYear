@@ -181,13 +181,14 @@ export function render(gs, wizardState, contentEl) {
     if (repair > 0) hpText += ` <span style="color:#5a8a3a">(+${repair} repaired)</span>`;
     hpLabel.innerHTML = hpText;
 
+    const hasArtisan  = (gs.buildings.artisanWorkshop || 0) + (spending.buildings.artisanWorkshop || 0) > 0;
     const blockHp     = Math.min(MASON_REPAIR_PER_SEASON, damage - repair);
     const repairCost  = blockHp * WALL_REPAIR_COST_PER_HP;
     const spent       = computeGoldSpent(gs, spending);
     const canAffordRepair = wizardState.goldAvailable - spent >= repairCost;
-    const canRepairMore   = damage - repair > 0 && canAffordRepair;
+    const canRepairMore   = hasArtisan && damage - repair > 0 && canAffordRepair;
     repairBtn.disabled    = !canRepairMore || damage === 0;
-    repairBtn.title       = damage === 0 ? 'No damage' : !canAffordRepair ? 'Not enough gold' : '';
+    repairBtn.title       = !hasArtisan ? 'Requires Artisan Workshop' : damage === 0 ? 'No damage' : !canAffordRepair ? 'Not enough gold' : '';
     undoRepairBtn.disabled = repair <= 0;
 
     const nextLevel = effLevel + 1;
