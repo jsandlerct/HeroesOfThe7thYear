@@ -18,6 +18,12 @@ const ASSIGNMENT_OPTIONS = [
   { value: 'reserveRight', label: 'Reserve Right', wallOnly: false },
 ];
 
+// Sort order for assignment values — wall sections first, reserves second, unassigned last
+const ASSIGNMENT_SORT_ORDER = {
+  wallLeft: 0, wallCenter: 1, wallRight: 2,
+  reserveLeft: 3, reserveCenter: 4, reserveRight: 5,
+};
+
 // Warriors and Captains cannot be placed on the wall
 const RESERVE_ONLY_CLASSES = new Set(['warrior', 'captain']);
 // Masons and Scouts are not combat-deployed — excluded from this table
@@ -224,24 +230,24 @@ export function render(gs, wizardState, contentEl, wizard) {
   headerRow.style.cssText = 'border-bottom:1px solid #3a2a10;';
 
   const COLUMNS = [
-    { key: 'name',    label: 'Name',            width: '22%' },
-    { key: 'class',   label: 'Class',           width: '12%' },
-    { key: 'year',    label: 'Yr',              width: '6%'  },
-    { key: 'level',   label: 'Lv',              width: '6%'  },
-    { key: 'assign',  label: 'Assignment',      width: '22%' },
-    { key: 'detail',  label: '',                width: '8%'  },
+    { key: 'name',    label: 'Name',       width: '22%', sortable: true  },
+    { key: 'class',   label: 'Class',      width: '12%', sortable: true  },
+    { key: 'year',    label: 'Yr',         width: '6%',  sortable: true  },
+    { key: 'level',   label: 'Lv',         width: '6%',  sortable: true  },
+    { key: 'assign',  label: 'Assignment', width: '22%', sortable: true  },
+    { key: 'detail',  label: '',           width: '8%',  sortable: false },
   ];
 
   for (const col of COLUMNS) {
     const th = document.createElement('th');
     th.style.cssText =
       `text-align:left;padding:7px 10px;font-size:11px;letter-spacing:0.08em;` +
-      `text-transform:uppercase;color:${col.key !== 'assign' && col.key !== 'detail' ? '#6a5a3a' : '#3a2a10'};` +
+      `text-transform:uppercase;color:${col.sortable ? '#6a5a3a' : '#3a2a10'};` +
       `width:${col.width};` +
-      (col.key !== 'assign' && col.key !== 'detail' ? 'cursor:pointer;user-select:none;' : '');
+      (col.sortable ? 'cursor:pointer;user-select:none;' : '');
     th.textContent = col.label;
 
-    if (col.key !== 'assign' && col.key !== 'detail') {
+    if (col.sortable) {
       th.onclick = () => {
         if (pState.sortCol === col.key) {
           pState.sortDir = pState.sortDir === 'asc' ? 'desc' : 'asc';
@@ -266,11 +272,12 @@ export function render(gs, wizardState, contentEl, wizard) {
 
   function getSortValue(u, col) {
     switch (col) {
-      case 'name':  return (u.name ?? '').toLowerCase();
-      case 'class': return u.class ?? '';
-      case 'year':  return u.yearOfService ?? 0;
-      case 'level': return u.level ?? 1;
-      default:      return '';
+      case 'name':   return (u.name ?? '').toLowerCase();
+      case 'class':  return u.class ?? '';
+      case 'year':   return u.yearOfService ?? 0;
+      case 'level':  return u.level ?? 1;
+      case 'assign': return ASSIGNMENT_SORT_ORDER[wizardState.assignments[u.id]] ?? 99;
+      default:       return '';
     }
   }
 
@@ -294,7 +301,7 @@ export function render(gs, wizardState, contentEl, wizard) {
     for (const th of headerRow.children) {
       const col = COLUMNS.find(c => c.label === th.textContent.replace(/[▲▼]/g, '').trim() ||
                                     (th.textContent === '' && c.key === 'detail'));
-      if (col && col.key !== 'assign' && col.key !== 'detail') {
+      if (col && col.sortable) {
         const base = col.label;
         if (pState.sortCol === col.key) {
           th.textContent = base + (pState.sortDir === 'asc' ? ' ▲' : ' ▼');

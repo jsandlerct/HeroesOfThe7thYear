@@ -1095,6 +1095,13 @@ export class BattleScene extends Phaser.Scene {
       ru.bonusDmg = u.bonusDmg;
     }
 
+    // Write wall HP back to GameState so off-season gold and repair screens
+    // reflect actual battle damage.
+    for (const wall of this.walls) {
+      const seg = GameState.wallSegments.find(s => s.section === wall.section);
+      if (seg) seg.hp = wall.hp;
+    }
+
     GameState.battleResult = result;
     const msg = result === 'victory' ? 'VICTORY!' : 'DEFEAT';
     const col = result === 'victory' ? '#44ff44' : '#ff4444';
