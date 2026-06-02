@@ -169,7 +169,6 @@ function generateOne(unitClass, gameState) {
     xp:            0,
     yearOfService: 0,
     assignment:    null,
-    injured:       false,
     isNewRecruit:  true,
   };
 }
@@ -181,6 +180,38 @@ function ensurePortraitDecks(gameState) {
   if (!gameState.portraitDecks) {
     gameState.portraitDecks = buildPortraitDecks();
   }
+}
+
+// Greeting used for all four starter veterans in Year 1 off-season.
+// The modal prepends "Commander, " — this text follows that prefix.
+const STARTER_GREETING =
+  'Last year, the wall almost fell. So many of my brothers and sisters fell in battle. ' +
+  'I know you\'re under a lot of pressure and I\'m here to help you hold the wall. ' +
+  'We cannot fail.';
+
+// Generates the starting roster: 3 level-2 archers and 1 level-3 warrior.
+// Call once at campaign start, before the Year 1 off-season wizard.
+export function generateStarterRoster(gameState) {
+  ensurePortraitDecks(gameState);
+
+  const specs = [
+    { cls: 'archer',  level: 2, xp: 5  },
+    { cls: 'archer',  level: 2, xp: 5  },
+    { cls: 'archer',  level: 2, xp: 5  },
+    { cls: 'warrior', level: 3, xp: 10 },
+  ];
+
+  const starters = specs.map(({ cls, level, xp }) => {
+    const unit = generateOne(cls, gameState);
+    unit.level        = level;
+    unit.xp           = xp;
+    unit.isNewRecruit = false;
+    unit.greeting     = STARTER_GREETING;
+    return unit;
+  });
+
+  gameState.roster.push(...starters);
+  return starters;
 }
 
 // Generate all recruits for this off-season. Mutates gameState.roster and

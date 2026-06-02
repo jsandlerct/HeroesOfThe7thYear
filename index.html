@@ -288,6 +288,7 @@
   <script type="module">
     import { GameState } from './src/state/GameState.js';
     import { initNavButtons, startOffSeason } from './src/offseason/OffSeasonUI.js';
+    import { generateStarterRoster } from './src/offseason/recruitGenerator.js';
     import './src/main.js';
 
     initNavButtons();
@@ -398,9 +399,9 @@
     document.getElementById('pref-siege').onchange   = e => { GameState.targetingPreference.siege  = e.target.value;   savePrefs(); };
     document.getElementById('slomo-toggle').onchange = e => { GameState.sloMo = e.target.checked;                      savePrefs(); };
 
-    // Start Year 1 with the off-season wizard (gold + buildings + recruit assignment)
-    // before launching the first battle.
+    // Generate 4 starter veterans before the Year 1 off-season wizard.
     GameState.year = 1;
+    generateStarterRoster(GameState);
     startOffSeason(GameState, onOffSeasonComplete);
   </script>
 </body>

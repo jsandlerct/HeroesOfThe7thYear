@@ -61,7 +61,7 @@ function showDetailModal(unit) {
   document.getElementById('os-detail-modal')?.remove();
 
   const portrait = unit.portraitId ? PORTRAIT_BY_ID[unit.portraitId] : null;
-  const greeting = pickGreeting(unit.class, unit.yearOfService);
+  const greeting = unit.greeting ?? pickGreeting(unit.class, unit.yearOfService);
 
   const backdrop = document.createElement('div');
   backdrop.id = 'os-detail-modal';
