@@ -1,7 +1,7 @@
 export const GameState = {
   year: 1,
   enemyCompositionIndex: 0,   // 0=A, 1=B, 2=C — set before battle start
-  gold: 0,   // no carryover at campaign start; Year 1 off-season provides 100g income
+  gold: 400, // starting gold (in addition to Year 1 off-season income of 100g)
 
   // Gold breakdown for the upcoming off-season (populated after battle ends)
   goldBreakdown: {
