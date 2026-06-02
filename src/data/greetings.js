@@ -260,3 +260,25 @@ export function pickGreeting(unitClass, yearOfService) {
   const pool = classPool[yearKey] ?? classPool[1];
   return pool[Math.floor(Math.random() * pool.length)];
 }
+
+// Survivor greetings — for starter veterans who lived through the previous campaign year.
+// Keyed by class; picked randomly for each starter unit.
+export const SURVIVOR_GREETINGS = {
+  archer: [
+    "We almost lost the wall. We can NEVER lose the wall.",
+    "If the wall falls, the kingdom falls. The kingdom cannot fall.",
+    "Last year, the wall almost fell. So many of my brothers and sisters fell in battle.",
+    "I still have nightmares about what happened last year.",
+    "Last year shook me to my core. But I'm back and I will hold the line. Again.",
+  ],
+  warrior: [
+    "We almost failed last year, but we didn't.",
+    "I know you're under a lot of pressure and I'm here to help you hold the wall. We cannot fail.",
+    "Last year was so close. I hope it is never that close again.",
+  ],
+};
+
+export function pickSurvivorGreeting(unitClass) {
+  const pool = SURVIVOR_GREETINGS[unitClass] ?? SURVIVOR_GREETINGS.warrior;
+  return pool[Math.floor(Math.random() * pool.length)];
+}

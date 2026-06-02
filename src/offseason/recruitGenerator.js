@@ -4,6 +4,7 @@
 
 import { MALE_NAMES, FEMALE_NAMES, SURNAMES } from '../data/names.js';
 import { BIOS } from '../data/bios.js';
+import { pickSurvivorGreeting } from '../data/greetings.js';
 import {
   buildPortraitDecks, drawPortrait, getPortraitCategory,
 } from '../data/portraits.js';
@@ -162,7 +163,7 @@ function generateOne(unitClass, gameState) {
     yearOfService: 0,
     assignment:    null,
     isNewRecruit:  true,
-    hpBonus:       Math.floor(Math.random() * 3) + 1,  // 1–3 personal HP variance
+    hpBonus:       Math.floor(Math.random() * 5) + 1,  // 1–5 personal HP variance
   };
 }
 
@@ -175,14 +176,8 @@ function ensurePortraitDecks(gameState) {
   }
 }
 
-// Greeting used for all four starter veterans in Year 1 off-season.
-// The modal prepends "Commander, " — this text follows that prefix.
-const STARTER_GREETING =
-  'Last year, the wall almost fell. So many of my brothers and sisters fell in battle. ' +
-  'I know you\'re under a lot of pressure and I\'m here to help you hold the wall. ' +
-  'We cannot fail.';
-
 // Generates the starting roster: 3 level-2 archers and 1 level-3 warrior.
+// Each unit receives a random survivor greeting drawn from their class pool.
 // Call once at campaign start, before the Year 1 off-season wizard.
 export function generateStarterRoster(gameState) {
   ensurePortraitDecks(gameState);
@@ -199,7 +194,7 @@ export function generateStarterRoster(gameState) {
     unit.level        = level;
     unit.xp           = xp;
     unit.isNewRecruit = false;
-    unit.greeting     = STARTER_GREETING;
+    unit.greeting     = pickSurvivorGreeting(cls);
     return unit;
   });
 
