@@ -45,24 +45,16 @@ function computeSlots(gameState) {
     slots.archer  = split.b;
   }
 
-  // Library — shared mage/healer pool
-  // Mages require mageWorkshop > 0; healers require hospital > 0.
+  // Library — shared mage/healer pool.
+  // Library enables both classes; Mage Workshop and Hospital are performance upgrades only.
   const libCap   = buildings.library * LIBRARY_SLOTS_PER_LEVEL;
   const mages    = countClass(roster, 'mage');
   const healers  = countClass(roster, 'healer');
   const libEmpty = Math.max(0, libCap - mages - healers);
   if (libEmpty > 0) {
-    const hasMage   = buildings.mageWorkshop > 0;
-    const hasHealer = buildings.hospital > 0;
-    if (hasMage && hasHealer) {
-      const split = splitPair(mages, healers, libCap, libEmpty);
-      slots.mage   = split.a;
-      slots.healer = split.b;
-    } else if (hasMage) {
-      slots.mage   = libEmpty;
-    } else if (hasHealer) {
-      slots.healer = libEmpty;
-    }
+    const split = splitPair(mages, healers, libCap, libEmpty);
+    slots.mage   = split.a;
+    slots.healer = split.b;
   }
 
   // Officer Academy — one Captain slot per level (hard cap: CAPTAIN_MAX living)

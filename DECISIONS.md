@@ -216,7 +216,7 @@
 - [2026-06-01] Recruit generation: `generateRecruits(gameState)` in `src/offseason/recruitGenerator.js`; called after spending confirmed; returns new unit array and pushes to `GameState.roster`
 - [2026-06-01] Portrait decks stored in `GameState.portraitDecks` (null until first generation); initialized via `buildPortraitDecks()` from `portraits.js`; `available` array shrinks on draw, `spent` array holds dead/departed until available exhausted
 - [2026-06-01] Unit ID: simple integer counter stored in `GameState._nextUnitId`, incremented per unit
-- [2026-06-01] Mages require `mageWorkshop > 0`; Healers require `hospital > 0`; both housed in Library slots — if only one building exists, all Library slots go to that class
+- [2026-06-02] Library enables both Mages and Healers for recruitment — no Mage Workshop or Hospital required; those buildings are performance upgrades only (attack speed / heal interval)
 - [2026-06-01] `buildings.mason` key removed from GameState (was an earlier design artifact); mason housing uses `artisanWorkshop` level × `ARTISAN_MASON_SLOTS` per GDD spec
 - [2026-06-01] Bio pool has 10 entries per sub-pool (youngMale/youngFemale/oldMale/oldFemale) as starting content; target is 64 per pool — expand as content is written
 - [2026-06-01] `isNewRecruit` flag on unit: true on arrival, set to false on existing roster units when new recruits are generated
