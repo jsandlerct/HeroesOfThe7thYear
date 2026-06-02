@@ -254,6 +254,35 @@
 
 ---
 
+## Design Simplifications (2026-06-02)
+
+- [2026-06-02] Injury system removed — not in current design; no injury tracking in code or GDD
+- [2026-06-02] Super unit mechanics removed — veterans who stay are just high-level normal units; no special super-unit advantages
+- [2026-06-02] Captain unlock trigger removed — Captains are recruited like any other unit; Officer Academy capacity is the only gate
+- [2026-06-02] Scout Academy always reveals full enemy composition on success (not a hint) — already implemented in Sprint 2
+
+---
+
+## Sprint 3 — Progression & Campaign Loop
+
+- [2026-06-02] XP earned in battle is written back to GameState.roster units via `rosterId` linkage: deaths written in `_handleDeath`, survivors written in `_endBattle`
+- [2026-06-02] Level-up stat bonuses applied immediately in battle (Unit._applyLevelUps called after every awardXp); also applied to roster unit on battle-end writeback via `applyLevelUpsToRosterUnit` in buildingBonuses.js
+- [2026-06-02] Building bonuses applied at battle spawn time via `computeEffectiveDef(rosterUnit, gameState)` in `src/battle/buildingBonuses.js`; not stored on roster units (recomputed each battle to reflect current building levels)
+- [2026-06-02] Enemy stats scaled by year: `hp += yearUp.hp * (year-1)`, same for dmg and armor; armor capped at 0.90; computed in `BattleScene._scaledEnemyDef(type)`
+- [2026-06-02] yearOfService increments for all surviving (non-dead) roster units after each battle — death is the only thing that ends the count (GDD changelog)
+- [2026-06-02] Heroes who stay: `isVeteran = true` flag set; added to `GameState.graduatedHeroes`; staying bonus = 1 XP to all remaining roster units (per stepHeroes.js note); heroes who depart are marked `dead = true` and removed from active roster
+- [2026-06-02] Campaign end screen: shown after year > campaignLength; displays hero graduation count; no restart in V1
+- [2026-06-02] Year 1 starts with a full off-season (gold + buildings + personnel + deployment); ceremonies skipped automatically by existing conditionals; targeted controls shown after first off-season completes
+- [2026-06-02] Starting state: `gold: 0` (Year 1 off-season provides 100g income); `buildings: { barracks: 1 }` only — all others start at 0
+- [2026-06-02] BootScene added to main.js as the Phaser auto-start scene; BattleScene started explicitly via `game.scene.start()` from off-season `onComplete`
+- [2026-06-02] BattleScene fires `battleComplete` CustomEvent on `document` 3 seconds after battle ends; index.html listener handles year advance + off-season start
+- [2026-06-02] Elite kill announcement format: `"<EliteType> slain by <character name> (<class>)!"` — falls back to class name when no roster unit is linked (e.g. test picker launches)
+- [2026-06-02] Unit death animation: greyscale via postFX ColorMatrix + 600ms alpha fade; `isDead` set immediately (game logic unaffected); sprites destroyed on tween complete; units removed from scene on `_spritesDone` flag
+- [2026-06-02] Wall damage visuals: 3-band tint (intact 0x888888 / damaged 0x776655 / critical 0x664433 / breached ALPHA_WALL_BREACH); crack lines drawn via Graphics at light (>25% HP) and heavy (≤25% HP) bands; crack pattern is section-indexed for visual variety
+- [2026-06-02] Unit icons are final art — no sprite sheet replacement needed; rout animation not needed (fleeing off-screen is sufficient)
+
+---
+
 ## GDD Maintenance
 
 - [2026-05-29] GDD updates must use targeted Edit calls against specific sections — never rewrite the whole file from scratch. Full rewrites risk losing sections due to context window limits. Add a Changelog entry for each update session.

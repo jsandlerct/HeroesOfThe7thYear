@@ -6,6 +6,7 @@ import { ENEMY_COMPOSITIONS } from '../data/compositions.js';
 import { GameState } from '../state/GameState.js';
 import { findTarget, findHealTarget, tileDist } from './targeting.js';
 import { Projectile } from './Projectile.js';
+import { computeEffectiveDef } from './buildingBonuses.js';
 import {
   TILE, MAP_W, MAP_H, WALL_ROW, WALL_SECTION_W,
   RESERVE_ZONE_ROWS, ENEMY_RESERVE_ROW, PLAYER_RESERVE_ROW,
@@ -13,7 +14,7 @@ import {
   ATK_RANGE_BUFFER, MAX_DR, ROUT_THRESHOLD,
   WALL_BLOCK_Y, WALL_BREACH_DROP, SLOMOER_SCALE, NUDGE_STOP_DIST,
   ENEMY_SPAWN_ROW, ENEMY_SPAWN_SPACING, ENEMY_MOVE_DELAY,
-  HEALER_HEAL_S, HEALER_XP_PER_HP, ANNOUNCE_MS,
+  HEALER_XP_PER_HP, ANNOUNCE_MS,
   COUNTDOWN_STEP_MS, COUNTDOWN_FIGHT_MS,
   COLOR_ENEMY_TERRITORY, COLOR_PLAYER_TERRITORY, ALPHA_GRID,
   COLOR_ENEMY_RESERVE_ZONE, ALPHA_ENEMY_RESERVE_ZONE,
@@ -160,6 +161,19 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
+  // Returns a scaled enemy def for the current year.
+  _scaledEnemyDef(type) {
+    const base = ENEMY_DEFS[type];
+    const y    = Math.max(0, GameState.year - 1);
+    const up   = base.yearUp ?? {};
+    return {
+      ...base,
+      hp:    base.hp    + (up.hp    ?? 0) * y,
+      dmg:   base.dmg   + (up.dmg   ?? 0) * y,
+      armor: Math.min(0.90, base.armor + (up.armor ?? 0) * y),
+    };
+  }
+
   // unitList = [{type, count}, ...]
   _populateEnemyReserve(slotIdx, unitList, logic) {
     const slot = this.enemyReserve[slotIdx];
@@ -175,7 +189,7 @@ export class BattleScene extends Phaser.Scene {
       const idxInRow = row === 0 ? i : i - row1n;
       const x = slot.startCol + (idxInRow + 0.5) * (WALL_SECTION_W / nInRow);
       const y = ENEMY_RESERVE_ROW + 0.5 + row;
-      const u = this._spawnUnit(type, ENEMY_DEFS[type], 'enemy', x, y);
+      const u = this._spawnUnit(type, this._scaledEnemyDef(type), 'enemy', x, y);
       u.isInReserve = true;
       u.isStationary = true;
       u.reserveSlot = slot;
@@ -222,12 +236,14 @@ export class BattleScene extends Phaser.Scene {
       const units = roster.filter(u => u.assignment === ws.assignKey);
       const n     = Math.max(units.length, 1);
       units.forEach((ru, k) => {
-        const def = UNIT_DEFS[ru.class];
+        const def = computeEffectiveDef(ru, GameState);
         if (!def) return;
         const isEngineer = ru.class === 'engineer';
         const x = ws.startCol + (k + 0.5) * (WALL_SECTION_W / n);
         const y = isEngineer ? engineerY : wallY;
         const u = this._spawnUnit(ru.class, def, 'player', x, y);
+        u.xp       = ru.xp ?? 0;
+        u.level    = ru.level ?? 1;
         u.isStationary = true;
         u.rosterId     = ru.id;
         if (!isEngineer) {
@@ -244,7 +260,7 @@ export class BattleScene extends Phaser.Scene {
       const n     = units.length;
       const row1n = Math.ceil(n / 2);
       units.forEach((ru, k) => {
-        const def = UNIT_DEFS[ru.class];
+        const def = computeEffectiveDef(ru, GameState);
         if (!def) return;
         const row      = k < row1n ? 0 : 1;
         const nInRow   = row === 0 ? row1n : n - row1n;
@@ -252,6 +268,8 @@ export class BattleScene extends Phaser.Scene {
         const x = slot.startCol + (idxInRow + 0.5) * (WALL_SECTION_W / Math.max(nInRow, 1));
         const y = PLAYER_RESERVE_ROW + 0.5 + row;
         const u = this._spawnUnit(ru.class, def, 'player', x, y);
+        u.xp       = ru.xp ?? 0;
+        u.level    = ru.level ?? 1;
         u.isInReserve  = true;
         u.isStationary = true;
         u.reserveSlot  = slot;
@@ -328,7 +346,7 @@ export class BattleScene extends Phaser.Scene {
       flat.forEach((type, idx) => {
         const col = idx % WALL_SECTION_W;
         const row = Math.floor(idx / WALL_SECTION_W);
-        this._spawnUnit(type, ENEMY_DEFS[type], 'enemy',
+        this._spawnUnit(type, this._scaledEnemyDef(type), 'enemy',
           startCol + col + 0.5, ENEMY_SPAWN_ROW + row * ENEMY_SPAWN_SPACING);
       });
     }
@@ -344,17 +362,18 @@ export class BattleScene extends Phaser.Scene {
   }
 
   _spawnStressTest() {
-    const spread = (count, y, type, def) => {
+    const spread = (count, y, type) => {
+      const def = this._scaledEnemyDef(type);
       for (let i = 0; i < count; i++)
         this._spawnUnit(type, def, 'enemy', (i + 0.5) * (MAP_W / count), y);
     };
 
-    spread(5, ENEMY_SPAWN_ROW, 'catapult', ENEMY_DEFS.catapult);
+    spread(5, ENEMY_SPAWN_ROW, 'catapult');
     for (let row = 0; row < 5; row++)
-      spread(5, ENEMY_SPAWN_ROW + 0.7 + row * 0.5, 'goblin', ENEMY_DEFS.goblin);
+      spread(5, ENEMY_SPAWN_ROW + 0.7 + row * 0.5, 'goblin');
     for (let row = 0; row < 5; row++)
-      spread(5, ENEMY_SPAWN_ROW + 3.4 + row * 0.5, 'orc', ENEMY_DEFS.orc);
-    spread(5, ENEMY_SPAWN_ROW + 6.3, 'ogre', ENEMY_DEFS.ogre);
+      spread(5, ENEMY_SPAWN_ROW + 3.4 + row * 0.5, 'orc');
+    spread(5, ENEMY_SPAWN_ROW + 6.3, 'ogre');
 
     for (const u of this.units) {
       if (u.team === 'enemy' && u.type !== 'ogre' && !u.isInReserve) u.moveDelay = ENEMY_MOVE_DELAY;
@@ -626,7 +645,7 @@ export class BattleScene extends Phaser.Scene {
   update(time, delta) {
     if (this.battleOver) return;
     if (this.countdownActive) {
-      for (const u of this.units) u.syncSprite();
+      for (const u of this.units) if (!u.isDead) u.syncSprite();
       return;
     }
     const dt = (delta / 1000) * (GameState.sloMo ? SLOMOER_SCALE : 1);
@@ -637,16 +656,14 @@ export class BattleScene extends Phaser.Scene {
     const secs = Math.floor(this.battleTime % 60).toString().padStart(2, '0');
     this.timerText.setText(`${mins}:${secs}`);
 
-    const justDied = this.units.filter(u => u.isDead);
-    for (const u of justDied) u.destroySprites();
-    this.units = this.units.filter(u => !u.isDead);
+    this.units = this.units.filter(u => !u._spritesDone);
 
     this._tickUnits(dt);
     this._applySeparation();
     this._tickProjectiles(dt);
     this._updateAuraGlows();
 
-    for (const u of this.units) u.syncSprite();
+    for (const u of this.units) if (!u.isDead) u.syncSprite();
 
     this._updateStatus();
     this._checkReserves();
@@ -750,7 +767,7 @@ export class BattleScene extends Phaser.Scene {
               unit.awardXp(xpEarned);
               unit.healXpAccum -= xpEarned * HEALER_XP_PER_HP;
             }
-            unit.healTimer += HEALER_HEAL_S;
+            unit.healTimer += unit.healInterval;
           }
         }
       }
@@ -922,8 +939,39 @@ export class BattleScene extends Phaser.Scene {
   // ─────────────────────────────────────────────
   // DEATH & XP
   // ─────────────────────────────────────────────
+  _startDeathAnimation(unit) {
+    // Greyscale sprite and icon via ColorMatrix postFX
+    for (const obj of [unit.sprite, unit.icon]) {
+      if (obj?.postFX) obj.postFX.addColorMatrix().grayscale(1);
+    }
+    // Fade out sprite, icon, and HP bars
+    const targets = [unit.sprite, unit.icon, unit.hpBarBg, unit.hpBarFg].filter(Boolean);
+    this.tweens.add({
+      targets,
+      alpha: 0,
+      duration: 600,
+      ease: 'Linear',
+      onComplete: () => {
+        unit.destroySprites();
+        unit._spritesDone = true;
+      },
+    });
+  }
+
   _handleDeath(unit) {
-    unit.isDead = true;
+    unit.isDead      = true;
+    unit._spritesDone = false;
+    this._startDeathAnimation(unit);
+
+    // Immediately mark the corresponding roster entry dead so battle-end XP
+    // writeback doesn't need to track a dead-units list separately.
+    if (unit.rosterId != null && unit.team === 'player') {
+      const ru = GameState.roster.find(r => r.id === unit.rosterId);
+      if (ru) {
+        ru.dead = true;
+        ru.xp   = unit.xp;  // preserve XP earned before death
+      }
+    }
 
     const killer = unit.lastAttacker;
     if (killer && !killer.isDead) {
@@ -940,8 +988,12 @@ export class BattleScene extends Phaser.Scene {
     }
 
     if (unit.isElite && killer) {
-      const name = killer.type.charAt(0).toUpperCase() + killer.type.slice(1);
-      this._showAnnouncement(`${name} slew the ${unit.type}!`, '#ffdd44');
+      const eliteName  = unit.type.charAt(0).toUpperCase() + unit.type.slice(1);
+      const killerClass = killer.type.charAt(0).toUpperCase() + killer.type.slice(1);
+      const rosterUnit  = killer.rosterId != null
+        ? GameState.roster.find(r => r.id === killer.rosterId) : null;
+      const killerName  = rosterUnit?.name ?? killerClass;
+      this._showAnnouncement(`${eliteName} slain by ${killerName} (${killerClass})!`, '#ffdd44');
     }
   }
 
@@ -1021,14 +1073,30 @@ export class BattleScene extends Phaser.Scene {
     this.battleOver = true;
     this._hideDeployMenu();
 
+    // Award "took damage" XP to surviving (non-dead) player units
     for (const u of this.units) {
-      if (u.team === 'player' && u.damageTaken > 0) u.awardXp(1);
+      if (u.team === 'player' && !u.isDead && u.damageTaken > 0) u.awardXp(1);
+    }
+
+    // Write XP and level back to surviving roster units
+    for (const u of this.units) {
+      if (u.team !== 'player' || u.rosterId == null) continue;
+      const ru = GameState.roster.find(r => r.id === u.rosterId);
+      if (!ru || ru.dead) continue;
+      ru.xp    = u.xp;
+      ru.level = u.level;
     }
 
     GameState.battleResult = result;
-    const msg = result === 'victory' ? 'VICTORY!' : 'DEFEAT — GAME OVER';
+    const msg = result === 'victory' ? 'VICTORY!' : 'DEFEAT';
     const col = result === 'victory' ? '#44ff44' : '#ff4444';
     this.announceText.setText(msg).setColor(col).setVisible(true);
     this.statusText.setText('');
+
+    // Fire battleComplete after a short delay so the player sees the result.
+    // index.html listens for this to start the off-season transition.
+    this.time.delayedCall(3000, () => {
+      document.dispatchEvent(new CustomEvent('battleComplete', { detail: { result } }));
+    });
   }
 }

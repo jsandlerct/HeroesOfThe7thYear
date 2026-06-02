@@ -292,10 +292,81 @@
 
     initNavButtons();
 
-    // Sprint 3: after each battle ends, BattleScene fires a 'battleComplete' event.
-    // The handler here will call startOffSeason(GameState, onComplete) where onComplete
-    // writes wizardState.assignments back to the roster and calls window.game.scene.start('BattleScene').
-    // Year 1 launches directly into battle (no prior off-season).
+    // ── Shared off-season → battle handoff ───────────────────────────────────
+    // Used by both Year 1 (page load) and every subsequent year (battleComplete).
+
+    function onOffSeasonComplete(wizardState) {
+      // Write assignments back to roster
+      for (const unit of GameState.roster) {
+        if (!unit.dead) unit.assignment = wizardState.assignments[unit.id] ?? null;
+      }
+
+      // Handle heroes: staying heroes become veterans, others depart
+      for (const hero of GameState.newHeroesThisBattle) {
+        if (hero.staying) {
+          hero.isVeteran = true;
+          GameState.graduatedHeroes.push({
+            id: hero.id, name: hero.name, class: hero.class,
+            yearGraduated: GameState.year - 1,
+          });
+          // Staying bonus: 1 XP to all remaining roster units
+          for (const ru of GameState.roster) {
+            if (!ru.dead) ru.xp = (ru.xp ?? 0) + 1;
+          }
+        } else {
+          hero.dead = true;  // departed heroes leave the roster
+        }
+      }
+
+      // Reset ceremony lists
+      GameState.fallenThisBattle    = [];
+      GameState.newHeroesThisBattle = [];
+
+      // Check campaign end
+      if (GameState.year > GameState.campaignLength) {
+        const heroCount = GameState.graduatedHeroes.length;
+        document.getElementById('battle-ui').style.display = '';
+        const endMsg = document.createElement('div');
+        endMsg.style.cssText =
+          'position:fixed;inset:0;background:#0d0d0d;display:flex;flex-direction:column;' +
+          'align-items:center;justify-content:center;z-index:999;font-family:Georgia,serif;color:#e0d4b0;';
+        endMsg.innerHTML =
+          `<div style="font-size:36px;color:#c9a84c;margin-bottom:24px;">Campaign Complete</div>` +
+          `<div style="font-size:18px;margin-bottom:8px;">You defended the wall for ${GameState.campaignLength} years.</div>` +
+          `<div style="font-size:16px;color:#8a7a5a;">Heroes who stayed: <strong style="color:#f0e0a0">${heroCount}</strong></div>`;
+        document.body.appendChild(endMsg);
+        return;
+      }
+
+      // Pick enemy composition and launch battle
+      GameState.enemyCompositionIndex = Math.floor(Math.random() * 3);
+      document.getElementById('targeting-controls').style.display = 'flex';
+      window.game.scene.start('BattleScene');
+    }
+
+    // ── After each battle: write results, advance year, start off-season ─────
+    document.addEventListener('battleComplete', () => {
+      // Increment yearOfService for all survivors (death is the only thing that stops the count)
+      const survivors = GameState.roster.filter(u => !u.dead);
+      for (const u of survivors) {
+        u.yearOfService = (u.yearOfService ?? 0) + 1;
+      }
+
+      // Detect graduating heroes
+      GameState.newHeroesThisBattle = survivors.filter(u => u.yearOfService === 7);
+
+      // Collect fallen from this battle
+      const existingFallenIds = new Set(GameState.fallenThisBattle.map(u => u.id));
+      GameState.fallenThisBattle = [
+        ...GameState.fallenThisBattle,
+        ...GameState.roster.filter(u => u.dead && !existingFallenIds.has(u.id)),
+      ];
+
+      // Advance year before off-season
+      GameState.year += 1;
+
+      startOffSeason(GameState, onOffSeasonComplete);
+    });
 
     const PREFS_KEY = 'hotyPrefs';
 
@@ -327,12 +398,10 @@
     document.getElementById('pref-siege').onchange   = e => { GameState.targetingPreference.siege  = e.target.value;   savePrefs(); };
     document.getElementById('slomo-toggle').onchange = e => { GameState.sloMo = e.target.checked;                      savePrefs(); };
 
-    // Start Year 1 with a randomly selected enemy composition (0=A, 1=B, 2=C)
+    // Start Year 1 with the off-season wizard (gold + buildings + recruit assignment)
+    // before launching the first battle.
     GameState.year = 1;
-    GameState.enemyCompositionIndex = Math.floor(Math.random() * 3);
-
-    document.getElementById('targeting-controls').style.display = 'flex';
-    window.game.scene.start('BattleScene');
+    startOffSeason(GameState, onOffSeasonComplete);
   </script>
 </body>
 </html>

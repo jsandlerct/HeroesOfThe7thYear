@@ -150,35 +150,34 @@ Goal: Build the off-season as an 8-step wizard in HTML/CSS. Steps 1–2 are cond
 Goal: Wire up XP, leveling, injuries, the 7-year arc, and the full year-over-year campaign loop. Game now plays multiple years.
 
 ### Unit Progression
-- [ ] Implement XP accumulation per unit across battles
-- [ ] Implement level-up threshold checks (L2=5, L3=10, L4=20, L5=30)
-- [ ] Apply level-up stat bonuses (HP and DMG per unit type)
-- [ ] Display unit level in battle and in off-season roster view
-- [ ] Implement injury system (injured units cannot gain XP or participate in off-season)
-- [ ] Implement Hospital healing cooldown reduction per level
+- [x] Implement XP accumulation per unit across battles
+- [x] Implement level-up threshold checks (L2=5, L3=10, L4=20, L5=30)
+- [x] Apply level-up stat bonuses (HP and DMG per unit type)
+- [x] Display unit level in battle and in off-season roster view
+- [x] Implement Hospital healing cooldown reduction per level
 
 ### Campaign Loop
-- [ ] Implement year counter
-- [ ] Implement 7-year service tracking per unit
-- [ ] Implement hero graduation (unit reaches year 7, given choice to leave or stay)
-- [ ] Implement base ~10% stay chance; Monument bonus applies
-- [ ] Implement super unit designation for veterans who stay (placeholder benefits for now)
-- [ ] Implement Monument hero name tracking (stores graduating heroes, applies attack speed bonus)
-- [ ] Implement end-of-campaign scoring (total heroes graduated)
+- [x] Implement year counter
+- [x] Implement 7-year service tracking per unit
+- [x] Implement hero graduation (unit reaches year 7, given choice to leave or stay)
+- [x] Implement base ~25% stay chance; Monument bonus applies (base chance 25% per DECISIONS.md)
+- [x] Implement super unit designation for veterans who stay (placeholder — isVeteran flag set)
+- [x] Implement Monument hero name tracking (stores graduating heroes, applies attack speed bonus)
+- [x] Implement end-of-campaign scoring (total heroes graduated)
 
 ### Enemy Scaling
-- [ ] Implement year-up stat scaling for all enemy types (HP/DMG/Armor per year)
-- [ ] Implement 3 composition variations per year (placeholder compositions — full table TBD)
-- [ ] Implement random composition selection at battle start
+- [x] Implement year-up stat scaling for all enemy types (HP/DMG/Armor per year)
+- [x] Implement 3 composition variations per year (placeholder compositions — full table TBD)
+- [x] Implement random composition selection at battle start
 
 ### Building Bonuses (Wire Up)
-- [ ] Armory: apply +7% armor per level to all player units
-- [ ] Weaponsmith: apply +10% DMG multiplier per level (Warriors, Archers, Captains)
-- [ ] Archery Range: apply -0.2s attack interval per level to Archers
-- [ ] Sparring Ground: apply -0.2s attack interval per level to Warriors and Captains
-- [ ] Mage Workshop: apply -0.5s attack interval per level to Mages
-- [ ] Monument: apply -0.1s attack interval per graduated hero (max 5)
-- [ ] Enforce attack speed floor: 0.5s minimum
+- [x] Armory: apply +7% armor per level to all player units
+- [x] Weaponsmith: apply +10% DMG multiplier per level (Warriors, Archers, Captains)
+- [x] Archery Range: apply -0.2s attack interval per level to Archers
+- [x] Sparring Ground: apply -0.2s attack interval per level to Warriors and Captains
+- [x] Mage Workshop: apply -0.5s attack interval per level to Mages
+- [x] Monument: apply -0.1s attack interval per graduated hero (max 5)
+- [x] Enforce attack speed floor: 0.5s minimum
 
 ---
 
@@ -187,17 +186,13 @@ Goal: Wire up XP, leveling, injuries, the 7-year arc, and the full year-over-yea
 Goal: Make the game actually playable end-to-end. Add enough visual and UX polish to evaluate balance.
 
 ### Visual Polish
-- [ ] Replace placeholder sprites with real sprite sheets
-- [ ] Add unit death animations
-- [ ] Add wall damage visual states (cracks, rubble)
-- [ ] Add elite kill announcement UI (who got the killing blow)
-- [ ] Add rout animation (enemies flee)
-- [ ] Add battle outcome screen (victory / partial loss / game over)
+- [x] Unit icons are final art — no sprite sheet replacement needed
+- [x] Rout animation not needed — enemies fleeing off-screen is sufficient
+- [x] Add unit death animations (greyscale → fade)
+- [x] Add wall damage visual states (cracks, rubble)
+- [x] Add elite kill announcement UI (who got the killing blow)
 
 ### UX
-- [ ] Add year summary screen between off-season and battle (casualties, XP earned, heroes)
-- [ ] Add building tooltip descriptions
-- [ ] Add unit stat display in roster view
 - [ ] Responsive layout validation on mobile
 
 ### Balance Tuning (Playtesting)
@@ -213,12 +208,9 @@ Goal: Make the game actually playable end-to-end. Add enough visual and UX polis
 
 - [ ] Mobile layout — game is desktop-first in V1; mobile requires a separate design pass (scrollable/pannable viewport or responsive tile sizing); neither portrait nor landscape fits the 12×16 grid at playable tile sizes without a dedicated solution
 - [ ] Enemy composition spreadsheet — 3 variations per year across full campaign
-- [ ] Scout Academy intel reveal — decide: full composition or style hint only?
-- [ ] Captain unlock trigger — define: years of service? XP level? Both?
-- [ ] Super unit benefits — define exact advantages for veterans who stay
 - [ ] Mentorship/legacy system — define mechanics for departing hero buffs
 - [ ] Enemy armor scaling curve — define year-over-year values
-- [ ] Veteran retention chance — define base % and Monument bonus per level
+- [ ] Monument bonus per level — define how much the hero retention/attack speed bonus increases per Monument level
 - [ ] Units per wall section cap — define hard limit or size-based
 
 ---
@@ -228,11 +220,7 @@ Goal: Make the game actually playable end-to-end. Add enough visual and UX polis
 > Add questions here when you hit something unresolved during implementation.
 > Do not make silent assumptions — flag it here and keep going with a clearly marked placeholder.
 
-- What does Scout Academy intel actually reveal — full enemy composition or general style (e.g. "heavy siege")?
-- What triggers Captain eligibility — years served, XP level, Officer Academy level, or combination?
-- What are super unit (stayed veteran) specific benefits beyond combat?
 - How does the mentorship/legacy system work mechanically?
-- What is the base veteran retention chance and Monument bonus per level?
+- What is the Monument bonus per level (hero retention bonus from Monument building)?
 - What are enemy armor values at each year — needs a defined scaling curve?
 - How many units fit per wall section (4 tiles wide) — hard cap or unit-size dependent?
-- Move speed values (tiles/second) for Fast / Med / Slow — to be determined during playtesting

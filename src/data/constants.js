@@ -10,8 +10,10 @@ export const WALL_DR           = [0, 0.10, 0.20, 0.20, 0.30, 0.30]; // damage re
 export const WALL_HP_BAR_H     = 5;     // pixels tall
 export const WALL_HP_BAR_Y     = -6;    // pixels above wall rect top
 export const WALL_LABEL_SIZE   = '13px';
-export const COLOR_WALL_FILL   = 0x888888;
-export const ALPHA_WALL_BREACH = 0.4;
+export const COLOR_WALL_FILL     = 0x888888;  // intact
+export const COLOR_WALL_DAMAGED  = 0x776655;  // 25–50% HP — weathered stone
+export const COLOR_WALL_CRITICAL = 0x664433;  // ≤25% HP — rubble
+export const ALPHA_WALL_BREACH   = 0.4;
 
 // ── Reserve zones ──────────────────────────────────────────────────────────
 export const RESERVE_ZONE_ROWS    = 2;           // rows each reserve zone occupies
@@ -123,3 +125,15 @@ export const RESERVE_SECTION_CAPACITY  = 25;   // from decisions: 25 per reserve
 export const GOLD_BASE_PER_YEAR        = 100;
 export const GOLD_PER_MISSING_WALL_HP  = 1;
 export const GOLD_PER_DESTROYED_SEGMENT = 200;
+
+// ── Unit progression ──────────────────────────────────────────────────────────
+export const ATK_SPEED_FLOOR                   = 0.5;   // minimum attack interval (all units)
+
+// ── Building bonuses ──────────────────────────────────────────────────────────
+export const ARMORY_ARMOR_PER_LEVEL            = 0.07;  // additive armor bonus per armory level
+export const WEAPONSMITH_DMG_PER_LEVEL         = 0.10;  // dmg multiplier bonus per weaponsmith level
+export const ARCHERY_RANGE_ATK_SPEED_PER_LEVEL = 0.20;  // atkSpeed reduction per archery range level (archers)
+export const SPARRING_GROUND_ATK_SPEED_PER_LEVEL = 0.20; // atkSpeed reduction per sparring ground level (warriors, captains)
+export const MAGE_WORKSHOP_ATK_SPEED_PER_LEVEL = 0.50;  // atkSpeed reduction per mage workshop level (mages)
+export const HOSPITAL_HEAL_S_PER_LEVEL         = 1.0;   // heal interval reduction per hospital level
+export const MONUMENT_ATK_SPEED_PER_HERO       = 0.10;  // atkSpeed reduction per graduated hero who stayed (max 5)

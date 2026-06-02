@@ -1,7 +1,7 @@
 export const GameState = {
   year: 1,
   enemyCompositionIndex: 0,   // 0=A, 1=B, 2=C — set before battle start
-  gold: 100,
+  gold: 0,   // no carryover at campaign start; Year 1 off-season provides 100g income
 
   // Gold breakdown for the upcoming off-season (populated after battle ends)
   goldBreakdown: {
@@ -11,19 +11,19 @@ export const GameState = {
   },
 
   buildings: {
-    barracks:        1,
-    archeryRange:    1,
+    barracks:        1,   // starting building — houses Warriors & Archers
+    archeryRange:    0,
     sparringGround:  0,
     officerAcademy:  0,
     monument:        0,
     scoutAcademy:    0,
     library:         0,
-    mageWorkshop:    1,
+    mageWorkshop:    0,
     hospital:        0,
     artisanWorkshop: 0,
     armory:          0,
     weaponsmith:     0,
-    siegeWorkshop:   1,
+    siegeWorkshop:   0,
   },
 
   wallSegments: [
@@ -59,4 +59,12 @@ export const GameState = {
   },
 
   battleResult: null,
+
+  // ── Campaign ────────────────────────────────────────────────────────────────
+  difficulty:      'easy',  // 'easy' | 'medium' | 'hard'
+  campaignLength:  10,      // easy=10, medium=20, hard=30
+
+  // Heroes who completed 7 years and chose to stay — tracked for Monument bonus
+  // Each entry: { id, name, class, yearGraduated }
+  graduatedHeroes: [],
 };

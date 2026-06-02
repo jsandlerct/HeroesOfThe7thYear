@@ -6,6 +6,7 @@ import {
   HP_THRESH_MED, HP_THRESH_LOW,
   HEAL_GLOW_MS, HEAL_GLOW_COLOR, HEAL_GLOW_OUTER,
   AURA_GLOW_COLOR, AURA_GLOW_OUTER,
+  HEALER_HEAL_S,
 } from '../data/constants.js';
 
 let _nextId = 0;
@@ -35,6 +36,13 @@ export class Unit {
     this.range     = def.range;
     this.armor     = def.armor ?? 0;
     this.moveSpeed = def.moveSpeed ?? 0;
+
+    // Per-level stat deltas — used when the unit gains a level during battle
+    this.lvlHp     = def.lvlHp  ?? 0;
+    this.lvlDmg    = def.lvlDmg ?? 0;
+
+    // Healer heal interval (may be reduced by Hospital building)
+    this.healInterval = def.healInterval ?? HEALER_HEAL_S;
 
     this.color            = def.color ?? 0xffffff;
     this.ignoresArmor     = def.ignoresArmor     ?? false;
@@ -130,6 +138,8 @@ export class Unit {
   }
 
   destroySprites() {
+    if (this._spritesDestroyed) return;
+    this._spritesDestroyed = true;
     this.sprite.destroy();
     if (this.icon) this.icon.destroy();
     this.hpBarBg.destroy();
@@ -161,11 +171,15 @@ export class Unit {
 
   awardXp(amount) {
     this.xp += amount;
+    this._applyLevelUps();
   }
 
-  applyLevelUps() {
+  _applyLevelUps() {
     while (this.level < MAX_LEVEL && this.xp >= XP_THRESHOLDS[this.level]) {
       this.level++;
+      this.maxHp += this.lvlHp;
+      this.hp    += this.lvlHp;
+      this.dmg   += this.lvlDmg;
     }
   }
 }

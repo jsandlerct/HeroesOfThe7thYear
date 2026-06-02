@@ -1133,9 +1133,6 @@
       Deploying a veteran to a high-risk position earns more XP and maximizes combat value — but risks losing them permanently. Keeping them in reserve is safer but stunts growth. New recruits sent into dangerous positions offer high-risk, high-reward leveling — some will die, some will shoot up in the ranks.
     </callout>
 
-    <h3>Injuries</h3>
-    <p>Units can be injured during battle, preventing XP gain and participation during off-season recovery. Healers and upgraded Hospitals reduce recovery time.</p>
-
     <h3>Attack Speed Floor</h3>
     <p>Minimum attack interval is <strong>0.5 seconds</strong> regardless of building bonuses.</p>
   </section>
@@ -1228,8 +1225,8 @@
     <h3>The Seven-Year Arc</h3>
     <p>Every recruit who survives seven years earns the right to leave as a hero. By default, a veteran's chance of choosing to stay is low (approximately 10%). The Monument building tracks hero names and applies the attack speed bonus accordingly — each hero who stayed is recorded, making the Monument both a mechanical tracker and a piece of narrative history. Financial incentives (stipends, bonuses) can further raise retention chances.</p>
 
-    <h3>Super Units</h3>
-    <p>Veterans who choose to stay become super units — seasoned soldiers who contribute in unique ways. Their exact advantages are to be determined, but they may include passive boosts to training speed, morale infrastructure, or specialized late-game combat roles. These units represent the pinnacle of investment and should feel irreplaceable.</p>
+    <h3>Veterans Who Stay</h3>
+    <p>Veterans who choose to stay remain on the active roster as high-level soldiers. They are the same unit type they always were, but with accumulated XP, levels, and battle experience. There are no special super-unit mechanics — their value is their combat effectiveness and the XP bonus they provide to the roster each off season.</p>
 
     <h3>The Mentorship / Legacy System</h3>
     <p>Veterans who depart as heroes may leave behind a lasting influence on future recruit cohorts — a passive buff to incoming soldiers in their archetype, a shared technique, or improved early leveling. This ties long-term investment to multi-generational payoff and rewards players who protect and develop their veterans.</p>
@@ -1475,7 +1472,7 @@
     <h3>Phase A — Data &amp; State Foundation</h3>
     <div class="open-question">
       <span class="q-marker" style="color:var(--gold-dark);">1</span>
-      <div class="q-text">Extend <code>GameState.js</code> to support off season state: gold breakdown (base / wall-damage / destroyed-segment), building levels, wall segment HP and level per section, unit roster array (with name, class, gender, level, XP, year, portrait ID, assignment, injured flag), and per-playthrough used-name and used-portrait sets.</div>
+      <div class="q-text">Extend <code>GameState.js</code> to support off season state: gold breakdown (base / wall-damage / destroyed-segment), building levels, wall segment HP and level per section, unit roster array (with name, class, gender, level, XP, year, portrait ID, assignment), and per-playthrough used-name and used-portrait sets.</div>
     </div>
     <div class="open-question">
       <span class="q-marker" style="color:var(--gold-dark);">2</span>
@@ -1569,19 +1566,7 @@
 
     <div class="open-question">
       <span class="q-marker">?</span>
-      <div class="q-text">What specific advantages do super units (stayed veterans) provide beyond combat? Passive training bonuses? Resource efficiency boosts?</div>
-    </div>
-    <div class="open-question">
-      <span class="q-marker">?</span>
       <div class="q-text">How does the mentorship / legacy system work mechanically? Does the buff persist across the whole campaign or just the following year?</div>
-    </div>
-    <div class="open-question">
-      <span class="q-marker">?</span>
-      <div class="q-text">Does intel from the Scout Academy reveal full enemy composition, or just general style (e.g., "heavy siege expected")?</div>
-    </div>
-    <div class="open-question">
-      <span class="q-marker">?</span>
-      <div class="q-text">How is the Captain unlock triggered? Years of service, XP level, Officer Academy level, or some combination?</div>
     </div>
     <div class="open-question">
       <span class="q-marker">?</span>
@@ -1589,7 +1574,7 @@
     </div>
     <div class="open-question">
       <span class="q-marker">?</span>
-      <div class="q-text">What is the base veteran retention chance and how much does each Monument level raise it?</div>
+      <div class="q-text">What is the Monument bonus — how much does each Monument level raise veteran retention or attack speed?</div>
     </div>
     <div class="open-question">
       <span class="q-marker">?</span>
