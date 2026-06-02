@@ -152,6 +152,21 @@ export function render(gs, wizardState, contentEl, wizard) {
     }
   }
 
+  // Year 1 only: randomly assign all unassigned units so the player has a
+  // reasonable starting deployment without needing to assign everyone manually.
+  if (gs.year === 1 && !wizardState.autoAssignedYear1) {
+    wizardState.autoAssignedYear1 = true;
+    const wallOpts    = ['wallLeft', 'wallCenter', 'wallRight'];
+    const reserveOpts = ['reserveLeft', 'reserveCenter', 'reserveRight'];
+    const allOpts     = [...wallOpts, ...reserveOpts];
+    for (const u of allCombatants) {
+      if (!wizardState.assignments[u.id]) {
+        const opts = RESERVE_ONLY_CLASSES.has(u.class) ? reserveOpts : allOpts;
+        wizardState.assignments[u.id] = opts[Math.floor(Math.random() * opts.length)];
+      }
+    }
+  }
+
   function allAssigned() {
     return allCombatants.every(u => !!wizardState.assignments[u.id]);
   }
