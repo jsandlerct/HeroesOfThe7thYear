@@ -97,7 +97,9 @@ function splitPair(currentA, currentB, totalCap, emptySlots) {
     return { a: Math.ceil(emptySlots / 2), b: Math.floor(emptySlots / 2) };
   }
   if (total <= emptySlots) {
-    return { a: needA, b: needB };
+    // Fill to target, then distribute any leftover slots (handles odd capacities)
+    const leftover = emptySlots - total;
+    return { a: needA + Math.ceil(leftover / 2), b: needB + Math.floor(leftover / 2) };
   }
   // More need than empty slots — scale proportionally
   const a = Math.round((needA / total) * emptySlots);
