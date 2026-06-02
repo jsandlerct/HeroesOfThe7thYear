@@ -5,7 +5,7 @@
 import { BUILDING_DEFS } from '../../data/buildings.js';
 import {
   WALL_HP_BY_LEVEL, WALL_UPGRADE_COST_BY_LEVEL,
-  MASON_REPAIR_PER_SEASON,
+  MASON_REPAIR_PER_SEASON, WALL_REPAIR_COST_PER_HP,
 } from '../../data/constants.js';
 
 // Ordered display list — only keys present in gs.buildings are shown.
@@ -26,6 +26,8 @@ const BUILDING_LABELS = {
 function computeGoldSpent(gs, spending) {
   let spent = 0;
   for (const seg of gs.wallSegments) {
+    const repairHp = spending.wallRepairs[seg.section] || 0;
+    spent += repairHp * WALL_REPAIR_COST_PER_HP;
     const levels = spending.wallUpgrades[seg.section] || 0;
     for (let i = 0; i < levels; i++) {
       spent += WALL_UPGRADE_COST_BY_LEVEL[seg.level + i] || 0;
@@ -49,10 +51,6 @@ function prereqsMet(key, gs, spending) {
 export function render(gs, wizardState, contentEl) {
   const { spending } = wizardState;
 
-  // Mason count for repair capacity
-  const masonCount = gs.roster.filter(u => u.class === 'mason' && !u.dead).length;
-  const totalRepairCap = masonCount * MASON_REPAIR_PER_SEASON;
-
   // ── Gold bar (sticky) ──────────────────────────────────────────────────
   const goldBar = document.createElement('div');
   goldBar.className = 'os-gold-bar';
@@ -60,15 +58,10 @@ export function render(gs, wizardState, contentEl) {
   function updateGoldBar() {
     const spent     = computeGoldSpent(gs, spending);
     const remaining = wizardState.goldAvailable - spent;
-    const usedRepair = Object.values(spending.wallRepairs).reduce((s, v) => s + v, 0);
     goldBar.innerHTML = `
       <span class="os-gold-item">Available: <strong>${wizardState.goldAvailable}</strong></span>
       <span class="os-gold-item">Spent: <strong>${spent}</strong></span>
-      <span class="os-gold-item os-gold-remaining">Remaining: <strong>${remaining}</strong></span>
-      <span class="os-gold-item" style="margin-left:auto;">
-        Masons: <strong>${masonCount}</strong>
-        &nbsp;·&nbsp; Repair capacity: <strong>${usedRepair}/${totalRepairCap} HP</strong>
-      </span>`;
+      <span class="os-gold-item os-gold-remaining">Remaining: <strong>${remaining}</strong></span>`;
     // Update all buy/repair button states
     refreshButtons();
   }
@@ -103,23 +96,23 @@ export function render(gs, wizardState, contentEl) {
     hpLabel.className = 'os-hp-label';
     card.appendChild(hpLabel);
 
-    // Repair button (free, uses Mason capacity)
+    // Repair button (costs gold: MASON_REPAIR_PER_SEASON HP per click)
     const repairBtn = document.createElement('button');
     repairBtn.className = 'os-btn-sm';
-    repairBtn.textContent = 'Repair +50 HP';
+    repairBtn.textContent = `Repair +50 HP (${MASON_REPAIR_PER_SEASON * WALL_REPAIR_COST_PER_HP}g)`;
 
     const undoRepairBtn = document.createElement('button');
     undoRepairBtn.className = 'os-btn-sm';
     undoRepairBtn.textContent = 'Undo Repair';
 
     repairBtn.onclick = () => {
-      const usedCap  = Object.values(spending.wallRepairs).reduce((s, v) => s + v, 0);
-      const freeCap  = totalRepairCap - usedCap;
       const damage   = seg.maxHp - seg.hp;
       const alreadyR = spending.wallRepairs[sec] || 0;
-      const canRepair = Math.min(MASON_REPAIR_PER_SEASON, damage - alreadyR, freeCap);
-      if (canRepair <= 0) return;
-      spending.wallRepairs[sec] = (spending.wallRepairs[sec] || 0) + canRepair;
+      const blockHp  = Math.min(MASON_REPAIR_PER_SEASON, damage - alreadyR);
+      const cost     = blockHp * WALL_REPAIR_COST_PER_HP;
+      const spent    = computeGoldSpent(gs, spending);
+      if (blockHp <= 0 || wizardState.goldAvailable - spent < cost) return;
+      spending.wallRepairs[sec] = alreadyR + blockHp;
       updateGoldBar();
       updateWallCard(seg, fill, hpLabel, repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn);
     };
@@ -188,11 +181,13 @@ export function render(gs, wizardState, contentEl) {
     if (repair > 0) hpText += ` <span style="color:#5a8a3a">(+${repair} repaired)</span>`;
     hpLabel.innerHTML = hpText;
 
-    const usedCap  = Object.values(spending.wallRepairs).reduce((s, v) => s + v, 0);
-    const freeCap  = totalRepairCap - usedCap;
-    const canRepairMore = damage - repair > 0 && freeCap > 0;
+    const blockHp     = Math.min(MASON_REPAIR_PER_SEASON, damage - repair);
+    const repairCost  = blockHp * WALL_REPAIR_COST_PER_HP;
+    const spent       = computeGoldSpent(gs, spending);
+    const canAffordRepair = wizardState.goldAvailable - spent >= repairCost;
+    const canRepairMore   = damage - repair > 0 && canAffordRepair;
     repairBtn.disabled    = !canRepairMore || damage === 0;
-    repairBtn.title       = damage === 0 ? 'No damage' : freeCap === 0 ? 'No Mason capacity remaining' : '';
+    repairBtn.title       = damage === 0 ? 'No damage' : !canAffordRepair ? 'Not enough gold' : '';
     undoRepairBtn.disabled = repair <= 0;
 
     const nextLevel = effLevel + 1;

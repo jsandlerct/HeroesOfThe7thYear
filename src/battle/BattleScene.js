@@ -6,7 +6,7 @@ import { ENEMY_COMPOSITIONS } from '../data/compositions.js';
 import { GameState } from '../state/GameState.js';
 import { findTarget, findHealTarget, tileDist } from './targeting.js';
 import { Projectile } from './Projectile.js';
-import { computeEffectiveDef } from './buildingBonuses.js';
+import { computeEffectiveDef, applyLevelUpsToRosterUnit } from './buildingBonuses.js';
 import {
   TILE, MAP_W, MAP_H, WALL_ROW, WALL_SECTION_W,
   RESERVE_ZONE_ROWS, ENEMY_RESERVE_ROW, PLAYER_RESERVE_ROW,
@@ -972,10 +972,11 @@ export class BattleScene extends Phaser.Scene {
     if (unit.rosterId != null && unit.team === 'player') {
       const ru = GameState.roster.find(r => r.id === unit.rosterId);
       if (ru) {
-        ru.dead    = true;
-        ru.xp      = unit.xp;
+        ru.dead     = true;
+        ru.xp       = unit.xp;
         ru.bonusHp  = unit.bonusHp;
         ru.bonusDmg = unit.bonusDmg;
+        applyLevelUpsToRosterUnit(ru);
       }
     }
 
@@ -1009,7 +1010,8 @@ export class BattleScene extends Phaser.Scene {
   _handleWallBreach(seg) {
     for (const u of this.units) {
       if (u.isOnWall && u.wallSection === seg) {
-        u.isOnWall = false;
+        u.isOnWall    = false;
+        u.isStationary = false;  // fallen wall units can now move and give chase
         u.y += WALL_BREACH_DROP;
       }
     }
@@ -1090,9 +1092,9 @@ export class BattleScene extends Phaser.Scene {
       const ru = GameState.roster.find(r => r.id === u.rosterId);
       if (!ru || ru.dead) continue;
       ru.xp       = u.xp;
-      ru.level    = u.level;
       ru.bonusHp  = u.bonusHp;
       ru.bonusDmg = u.bonusDmg;
+      applyLevelUpsToRosterUnit(ru);
     }
 
     // Write wall HP back to GameState so off-season gold and repair screens

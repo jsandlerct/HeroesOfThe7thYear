@@ -2,9 +2,9 @@
 // Summarises all choices from Step 4. On confirm: applies spending to GameState,
 // triggers recruit generation, and advances the wizard.
 
-import { BUILDING_DEFS }               from '../../data/buildings.js';
-import { WALL_UPGRADE_COST_BY_LEVEL }  from '../../data/constants.js';
-import { generateRecruits }            from '../recruitGenerator.js';
+import { BUILDING_DEFS }                               from '../../data/buildings.js';
+import { WALL_UPGRADE_COST_BY_LEVEL, WALL_REPAIR_COST_PER_HP } from '../../data/constants.js';
+import { generateRecruits }                            from '../recruitGenerator.js';
 
 const BUILDING_LABELS = {
   barracks: 'Barracks', archeryRange: 'Archery Range', sparringGround: 'Sparring Ground',
@@ -17,6 +17,7 @@ const BUILDING_LABELS = {
 function computeTotalSpent(gs, spending) {
   let spent = 0;
   for (const seg of gs.wallSegments) {
+    spent += (spending.wallRepairs[seg.section] || 0) * WALL_REPAIR_COST_PER_HP;
     const levels = spending.wallUpgrades[seg.section] || 0;
     for (let i = 0; i < levels; i++) {
       spent += WALL_UPGRADE_COST_BY_LEVEL[seg.level + i] || 0;
@@ -56,7 +57,7 @@ export function render(gs, wizardState, contentEl, wizard) {
       for (let i = 0; i < upgrade; i++) c += WALL_UPGRADE_COST_BY_LEVEL[seg.level + i] || 0;
       return c;
     })();
-    if (repair > 0) rows.push(`<tr><td>${label} Wall — repair</td><td>+${repair} HP</td><td style="color:#8a7a5a;">free (Mason)</td></tr>`);
+    if (repair > 0) rows.push(`<tr><td>${label} Wall — repair</td><td>+${repair} HP</td><td>${repair * WALL_REPAIR_COST_PER_HP}g</td></tr>`);
     if (upgrade > 0) rows.push(`<tr><td>${label} Wall — upgrade to level ${seg.level + upgrade}</td><td></td><td>${cost}g</td></tr>`);
   }
 

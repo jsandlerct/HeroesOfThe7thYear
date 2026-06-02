@@ -173,7 +173,7 @@ export class Unit {
 
   awardXp(amount) {
     this.xp += amount;
-    this._applyLevelUps();
+    // Level-ups are resolved during off-season, not mid-battle.
   }
 
   _applyLevelUps() {

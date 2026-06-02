@@ -112,7 +112,8 @@ export const CAPTAIN_MAX               = 5;   // hard cap on captains (officer a
 export const SCOUT_SLOTS_PER_LEVEL     = 1;   // scout slots per scout academy level
 
 // ── Off-season: repair & hero ─────────────────────────────────────────────────
-export const MASON_REPAIR_PER_SEASON   = 50;  // HP of wall repaired per mason per off-season
+export const MASON_REPAIR_PER_SEASON   = 50;  // HP per repair click (kept as block size)
+export const WALL_REPAIR_COST_PER_HP   = 1;   // gold cost per HP of wall repair
 export const HERO_RETENTION_CHANCE     = 0.25;// base probability a seven-year hero stays on
 
 // ── Off-season: gold ──────────────────────────────────────────────────────────
