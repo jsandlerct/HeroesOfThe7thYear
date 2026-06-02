@@ -1,0 +1,4 @@
+node_modules/
+
+# Playwright verification screenshots
+verify-*.png

@@ -107,34 +107,41 @@ Goal: Give the player meaningful in-battle controls beyond deploying reserves. T
 
 ## 🟡 Sprint 2 — Off Season UI
 
-Goal: Build the off-season interface in HTML/CSS. Player can spend gold, build/upgrade buildings, and see incoming recruits. No persistence yet — state resets on reload.
+Goal: Build the off-season as an 8-step wizard in HTML/CSS. Steps 1–2 are conditional ceremonies. Steps 3–8 handle spending, personnel, deployment, and scouting. All decisions flow into GameState for the battle phase.
 
-### Gold & Resource Display
-- [ ] Display current gold total
-- [ ] Display incoming gold calculation (100 base + wall damage)
-- [ ] Display current year number
+### Phase A — Data & State Foundation
+- [x] Extend `GameState.js`: off-season fields — gold breakdown (base/wall-damage/destroyed-segment), building levels, wall HP/level per segment, unit roster array (name, class, gender, level, XP, year, portraitId, assignment, injured), per-playthrough used-name set and used-portrait set
+- [x] Create `src/data/names.js` — male/female first-name pools (50 each, Anglo-Saxon/Northern European); per-class surname pools (25 each) for all 8 classes
+- [x] Create `src/data/portraits.js` — portrait manifest arrays by warrior/nonwarrior × male/female × young/old; deck-draw logic (remove portrait on assignment; return dead/departed soldiers' portraits only when full category pool is exhausted)
+- [x] Create `src/data/bios.js` — bio pools (young male / young female / old male / old female, 64 each)
+- [x] Implement `src/offseason/recruitGenerator.js` — class distribution (capacity-aware, roster-balancing to ±1 of even split per building pair); name generation (full-name uniqueness check per playthrough); portrait deck-draw; bio selection; called after spending confirmed
 
-### Building Interface
-- [ ] Create tabbed navigation: Melee & Reserves / Ranged & Artillery / Magic & Healing / Engineering / General Infrastructure
-- [ ] Render building cards per tab: name, current level, quantity, upgrade cost, prerequisites
-- [ ] Implement prerequisite gating (greyed out if prereqs not met)
-- [ ] Implement purchase/upgrade flow (deduct gold, update GameState)
-- [ ] Implement building dependency tree validation
+### Phase B — Wizard Shell & Navigation
+- [x] Build wizard shell in `src/offseason/OffSeasonUI.js`: step tracking, Next/Previous button logic, single-step rendering dispatch, state preserved on back-navigation
 
-### Recruit Display
-- [ ] Show incoming recruit count (fills empty slots after spending)
-- [ ] Show recruit composition (skewed toward 50/50 roster balance)
-- [ ] Implement roster balance algorithm (checks current roster ratio, skews incoming)
-- [ ] Restrict recruit pool to archetypes supported by existing buildings
+### Phase C — Honoring Ceremonies (Steps 1–2)
+- [x] Implement Step 1 — Roll Call of the Fallen: list all fallen soldiers (portrait + name + class + years of service), sorted by years of service descending; Commander's closing line; skip if no deaths; manual advance
+- [x] Implement Step 2 — Hero Departures: list all seven-year heroes; retention outcome resolved at render time (25% base stay chance); "A hero of the realm" phrasing; staying heroes noted distinctly; skip if no heroes this year; manual advance
 
-### Wall Management
-- [ ] Display wall segment status (HP, level, damage taken)
-- [ ] Implement wall repair (spend gold, restore HP via Masons)
-- [ ] Implement wall upgrade (spend gold, increase level)
+### Phase D — Gold & Investment (Steps 3–5)
+- [x] Implement Step 3 — Gold Summary: display base income, wall-damage bonus, destroyed-segment bonus, and running total; read-only informational screen
+- [x] Implement Step 4 — Wall & Building Investment: three wall segments (current HP, max HP, level, repair cost, upgrade cost); full building list with current level, upgrade cost, prerequisite gating (greyed out if locked or unaffordable); running gold total updated in real time
+- [x] Implement Step 5 — Confirm Spending: summarize all purchases; warn that building choices determine which recruit classes arrive; on confirm, write to GameState and trigger `recruitGenerator`
 
-### Transition
-- [ ] "Begin Battle" button transitions from off-season UI to Phaser battle scene
-- [ ] GameState correctly passes all off-season decisions into battle scene
+### Phase E — Personnel & Assignment (Step 6)
+- [x] Implement Step 6 — Personnel Table: all combatants (not Masons/Scouts) in a sortable/filterable table; columns: Name, Class, Year of Service, Level, Assignment; new recruits visually highlighted; sort/filter state persists within session, resets next year
+- [x] Assignment dropdown: options Wall Left/Center/Right + Reserve Left/Center/Right; Warriors/Captains have wall options disabled; returning soldiers default to prior year's assignment; block Next until every combatant has an assignment; popup warning if any group exceeds hard capacity
+- [x] Character detail modal: triggered per row; shows portrait, full name, class, year of service, level, XP, bio, and greeting in "Commander [name], [greeting]" format (keyed by class × year of service); dismissable
+
+### Phase F — Deployment Preview (Step 7)
+- [x] Implement Step 7 — Deployment Preview: schematic of wall + reserve zones populated with assigned units, mirroring battle map layout; Back returns to Step 6 with assignments intact
+
+### Phase G — Scout Phase (Step 8, conditional)
+- [x] Implement Step 8 — Scout Deployment: shown only if Scout count > 0; player chooses to send scouts; 60% success (intel revealed) / 30% fail / 10% captured (scout permanently removed); ~3s delay; on success offer return to Step 6 then re-show Step 7 before proceeding
+
+### Phase H — Integration & Handoff
+- [x] Wire off-season end → battle handoff: write final deployment assignments into GameState so `BattleScene.js` reads unit positions and reserve group contents on startup
+- [x] Update `testversion.html` to support launching the off-season wizard directly alongside the existing battle scenario chooser
 
 ---
 

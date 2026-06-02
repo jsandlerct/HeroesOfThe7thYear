@@ -1,0 +1,243 @@
+// Step 8 — Scout Deployment (GDD Section IV Step 8)
+// Conditional: shown only when Scout count > 0.
+// Outcomes: 60% success (intel revealed), 30% fail, 10% captured.
+// Captured scouts join the fallen ceremony NEXT year via gs.capturedScouts.
+// On success, player can return to Step 6 (personnel) to revise assignments,
+// then passes through Step 7 (deployment preview) again before returning here.
+
+import { ENEMY_COMPOSITIONS } from '../../data/compositions.js';
+
+const DELAY_MS       = 3000;
+const P_SUCCESS      = 0.60;
+const P_FAIL         = 0.90;   // 0.60–0.89 = fail, 0.90+ = captured
+
+function classLabel(cls) {
+  return cls.charAt(0).toUpperCase() + cls.slice(1);
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+
+function livingScouts(gs) {
+  return gs.roster.filter(u => u.class === 'scout' && !u.dead);
+}
+
+function pickComposition(gs) {
+  const yearComps = ENEMY_COMPOSITIONS[gs.year];
+  if (!yearComps) return null;
+  const idx = Math.floor(Math.random() * yearComps.length);
+  return { index: idx, data: yearComps[idx] };
+}
+
+function formatComposition(comp) {
+  if (!comp) return null;
+  const lines = [];
+  const fmt = (lane, arr) =>
+    arr.map(u => `${u.count}× ${classLabel(u.type)}`).join(', ');
+  if (comp.left?.length)   lines.push(`Left:    ${fmt('left',   comp.left)}`);
+  if (comp.center?.length) lines.push(`Center:  ${fmt('center', comp.center)}`);
+  if (comp.right?.length)  lines.push(`Right:   ${fmt('right',  comp.right)}`);
+  if (comp.reserves?.length) {
+    const rLines = comp.reserves.map(r =>
+      `  ${classLabel(r.slot)}: ${r.units.map(u => `${u.count}× ${classLabel(u.type)}`).join(', ')}`
+    );
+    lines.push('Reserves:');
+    lines.push(...rLines);
+  }
+  return lines.join('\n');
+}
+
+// ── Render states ─────────────────────────────────────────────────────────────
+
+function renderInitial(gs, wizardState, contentEl, wizard) {
+  const scouts = livingScouts(gs);
+
+  wizard.setNextLabel('Skip →');
+  wizard.setNextEnabled(true);
+  wizard.setPrevEnabled(true);
+
+  const p = document.createElement('p');
+  p.style.cssText = 'color:#8a7a5a;margin-bottom:20px;line-height:1.65;';
+  p.textContent =
+    `You have ${scouts.length} Scout${scouts.length !== 1 ? 's' : ''} available. ` +
+    'Sending them out may reveal the enemy composition — but carries risk.';
+  contentEl.appendChild(p);
+
+  // Outcome odds table
+  const odds = document.createElement('table');
+  odds.style.cssText = 'font-size:13px;border-collapse:collapse;margin-bottom:24px;';
+  [
+    ['60%', 'Success', 'Enemy composition revealed. Opportunity to revise deployment.', '#5a8a3a'],
+    ['30%', 'No intel', 'Scouts returned with nothing useful.',                          '#7a6a3a'],
+    ['10%', 'Captured', 'Scout is permanently lost. Their name joins next year\'s roll call.', '#8a3a2a'],
+  ].forEach(([pct, label, desc, col]) => {
+    odds.innerHTML += `
+      <tr>
+        <td style="padding:5px 14px 5px 0;color:${col};font-size:14px;font-weight:bold;">${pct}</td>
+        <td style="padding:5px 14px 5px 0;color:#c8bfa0;">${label}</td>
+        <td style="padding:5px 0;color:#6a5a3a;font-size:12px;">${desc}</td>
+      </tr>`;
+  });
+  contentEl.appendChild(odds);
+
+  const sendBtn = document.createElement('button');
+  sendBtn.className = 'os-btn os-btn-primary';
+  sendBtn.textContent = 'Send Scouts Out';
+  sendBtn.onclick = () => {
+    wizardState.scoutResult = 'pending';
+    contentEl.innerHTML = '';
+    renderPending(gs, wizardState, contentEl, wizard);
+  };
+  contentEl.appendChild(sendBtn);
+
+  const skipNote = document.createElement('p');
+  skipNote.style.cssText = 'margin-top:14px;font-size:12px;color:#4a3a2a;';
+  skipNote.textContent = 'Or use Next → to skip scouting this year.';
+  contentEl.appendChild(skipNote);
+}
+
+function renderPending(gs, wizardState, contentEl, wizard) {
+  wizard.setNextEnabled(false);
+  wizard.setPrevEnabled(false);
+
+  const msg = document.createElement('p');
+  msg.style.cssText = 'color:#8a7a5a;font-style:italic;margin-bottom:20px;';
+  msg.textContent = 'Scouts are out. Awaiting their return…';
+  contentEl.appendChild(msg);
+
+  const countdown = document.createElement('div');
+  countdown.style.cssText = 'font-size:32px;color:#4a3a2a;font-family:Georgia,serif;';
+  countdown.textContent = '3';
+  contentEl.appendChild(countdown);
+
+  let remaining = 3;
+  const tick = setInterval(() => {
+    remaining--;
+    if (remaining > 0) {
+      countdown.textContent = String(remaining);
+    } else {
+      clearInterval(tick);
+      resolve(gs, wizardState, contentEl, wizard);
+    }
+  }, 1000);
+}
+
+function resolve(gs, wizardState, contentEl, wizard) {
+  const roll = Math.random();
+
+  if (roll < P_SUCCESS) {
+    // Success — pre-select composition so it's locked in for this year's battle
+    const picked = pickComposition(gs);
+    wizardState.scoutResult            = 'success';
+    wizardState.scoutedCompositionIndex = picked?.index ?? 0;
+    wizardState.scoutedComposition      = picked?.data  ?? null;
+    if (picked) gs.enemyCompositionIndex = picked.index;
+  } else if (roll < P_FAIL) {
+    wizardState.scoutResult = 'fail';
+  } else {
+    wizardState.scoutResult = 'captured';
+    // Remove one scout permanently; they join the fallen ceremony next year
+    const scout = livingScouts(gs)[0];
+    if (scout) {
+      scout.dead = true;
+      delete wizardState.assignments[scout.id];
+      gs.capturedScouts = gs.capturedScouts ?? [];
+      gs.capturedScouts.push(scout);
+    }
+  }
+
+  wizard.setNextEnabled(true);
+  wizard.setPrevEnabled(true);
+  contentEl.innerHTML = '';
+  renderResult(gs, wizardState, contentEl, wizard);
+}
+
+function renderResult(gs, wizardState, contentEl, wizard) {
+  const result = wizardState.scoutResult;
+
+  if (result === 'success') {
+    wizard.setNextLabel('Continue →');
+
+    const badge = document.createElement('div');
+    badge.style.cssText =
+      'color:#5a8a3a;font-size:16px;margin-bottom:16px;';
+    badge.textContent = '✓ Intel received.';
+    contentEl.appendChild(badge);
+
+    const comp = wizardState.scoutedComposition;
+    if (comp?.scoutingReport) {
+      const report = document.createElement('div');
+      report.style.cssText =
+        'background:#101a08;border:1px solid #2a4010;padding:14px 16px;' +
+        'font-style:italic;color:#9ab88a;font-size:14px;line-height:1.65;margin-bottom:16px;';
+      report.textContent = `"${comp.scoutingReport}"`;
+      contentEl.appendChild(report);
+    }
+
+    if (comp) {
+      const detail = document.createElement('pre');
+      detail.style.cssText =
+        'font-family:Georgia,serif;font-size:13px;color:#6a7a5a;' +
+        'background:#0a100a;border:1px solid #1a2810;padding:12px 16px;' +
+        'margin-bottom:20px;white-space:pre-wrap;line-height:1.7;';
+      detail.textContent = formatComposition(comp) ?? 'Composition details unavailable.';
+      contentEl.appendChild(detail);
+    }
+
+    const reviseBtn = document.createElement('button');
+    reviseBtn.className = 'os-btn';
+    reviseBtn.textContent = '← Revise Deployment';
+    reviseBtn.style.marginRight = '12px';
+    reviseBtn.onclick = () => wizard.jumpTo('personnel');
+    contentEl.appendChild(reviseBtn);
+
+    const note = document.createElement('p');
+    note.style.cssText = 'margin-top:12px;font-size:12px;color:#4a3a2a;';
+    note.textContent = 'Or use Continue → to proceed to the battle.';
+    contentEl.appendChild(note);
+
+  } else if (result === 'fail') {
+    wizard.setNextLabel('Continue →');
+
+    const badge = document.createElement('div');
+    badge.style.cssText = 'color:#8a6a2a;font-size:16px;margin-bottom:12px;';
+    badge.textContent = '✗ Scouts returned with nothing.';
+    contentEl.appendChild(badge);
+
+    const msg = document.createElement('p');
+    msg.style.cssText = 'color:#6a5a3a;font-size:14px;';
+    msg.textContent = 'No intel gained this season. Proceed to the battle without reconnaissance.';
+    contentEl.appendChild(msg);
+
+  } else if (result === 'captured') {
+    wizard.setNextLabel('Continue →');
+
+    const badge = document.createElement('div');
+    badge.style.cssText = 'color:#8a3a2a;font-size:16px;margin-bottom:12px;';
+    badge.textContent = '⚠ Scout captured.';
+    contentEl.appendChild(badge);
+
+    const capturedScout = gs.capturedScouts?.[gs.capturedScouts.length - 1];
+    const msg = document.createElement('p');
+    msg.style.cssText = 'color:#6a4a3a;font-size:14px;line-height:1.65;';
+    if (capturedScout) {
+      msg.innerHTML =
+        `<strong style="color:#c8bfa0;">${capturedScout.name}</strong> will not return. ` +
+        `Their name will be read at next year's roll call of the fallen.`;
+    } else {
+      msg.textContent = 'A scout has been permanently lost.';
+    }
+    contentEl.appendChild(msg);
+  }
+}
+
+// ── Public entry point ────────────────────────────────────────────────────────
+
+export function render(gs, wizardState, contentEl, wizard) {
+  if (wizardState.scoutResult === 'pending') {
+    renderPending(gs, wizardState, contentEl, wizard);
+  } else if (wizardState.scoutResult) {
+    renderResult(gs, wizardState, contentEl, wizard);
+  } else {
+    renderInitial(gs, wizardState, contentEl, wizard);
+  }
+}

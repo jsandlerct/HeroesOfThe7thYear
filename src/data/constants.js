@@ -94,3 +94,32 @@ export const COLOR_WALL_HP_BAR_BG = 0x333333;  // wall HP bar background
 export const COLOR_WALL_HP_HIGH   = 0x00cc00;
 export const COLOR_WALL_HP_MED    = 0xffaa00;
 export const COLOR_WALL_HP_LOW    = 0xdd0000;
+
+// ── Off-season: wall progression ──────────────────────────────────────────────
+// Index = wall level (1–5); index 0 unused
+export const WALL_HP_BY_LEVEL           = [0, 200, 300, 400, 500, 600];
+export const WALL_UPGRADE_COST_BY_LEVEL = [0, 100, 200, 300, 400, 500];
+
+// ── Off-season: housing capacities ────────────────────────────────────────────
+export const BARRACKS_SLOTS_PER_LEVEL  = 10;  // shared warrior + archer
+export const LIBRARY_SLOTS_PER_LEVEL   = 5;   // shared mage + healer
+export const ARTISAN_MASON_SLOTS       = 10;  // mason slots per artisan workshop level
+export const SIEGE_ENGINEER_SLOTS      = 1;   // engineer slots per siege workshop level
+export const OFFICER_CAPTAIN_SLOTS     = 1;   // captain slots per officer academy level
+export const CAPTAIN_MAX               = 5;   // hard cap on captains (officer academy max 5)
+export const SCOUT_SLOTS_PER_LEVEL     = 1;   // scout slots per scout academy level
+
+// ── Off-season: repair & hero ─────────────────────────────────────────────────
+export const MASON_REPAIR_PER_SEASON   = 50;  // HP of wall repaired per mason per off-season
+export const HERO_RETENTION_CHANCE     = 0.25;// base probability a seven-year hero stays on
+
+// ── Off-season: gold ──────────────────────────────────────────────────────────
+// ── Off-season: deployment capacity ──────────────────────────────────────────
+// Wall section capacity is an open question in the GDD — using 10 as a soft
+// warning threshold until a hard cap is decided during playtesting.
+export const WALL_SECTION_CAPACITY     = 10;   // warn if wall group exceeds this
+export const RESERVE_SECTION_CAPACITY  = 25;   // from decisions: 25 per reserve slot
+
+export const GOLD_BASE_PER_YEAR        = 100;
+export const GOLD_PER_MISSING_WALL_HP  = 1;
+export const GOLD_PER_DESTROYED_SEGMENT = 200;

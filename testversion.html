@@ -91,9 +91,190 @@
       border-top: 1px solid #333;
       margin: 12px 0;
     }
+
+    /* ── Off-season wizard (full-screen) ──────────────────────────── */
+    #offseason-ui {
+      display: none;
+      position: fixed;
+      inset: 0;
+      flex-direction: column;
+      background: #1a1610;
+      color: #e0d4b0;
+      font-family: Georgia, serif;
+      z-index: 100;
+    }
+    #os-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 28px;
+      background: #0f0d08;
+      border-bottom: 1px solid #3a2a10;
+      font-size: 12px;
+      color: #7a6a4a;
+      flex-shrink: 0;
+    }
+    #os-step-label {
+      padding: 14px 28px 13px;
+      font-size: 22px;
+      color: #c9a84c;
+      letter-spacing: 0.04em;
+      border-bottom: 1px solid #2a1e08;
+      background: #1a1610;
+      flex-shrink: 0;
+    }
+    #os-content {
+      overflow-y: auto;
+      flex: 1;
+      line-height: 1.65;
+    }
+    .os-inner {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 28px 28px 40px;
+    }
+    #os-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 28px;
+      border-top: 1px solid #3a2a10;
+      background: #0f0d08;
+      flex-shrink: 0;
+    }
+    .os-btn {
+      background: #2a2010;
+      border: 1px solid #6a5030;
+      color: #c9a84c;
+      font-family: Georgia, serif;
+      font-size: 13px;
+      padding: 8px 22px;
+      cursor: pointer;
+      border-radius: 3px;
+      letter-spacing: 0.03em;
+      transition: background .15s, border-color .15s;
+    }
+    .os-btn:hover:not(:disabled) { background: #3a2e18; border-color: #9a7840; }
+    .os-btn:disabled { opacity: 0.35; cursor: default; }
+    .os-btn-primary {
+      background: #3a2a10;
+      border-color: #c9a84c;
+      color: #f0e0a0;
+    }
+    .os-btn-primary:hover:not(:disabled) { background: #4a3820; }
+    .os-section-title {
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #7a6a4a;
+      margin: 28px 0 14px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #2a1e08;
+    }
+    .os-section-title:first-child { margin-top: 0; }
+    .os-gold-bar {
+      position: sticky;
+      top: 0;
+      background: #0f0d08;
+      border: 1px solid #3a2a10;
+      padding: 10px 16px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 28px;
+      font-size: 14px;
+      z-index: 10;
+    }
+    .os-gold-item { color: #8a7a5a; }
+    .os-gold-item strong { color: #c9a84c; }
+    .os-gold-remaining strong { color: #f0e0a0; font-size: 15px; }
+    .os-wall-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 8px;
+    }
+    .os-wall-card {
+      background: #201810;
+      border: 1px solid #3a2a10;
+      padding: 14px;
+      border-radius: 3px;
+    }
+    .os-wall-card h4 {
+      font-size: 13px;
+      color: #c9a84c;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+    .os-hp-bar-wrap {
+      height: 6px;
+      background: #0f0d08;
+      border-radius: 3px;
+      margin-bottom: 8px;
+      overflow: hidden;
+    }
+    .os-hp-bar-fill { height: 100%; background: #5a8a3a; border-radius: 3px; transition: width .3s; }
+    .os-hp-label { font-size: 12px; color: #8a7a5a; margin-bottom: 12px; }
+    .os-btn-sm {
+      background: #2a2010;
+      border: 1px solid #6a5030;
+      color: #c9a84c;
+      font-family: Georgia, serif;
+      font-size: 12px;
+      padding: 5px 12px;
+      cursor: pointer;
+      border-radius: 3px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      transition: background .12s;
+    }
+    .os-btn-sm:hover:not(:disabled) { background: #3a2e18; }
+    .os-btn-sm:disabled { opacity: 0.35; cursor: default; }
+    .os-btn-sm.committed { border-color: #c9a84c; color: #f0e0a0; }
+    .os-building-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .os-building-table th {
+      text-align: left;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #6a5a3a;
+      padding: 6px 10px;
+      border-bottom: 1px solid #2a1e08;
+    }
+    .os-building-table td { padding: 9px 10px; border-bottom: 1px solid #251a08; vertical-align: middle; }
+    .os-building-table tr:last-child td { border-bottom: none; }
+    .os-building-table tr.locked td { opacity: 0.45; }
+    .os-building-table tr.maxed td:not(:last-child) { opacity: 0.55; }
+    .os-cat-row td {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #5a4a2a;
+      padding: 14px 10px 4px;
+      border-bottom: 1px solid #2a1e08;
+      background: #1a1610;
+    }
+    .os-prereq-note { font-size: 11px; color: #5a4a2a; font-style: italic; }
+    .os-confirm-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px; }
+    .os-confirm-table td { padding: 9px 12px; border-bottom: 1px solid #251a08; }
+    .os-confirm-table tr:last-child td { border-bottom: none; }
+    .os-warn { background: #201408; border: 1px solid #5a3010; padding: 12px 16px; font-size: 13px; color: #a08050; margin-bottom: 20px; line-height: 1.6; }
   </style>
 </head>
 <body>
+  <div id="offseason-ui">
+    <div id="os-header">
+      <span id="os-year-label">Off Season · Year 1</span>
+      <span id="os-step-indicator">Step 1 of 8</span>
+    </div>
+    <div id="os-step-label">Loading…</div>
+    <div id="os-content"></div>
+    <div id="os-nav">
+      <button id="os-btn-prev" class="os-btn">← Previous</button>
+      <button id="os-btn-next" class="os-btn os-btn-primary">Next →</button>
+    </div>
+  </div>
+
   <div id="battle-ui">
     <div id="game-container"></div>
 
@@ -181,13 +362,23 @@
         Launch
       </button>
     </p>
+    <p style="margin-top:14px; font-size:11px; color:#555;">Off-season wizard&nbsp;
+      <button id="btn-offseason" style="
+        background:#2a2010; border:1px solid #6a5030; color:#c9a84c;
+        padding:5px 12px; cursor:pointer; font-size:11px; border-radius:3px;">
+        Launch
+      </button>
+    </p>
   </div>
 
   <!-- Phaser 3 — must load before the module so `Phaser` global is available -->
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.87.0/dist/phaser.min.js"></script>
   <script type="module">
     import { GameState } from './src/state/GameState.js';
+    import { initNavButtons, startOffSeason } from './src/offseason/OffSeasonUI.js';
     import './src/main.js';
+
+    initNavButtons();
 
     const picker   = document.getElementById('test-picker');
     const grid     = document.getElementById('picker-grid');
@@ -258,6 +449,57 @@
       GameState.year = 99;   // no composition defined → falls through to stress test
       GameState.enemyCompositionIndex = 0;
       launchBattle();
+    };
+
+    // Off-season wizard test button — seeds ceremony data so Steps 1 & 2 render
+    document.getElementById('btn-offseason').onclick = () => {
+      picker.style.display = 'none';
+      key.style.display    = 'none';
+      GameState.year = 2;
+
+      // Seed wall damage so gold breakdown is non-trivial
+      GameState.wallSegments[0].hp = 120;  // left: 80 damage
+      GameState.wallSegments[2].hp = 0;    // right: fully destroyed
+
+      // Seed a Mason and a Scout for testing
+      GameState.roster = [
+        {
+          id: 800, name: 'Mortarborn Wallward', firstName: 'Mortarborn', lastName: 'Wallward',
+          class: 'mason', gender: 'male', age: 'old', portraitId: 'nonwarrior_male_old_5',
+          bio: '', level: 1, xp: 0, yearOfService: 2, assignment: null, injured: false, isNewRecruit: false,
+        },
+        {
+          id: 801, name: 'Dalla Shadowstep', firstName: 'Dalla', lastName: 'Shadowstep',
+          class: 'scout', gender: 'female', age: 'young', portraitId: 'nonwarrior_female_young_4',
+          bio: '', level: 1, xp: 0, yearOfService: 1, assignment: null, injured: false, isNewRecruit: false,
+        },
+      ];
+
+      // Mock fallen soldiers (portrait IDs match files that exist in assets/)
+      GameState.fallenThisBattle = [
+        { id: 901, name: 'Ragnar Ironhelm',    class: 'warrior', yearOfService: 5, portraitId: 'warrior_male_young_44',    gender: 'male',   age: 'young' },
+        { id: 902, name: 'Astrid Trueshot',    class: 'archer',  yearOfService: 0, portraitId: 'warrior_female_young_2',   gender: 'female', age: 'young' },
+        { id: 903, name: 'Olaf Runeborn',      class: 'mage',    yearOfService: 3, portraitId: 'nonwarrior_male_old_1',    gender: 'male',   age: 'old'   },
+        { id: 904, name: 'Ingrid Gentlehand',  class: 'healer',  yearOfService: 1, portraitId: 'nonwarrior_female_young_1',gender: 'female', age: 'young' },
+      ];
+
+      // Mock heroes (yearOfService 7 = completed 7 years, now graduating)
+      GameState.newHeroesThisBattle = [
+        { id: 905, name: 'Sigurd Grimwall',    class: 'warrior', yearOfService: 7, portraitId: 'warrior_male_young_1',     gender: 'male',   age: 'young' },
+        { id: 906, name: 'Freya Swiftflight',  class: 'archer',  yearOfService: 7, portraitId: 'warrior_female_young_3',   gender: 'female', age: 'young' },
+      ];
+
+      startOffSeason(GameState, (wizardState) => {
+        // Write final assignments from wizard back to each roster unit
+        for (const unit of GameState.roster) {
+          if (!unit.dead) unit.assignment = wizardState.assignments[unit.id] ?? null;
+        }
+        // Clean up test ceremony data
+        GameState.fallenThisBattle    = [];
+        GameState.newHeroesThisBattle = [];
+        // Launch battle with assigned roster
+        launchBattle();
+      });
     };
   </script>
 </body>

@@ -31,12 +31,11 @@
     min-height: 100vh;
   }
 
-  /* Texture overlay */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: 
+    background-image:
       repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px),
       repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(201,168,76,0.02) 40px, rgba(201,168,76,0.02) 41px);
     pointer-events: none;
@@ -51,7 +50,6 @@
     padding: 0 24px 80px;
   }
 
-  /* Header */
   .header {
     text-align: center;
     padding: 64px 0 48px;
@@ -107,7 +105,6 @@
     letter-spacing: 0.05em;
   }
 
-  /* Ornament */
   .ornament {
     text-align: center;
     color: var(--gold-dark);
@@ -116,7 +113,6 @@
     letter-spacing: 0.5em;
   }
 
-  /* Table of Contents */
   .toc {
     background: var(--stone-mid);
     border: 1px solid var(--gold-dark);
@@ -137,10 +133,7 @@
     margin-bottom: 20px;
   }
 
-  .toc ol {
-    list-style: none;
-    counter-reset: toc-counter;
-  }
+  .toc ol { list-style: none; counter-reset: toc-counter; }
 
   .toc li {
     counter-increment: toc-counter;
@@ -167,7 +160,6 @@
 
   .toc a:hover { color: var(--gold-light); }
 
-  /* Sections */
   .section {
     margin-bottom: 64px;
     scroll-margin-top: 32px;
@@ -210,7 +202,6 @@
 
   p { margin-bottom: 16px; color: var(--parchment); }
 
-  /* Callout boxes */
   .callout {
     background: var(--mist);
     border-left: 3px solid var(--gold);
@@ -231,7 +222,6 @@
     text-transform: uppercase;
   }
 
-  /* Data tables */
   .data-table {
     width: 100%;
     border-collapse: collapse;
@@ -260,7 +250,6 @@
   .data-table tr:last-child td { border-bottom: none; }
   .data-table tr:hover td { background: var(--mist); }
 
-  /* Tag chips */
   .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
 
   .tag {
@@ -274,7 +263,6 @@
     background: rgba(201,168,76,0.05);
   }
 
-  /* Unit cards grid */
   .card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -314,7 +302,6 @@
     color: var(--gold-dark);
   }
 
-  /* Phase blocks */
   .phase {
     background: var(--stone-mid);
     border: 1px solid var(--stone-light);
@@ -339,7 +326,6 @@
     margin-bottom: 12px;
   }
 
-  /* Divider */
   .divider {
     text-align: center;
     color: var(--gold-dark);
@@ -348,7 +334,6 @@
     letter-spacing: 1em;
   }
 
-  /* Open questions */
   .open-question {
     display: flex;
     gap: 16px;
@@ -369,12 +354,43 @@
 
   .q-text { font-size: 15px; color: var(--parchment-dark); }
 
-  /* Difficulty table highlight */
   .difficulty-easy { color: #5a9e6f; }
   .difficulty-med { color: var(--gold); }
   .difficulty-hard { color: var(--blood); }
 
-  /* Footer */
+  /* Changelog styles */
+  .changelog-entry {
+    padding: 20px 0;
+    border-bottom: 1px solid var(--stone-light);
+  }
+  .changelog-entry:last-child { border-bottom: none; }
+  .changelog-version {
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    color: var(--gold-light);
+    letter-spacing: 0.1em;
+    margin-bottom: 4px;
+  }
+  .changelog-date {
+    font-size: 12px;
+    color: var(--stone-light);
+    font-style: italic;
+    margin-bottom: 12px;
+  }
+  .changelog-entry ul {
+    list-style: none;
+    padding-left: 0;
+    color: var(--parchment-dark);
+  }
+  .changelog-entry li {
+    padding: 4px 0;
+    font-size: 15px;
+  }
+  .changelog-entry li::before {
+    content: '— ';
+    color: var(--gold-dark);
+  }
+
   .footer {
     text-align: center;
     padding-top: 48px;
@@ -384,7 +400,6 @@
     font-style: italic;
   }
 
-  /* Responsive */
   @media (max-width: 600px) {
     .container { padding: 0 16px 60px; }
     .header { padding: 40px 0 32px; }
@@ -400,19 +415,22 @@
 
   <!-- Header -->
   <header class="header">
-    <div class="doc-label">Game Design Document · Working Draft</div>
+    <div class="doc-label">Game Design Document · Living Document</div>
     <h1 class="title">Heroes of the<br>Seventh Year</h1>
     <div class="subtitle">A Wall Defense &amp; Generational Strategy Game</div>
     <div class="ornament">⚔ ✦ ⚔</div>
-    <div class="header-meta">Version 0.2 &nbsp;·&nbsp; Design Complete — Ready for Development</div>
+    <div class="header-meta">Version 0.6 &nbsp;·&nbsp; Sprint 1 Complete · Sprint 2 Design · World &amp; Culture · Off Season Detail</div>
   </header>
 
   <!-- Table of Contents -->
   <nav class="toc">
     <ol>
       <li><a href="#premise">Premise &amp; Setting</a></li>
+      <li><a href="#world">World &amp; Culture</a></li>
       <li><a href="#core-loop">Core Gameplay Loop</a></li>
       <li><a href="#off-season">The Off Season</a></li>
+      <li><a href="#honoring">Honoring the Fallen &amp; Heroes</a></li>
+      <li><a href="#recruit-rules">Recruit Generation Rules</a></li>
       <li><a href="#battle">The Battle Phase</a></li>
       <li><a href="#units">Unit Archetypes</a></li>
       <li><a href="#enemies">Enemy Types &amp; Tactics</a></li>
@@ -422,7 +440,9 @@
       <li><a href="#replayability">Replayability &amp; Variance</a></li>
       <li><a href="#scoring">Win Conditions &amp; Scoring</a></li>
       <li><a href="#tech">Tech Stack</a></li>
+      <li><a href="#sprint2">Sprint 2 — Off Season Implementation Plan</a></li>
       <li><a href="#open">Open Questions</a></li>
+      <li><a href="#changelog">Changelog</a></li>
     </ol>
   </nav>
 
@@ -447,10 +467,60 @@
 
   <div class="divider">· · ·</div>
 
-  <!-- II. Core Loop -->
-  <section class="section" id="core-loop">
+  <!-- II. World & Culture -->
+  <section class="section" id="world">
     <div class="section-header">
       <span class="section-num">II</span>
+      <h2>World &amp; Culture</h2>
+    </div>
+
+    <h3>Geography &amp; Isolation</h3>
+    <p>The kingdom occupies a valley entirely enclosed by impassable mountains. There is one way in and one way out — the valley mouth, where the wall stands. There is no outside world to flee to, no distant ally to call upon, no alternative. The people have always known this. It shapes everything about how they live and what they value.</p>
+
+    <p>The kingdom is predominantly agrarian — farmers, herders, and small-holders working land that has been in families for generations. The only settlement of any size is simply called the City. A small middle class of traders, merchants, and craftspeople operates primarily there. The nobility is tiny and largely ceremonial; real power flows from the king and the wall.</p>
+
+    <h3>Tone</h3>
+    <p>The world is grim but not hopeless. The threat of the raiders is not an abstraction — everyone understands that if the wall falls, the kingdom ends. This understanding sits quietly in the back of every citizen's mind from childhood onward. It does not paralyze them. It makes them serious.</p>
+
+    <callout class="callout">
+      <strong>Design Intent</strong>
+      The grimness should feel earned and lived-in, not decorative. Characters don't despair — they work, they train, they hope their children won't have to. The wall is not a symbol of fear. It is a symbol of survival and pride.
+    </callout>
+
+    <h3>The Wall in the Cultural Psyche</h3>
+    <p>The wall is the single most important structure in the kingdom — militarily, economically, and psychologically. Every citizen grows up knowing what it is and what it means. Parents tell children about the wall before they can read. Tavern songs recount famous battles. The raiders are referred to simply as the enemy, the invaders, or — in stories told to children — the monsters. They have no other name. They need none.</p>
+
+    <p>Adolescents who show promise train and apprentice with the explicit hope of one day qualifying as recruits. Service at the wall is the most direct path to meaningful social advancement in a society with few such paths. To be selected is already an honor.</p>
+
+    <h3>Seven-Year Heroes</h3>
+    <p>Recruits who survive seven full years of service and are released honorably are known as heroes — not as a courtesy title, but in the fullest sense the culture understands the word. They return home to land grants and property deeds from the crown. Their names are known everywhere. Children ask to hear their stories. Taverns hang their names on the wall. They are the living proof that the wall can be held and that ordinary people can become extraordinary ones.</p>
+
+    <p>This hero culture is not incidental — it is the kingdom's primary mechanism for maintaining morale and a steady supply of volunteers across generations. Without it, the wall would not stand.</p>
+
+    <h3>Key Figures</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>Figure</th><th>Role</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong style="color:var(--gold-light)">King Aldric</strong></td><td>Ruler of the kingdom</td><td>A former wall commander himself. His authority is genuine and his understanding of the wall's needs is firsthand. He appointed the player personally.</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">The Commander (player)</strong></td><td>Wall commander</td><td>A former seven-year hero, recalled to service and appointed by Aldric. Holds the second most powerful position in the realm. Name supplied by the player at game start.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>The Enemy</h3>
+    <p>The forces that assault the wall are referred to as the raiders or the invaders. They have no known name, civilization, or recorded history in kingdom lore — only the pattern of their attacks and the destruction they leave behind. To children they are simply called the monsters. No recruit has ever returned from behind enemy lines. No one knows what lies beyond the valley mouth except death.</p>
+
+    <h3>Flavor System</h3>
+    <p>Each recruit receives a bespoke bio and greeting organized by gender (M/F) and age (young/old). Approximately 250 bespoke bios are planned, targeting meaningful emotional investment in individual soldiers. This system is in progress.</p>
+  </section>
+
+  <div class="divider">· · ·</div>
+
+  <!-- III. Core Loop -->
+  <section class="section" id="core-loop">
+    <div class="section-header">
+      <span class="section-num">III</span>
       <h2>Core Gameplay Loop</h2>
     </div>
 
@@ -465,7 +535,7 @@
     <div class="phase">
       <div class="phase-label">Phase Two</div>
       <h4>The Battle</h4>
-      <p>Enemies assault the wall. Combat is largely automated (auto-battler style), with the player making key tactical decisions: initial deployment, timing of reserve deployment, choosing which wall section to reinforce, and whether to launch a sortie.</p>
+      <p>Enemies assault the wall. Combat is largely automated (auto-battler style), with the player making key tactical decisions: initial deployment, timing of reserve deployment, choosing which wall section to reinforce or sortie into, and adjusting targeting preferences mid-battle.</p>
     </div>
 
     <p>Recruits cycle through multiple generations over the course of the game. Players will outlast several cohorts of soldiers, which creates tension between emotional attachment and strategic detachment.</p>
@@ -473,21 +543,21 @@
 
   <div class="divider">· · ·</div>
 
-  <!-- III. Off Season -->
+  <!-- IV. Off Season -->
   <section class="section" id="off-season">
     <div class="section-header">
-      <span class="section-num">III</span>
+      <span class="section-num">IV</span>
       <h2>The Off Season</h2>
     </div>
 
-    <p>The off season is a pure resource allocation phase — not a spatial building or city-management sim. Players decide how to spend their gold across competing priorities. Gold is spent first, then recruits arrive.</p>
+    <p>The off season is a pure resource allocation phase — not a spatial building or city-management sim. Players decide how to spend their gold across competing priorities. The phase is structured as a linear wizard with Next and Previous buttons, allowing unidirectional progress while preserving the ability to revisit prior decisions. Gold is spent first, then recruits arrive, then deployments are set.</p>
 
     <h3>Gold Economy</h3>
     <p>Each off season the player receives:</p>
     <ul style="list-style:none; padding-left:0; color:var(--parchment-dark);">
       <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">100 gold baseline</strong> per year, always</li>
       <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">+1 gold per missing wall HP</strong> across all segments (comeback mechanic)</li>
-      <li style="padding:6px 0;">— <strong style="color:var(--parchment)">+200 gold per fully destroyed wall segment</strong> (included in the above, but worth noting — a breached segment is a significant silver lining)</li>
+      <li style="padding:6px 0;">— <strong style="color:var(--parchment)">+200 gold per fully destroyed wall segment</strong> (a breached segment is a significant silver lining)</li>
     </ul>
 
     <callout class="callout">
@@ -499,10 +569,10 @@
     <p>After all gold is spent, new recruits arrive to fill every empty housing slot across all buildings. The composition is random but skewed to balance the current roster:</p>
     <ul style="list-style:none; padding-left:0; color:var(--parchment-dark);">
       <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— The system checks the current ratio of unit types (e.g. 5 Warriors vs 15 Archers)</li>
-      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— Incoming recruits skew toward underrepresented types to push toward 50/50 balance within each building category</li>
-      <li style="padding:6px 0;">— Only archetypes supported by existing buildings can appear (no Mages without a Library)</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— Incoming recruits skew toward underrepresented types. The goal is an even final split within each building's capacity, ±1 unit per type. Full rules in <a href="#recruit-rules" style="color:var(--gold-light);">Section VI — Recruit Generation Rules</a>.</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— Only archetypes supported by existing buildings can appear (no Mages without a Library)</li>
+      <li style="padding:6px 0;">— Masons and Scouts fill their own specialist housing (Artisan Workshop, Scout Academy) and are not part of the combat unit distribution logic</li>
     </ul>
-    <p>Example: 5 Warriors, 15 Archers, 40 Barracks capacity → incoming cohort skews heavily toward Warriors to rebalance toward 50/50.</p>
 
     <h3>Off Season Priorities</h3>
     <table class="data-table">
@@ -510,7 +580,7 @@
         <tr><th>Category</th><th>Examples</th><th>Trade-off</th></tr>
       </thead>
       <tbody>
-        <tr><td>Wall Repairs</td><td>Restore damaged wall segments</td><td>Mandatory if damaged — crowds out development budget</td></tr>
+        <tr><td>Wall Repairs</td><td>Restore damaged wall segments</td><td>Instant repair; Mason capacity limits total HP restored per off season (50 HP per Mason)</td></tr>
         <tr><td>Wall Upgrades</td><td>Increase wall level per segment</td><td>Higher HP and damage reduction bonus for on-wall units</td></tr>
         <tr><td>Building Construction</td><td>Barracks, Library, Artisan Workshop</td><td>Unlocks new unit types and increases capacity</td></tr>
         <tr><td>Building Upgrades</td><td>Level up Archery Range, Mage Workshop, etc.</td><td>Improves unit effectiveness — attack speed, armor, damage</td></tr>
@@ -519,111 +589,444 @@
       </tbody>
     </table>
 
-    <h3>Interface Approach</h3>
-    <p>The off season interface is organized into navigable categories — not a spatial grid or traditional tech tree. Each category shows relevant buildings, current level, quantity owned, and upgrade costs. Works on both mobile and desktop.</p>
+    <h3>Off Season Wizard Flow</h3>
+    <p>The off season proceeds as a multi-step wizard. Players navigate with Next and Previous buttons. State is preserved when going back — no choices reset unless explicitly changed. Each step is described below.</p>
 
-    <div class="tags">
-      <span class="tag">Melee &amp; Reserves</span>
-      <span class="tag">Ranged &amp; Artillery</span>
-      <span class="tag">Magic &amp; Healing</span>
-      <span class="tag">Engineering</span>
-      <span class="tag">General Infrastructure</span>
+    <div class="phase">
+      <div class="phase-label">Step 1</div>
+      <h4>Honoring the Fallen</h4>
+      <p>Presents all soldiers who died in the most recent battle. See <a href="#honoring" style="color:var(--gold-light);">Section V</a> for full specification. Skipped if no soldiers died.</p>
     </div>
+
+    <div class="phase">
+      <div class="phase-label">Step 2</div>
+      <h4>Honoring New Seven-Year Heroes</h4>
+      <p>Presents all soldiers who completed their seventh year of service. See <a href="#honoring" style="color:var(--gold-light);">Section V</a> for full specification. Skipped if no soldiers reached hero status this year.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Step 3</div>
+      <h4>Gold Summary</h4>
+      <p>Displays the player's current gold total: carryover from the prior season plus any new gold earned from wall damage. Breakdowns for base income, missing-HP bonus, and destroyed-segment bonus are shown separately. This is an informational screen — no choices are made here.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Step 4</div>
+      <h4>Wall &amp; Building Investment</h4>
+      <p>The player's full investment screen. Displays the wall in its current state across all three segments (HP, level), alongside the complete building list. Players can spend gold on:</p>
+      <ul style="list-style:none; padding-left:0; color:var(--parchment-dark); margin-top:12px;">
+        <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— Wall repairs (instant; Mason capacity shown as a constraint)</li>
+        <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— Wall upgrades per segment</li>
+        <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— New building construction</li>
+        <li style="padding:6px 0;">— Building level upgrades</li>
+      </ul>
+      <p style="margin-top:12px;">Buildings the player cannot yet afford or lacks prerequisites for are displayed in a grayed-out state with their prerequisite listed. Current gold total is always visible. Spending decisions are reflected immediately in the running total.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Step 5</div>
+      <h4>Confirm Spending</h4>
+      <p>A confirmation dialogue summarizing all spending choices made in Step 4. The player is reminded that their building decisions will determine which recruit classes arrive at the wall. Confirming here triggers recruit generation. The player can go back to revise spending before confirming.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Step 6</div>
+      <h4>Personnel &amp; Deployment Assignment</h4>
+      <p>The core personnel management screen. Displays all soldiers — existing roster plus newly arrived recruits — in a single sortable, filterable table. Filter and sort state persists for the duration of this off season and resets at the start of the next.</p>
+
+      <p style="margin-top:12px;"><strong style="color:var(--gold-light);">Table Columns:</strong> Name · Class · Year of Service · Level · Assignment</p>
+
+      <p style="margin-top:12px;">New recruits are visually highlighted (e.g., a distinct row color or badge) to distinguish them from returning soldiers. Each row has a detail button that opens a character sheet. The character sheet opens with the soldier's portrait and a greeting in the format: <em>"Commander [playername], [greeting]"</em> — where the greeting is selected randomly from the pool matching the soldier's class and current year of service. Below the greeting, the sheet shows the soldier's bio and full stats.</p>
+
+      <p style="margin-top:12px;">The <strong style="color:var(--gold-light);">Assignment</strong> column is a dropdown per row. Every combatant (all classes except Mason and Scout) must be assigned to one of six deployment groups before the player can proceed:</p>
+      <ul style="list-style:none; padding-left:0; color:var(--parchment-dark); margin-top:8px;">
+        <li style="padding:4px 0;">— Wall Left &nbsp;·&nbsp; Wall Center &nbsp;·&nbsp; Wall Right</li>
+        <li style="padding:4px 0;">— Reserve Left &nbsp;·&nbsp; Reserve Center &nbsp;·&nbsp; Reserve Right</li>
+      </ul>
+
+      <p style="margin-top:12px;">Assignment choices persist year to year. Only new recruits arrive without assignments — returning soldiers carry their prior assignment forward as the default, which the player can change. Empty groups are permitted. If any group exceeds its hard capacity, a popup warning is shown. Warriors and Captains may only be assigned to reserve groups (enforced by the dropdown — wall options are disabled for these classes).</p>
+
+      <p style="margin-top:12px;">The player cannot advance to the next step until every combatant has an assignment.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Step 7</div>
+      <h4>Deployment Preview</h4>
+      <p>A visual representation of the upcoming battle deployment based on the assignments set in Step 6. Shows all wall units in position across the three wall sections, and all reserve units staged in their respective reserve zones, mirroring the battle map layout. The player can review the composition visually and go back to Step 6 to revise assignments if needed. Proceeding from here advances to the scout phase (if applicable) or ends the off season.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Step 8 (conditional)</div>
+      <h4>Scout Deployment</h4>
+      <p>Shown only if the player has one or more Scouts available. The player chooses whether to send Scouts out this year. If yes, results are returned after a brief delay (~3 seconds):</p>
+      <ul style="list-style:none; padding-left:0; color:var(--parchment-dark); margin-top:8px;">
+        <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:#5a9e6f">Success (60%)</strong> — Enemy composition revealed. Player may return to Step 6 to revise deployments in light of the intel.</li>
+        <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--gold)">Fail (30%)</strong> — Scouts found nothing. No intel gained.</li>
+        <li style="padding:6px 0;">— <strong style="color:var(--blood)">Captured (10%)</strong> — Scout is permanently removed from the roster.</li>
+      </ul>
+      <p style="margin-top:12px;">If intel is successfully returned, the player is given the option to go back to Step 6 and revise assignments before proceeding. The Deployment Preview (Step 7) is shown again after any revision.</p>
+    </div>
+
+    <h3>Character Generation</h3>
+    <p>Recruit generation is triggered after building choices are confirmed in Step 5. The full rules governing class distribution, name assignment, portrait allocation, and bio selection are documented in <a href="#recruit-rules" style="color:var(--gold-light);">Section VI — Recruit Generation Rules</a>.</p>
   </section>
 
   <div class="divider">· · ·</div>
 
-  <!-- IV. Battle Phase -->
+  <!-- V. Honoring the Fallen & Heroes -->
+  <section class="section" id="honoring">
+    <div class="section-header">
+      <span class="section-num">V</span>
+      <h2>Honoring the Fallen &amp; Heroes</h2>
+    </div>
+
+    <p>The off season does not begin with gold counts or building menus. It begins with the dead, and then with the heroes. This is the cultural spine of the kingdom made tangible — the moment the player is asked to hold, however briefly, what the last battle actually cost and what it produced.</p>
+
+    <p>The two ceremonies are sequential and separate. Steps 1 and 2 of the off season wizard. Each is skipped automatically if there is nothing to show.</p>
+
+    <callout class="callout">
+      <strong>Design Intent</strong>
+      These screens exist to create weight. A soldier who dies as a number in a battle log costs nothing emotionally. A soldier whose portrait appears one final time, whose name the Commander reads aloud, whose years of service are recorded — that soldier costs something. The hero ceremony works the same way in the other direction: completion should feel earned, not merely tallied.
+    </callout>
+
+    <h3>Part One — The Fallen</h3>
+
+    <p>The first screen of every off season (except Year 1, when there has been no prior battle) presents all soldiers who died in the most recent battle as a list. If no soldiers died, this screen is skipped entirely.</p>
+
+    <div class="phase">
+      <div class="phase-label">Screen Layout</div>
+      <h4>Roll Call of the Fallen</h4>
+      <p>All fallen soldiers are displayed together as a list — not one at a time. Each entry in the list shows the soldier's portrait (at standard size), full name, class, and years of service at time of death.</p>
+      <p style="margin-top:12px;">The list is sorted by years of service, highest to lowest. Ties are broken alphabetically by name.</p>
+      <p style="margin-top:12px;">At the bottom of the list, the Commander's closing line is displayed:</p>
+      <p style="margin-top:12px; font-style:italic; color:var(--parchment-dark);">"Let us all take a moment of silence to remember their sacrifice for the kingdom."</p>
+      <p style="margin-top:12px;">The button to advance to the next stage of the off season appears after that line.</p>
+    </div>
+
+    <callout class="callout">
+      <strong>Design Intent</strong>
+      Sorting by years of service puts the most experienced fallen soldiers first — the ones the player has lived with longest. Veterans who die after six years of service are shown before first-year recruits. The list format lets the player take in the full scope of the loss at once, rather than being forced through it one soldier at a time.
+    </callout>
+
+    <h3>Part Two — The Heroes</h3>
+
+    <p>Immediately following the fallen ceremony (or opening the off season directly if no one died), the game presents any soldiers who completed their seventh year of service. A soldier who survived their seventh battle is a hero by right. If no soldiers reached hero status this year, this screen is skipped entirely.</p>
+
+    <div class="phase">
+      <div class="phase-label">Screen Layout</div>
+      <h4>The Hero Departures</h4>
+      <p>All seven-year heroes are displayed together as a list. Each entry shows the soldier's portrait (at standard size), full name, class, and an indication of their outcome — departed or staying.</p>
+      <p style="margin-top:12px;">Each hero has a 25% chance to stay and help train others, and a 75% chance to depart as a hero. Both outcomes count toward the Monument bonus. The outcome is determined at the moment this screen renders and is shown directly on each hero's entry.</p>
+      <p style="margin-top:12px;">Heroes who depart show:</p>
+      <p style="margin-top:8px; font-style:italic; color:var(--parchment-dark);">"[Name]. [Class]. Seven years of service. A hero of the realm."</p>
+      <p style="margin-top:12px;">Heroes who stay show:</p>
+      <p style="margin-top:8px; font-style:italic; color:var(--parchment-dark);">"[Name]. [Class]. Seven years of service. A hero of the realm — and they are staying."</p>
+      <p style="margin-top:12px;">Heroes who stay transition immediately into the active roster as super units. Each staying hero grants every unit on the roster 1 XP per off season for as long as they remain.</p>
+      <p style="margin-top:12px;">The player advances to the gold summary when ready.</p>
+    </div>
+
+    <callout class="callout">
+      <strong>Design Intent</strong>
+      The hero ceremony is not a reward screen. It is a departure. The wall is losing one of its best soldiers — someone the player has watched grow from a new recruit, someone who has survived battles others did not. The tone should carry that ambivalence: pride in what they achieved, and the quiet cost of losing them. Heroes who stay resolve that tension differently — and should feel like a genuine gift.
+    </callout>
+  </section>
+
+  <div class="divider">· · ·</div>
+
+  <!-- VI. Recruit Generation Rules -->
+  <section class="section" id="recruit-rules">
+    <div class="section-header">
+      <span class="section-num">VI</span>
+      <h2>Recruit Generation Rules</h2>
+    </div>
+
+    <p>New recruits are generated at the moment the player confirms their building and spending choices (Off Season Step 3). Every empty housing slot across all buildings is filled. The process follows a strict sequence: determine class distribution first, then generate each individual recruit in that class.</p>
+
+    <h3>Step 1 — Determine Total Incoming Recruits</h3>
+    <p>Count empty housing slots across all buildings after spending is confirmed. Each empty slot produces exactly one recruit. Slot counts are building-type-specific:</p>
+
+    <ul style="list-style:none; padding-left:0; color:var(--parchment-dark);">
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Barracks</strong> — Each level provides 10 housing slots. Slots are shared between Warriors and Archers.</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Library</strong> — Each level provides 5 housing slots. Slots are shared between Mages and Healers.</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Artisan Workshop</strong> — Each level provides 10 Mason housing slots. Masons fill their own pool independently.</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Siege Workshop</strong> — Each level provides 1 Engineer housing slot.</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Officer Academy</strong> — Each level provides 1 Captain housing slot (max 5 total Captains).</li>
+      <li style="padding:6px 0;">— <strong style="color:var(--parchment)">Scout Academy</strong> — Each level provides 1 Scout housing slot.</li>
+    </ul>
+
+    <h3>Step 2 — Determine Class Split (Barracks &amp; Library)</h3>
+    <p>For buildings that house two classes (Barracks: Warriors/Archers; Library: Mages/Healers), incoming recruits are distributed using a roster-balancing algorithm. Each pairing is calculated independently.</p>
+
+    <p><strong style="color:var(--gold-light);">Algorithm:</strong> The goal is an even final split within that building's total capacity, ±1 unit per type. Count the current number of living soldiers of each class within the pair. Determine how many of each class are needed to reach an even split of the building's total capacity. Assign the incoming recruits accordingly. The result is that after recruits arrive, each class occupies between (capacity/2 − 1) and (capacity/2 + 1) slots. The same logic applies independently to Mages vs Healers within Library slots.</p>
+
+    <callout class="callout">
+      <strong>Design Intent</strong>
+      Hard rebalancing feels like the game overriding the player's losses. A soft nudge respects the reality of attrition while gently steering the roster toward a functional composition. Extreme imbalances correct over time — which creates an interesting strategic pressure in years following heavy casualties in a single class.
+    </callout>
+
+    <h3>Step 3 — Generate Each Recruit</h3>
+    <p>Once class counts are determined, each recruit is generated individually in sequence. Portrait is assigned first because the portrait pool is divided by gender and age — drawing a portrait determines those attributes, which then drive name and bio selection.</p>
+
+    <div class="phase">
+      <div class="phase-label">Attribute 1</div>
+      <h4>Portrait</h4>
+      <p>The recruit's class (from Step 2) determines which portrait category to draw from: Warriors, Archers, and Captains draw from the <strong style="color:var(--gold-light);">warrior</strong> portrait pools; all other classes (Mage, Healer, Engineer, Mason, Scout) draw from the <strong style="color:var(--gold-light);">nonwarrior</strong> pools.</p>
+      <p style="margin-top:12px;">A portrait is selected randomly from all available portraits across all gender and age sub-pools within that category. The gender and age of the drawn portrait then determine the recruit's gender and age category for all subsequent attribute generation.</p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Pool</th><th>Files</th><th>Naming</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Warrior / Male / Old</td><td>7</td><td>warrior_male_old_portrait1–7.png</td></tr>
+          <tr><td>Warrior / Male / Young</td><td>44</td><td>warrior_male_young_portrait1–44.png</td></tr>
+          <tr><td>Warrior / Female / Old</td><td>4</td><td>warrior_female_old_portrait1–4.png</td></tr>
+          <tr><td>Warrior / Female / Young</td><td>55</td><td>warrior_female_young_portrait1–55.png</td></tr>
+          <tr><td>Nonwarrior / Male / Old</td><td>31</td><td>nonwarrior_male_old_portrait1–31.png</td></tr>
+          <tr><td>Nonwarrior / Male / Young</td><td>14</td><td>nonwarrior_male_young_portrait1–14.png</td></tr>
+          <tr><td>Nonwarrior / Female / Old</td><td>16</td><td>nonwarrior_female_old_portrait1–16.png</td></tr>
+          <tr><td>Nonwarrior / Female / Young</td><td>41</td><td>nonwarrior_female_young_portrait1–41.png</td></tr>
+        </tbody>
+      </table>
+
+      <p><strong style="color:var(--gold-light);">Deck-draw rules:</strong> Each portrait is unique among all living soldiers at any given time. Once assigned, it is removed from the available pool. Portraits are never returned to the pool mid-playthrough — not on death, not on hero departure. Only when the entire pool for that category (warrior or nonwarrior) is fully exhausted do portraits from dead or departed soldiers re-enter the pool. The full deck resets at the start of each new playthrough.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Attribute 2</div>
+      <h4>Gender &amp; Age Category</h4>
+      <p>Both are derived directly from the portrait drawn in Attribute 1. No separate random roll is made. Gender drives first name pool selection and bio pool selection. Age category drives bio pool selection only.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Attribute 3</div>
+      <h4>First Name</h4>
+      <p>Selected randomly from the gender-appropriate first name pool. The pool contains 50 male names and 50 female names drawn from Anglo-Saxon and Northern European traditions. No uniqueness check is applied to first names alone — the uniqueness constraint is on the full name combination.</p>
+      <p style="margin-top:8px; font-size:14px; color:var(--stone-light);">Male pool (50 names): Aldric, Bjorn, Calder, Dagmar, Edrik, Falko, Gunnar, Halvard, Ingvar, Jorvik, Knut, Leif, Magnus, Njord, Oskar, Ragnar, Sigurd, Torsten, Ulfric, Valdis, Wulfgar, Yorick, Alaric, Bertram, Cormac, Draven, Einar, Finn, Godwin, Harald, Ivar, Jokull, Kettil, Lothar, Morven, Norbert, Olaf, Peder, Quindar, Rodrik, Sven, Thane, Ulrik, Vidar, Wulfric, Xander, Yngvar, Zoran, Asmund, Brandr</p>
+      <p style="margin-top:4px; font-size:14px; color:var(--stone-light);">Female pool (50 names): Astrid, Brynhild, Dagny, Eira, Freya, Gudrun, Helga, Ingrid, Jorunn, Kari, Lofn, Maren, Nora, Oddny, Petra, Ragnhild, Sigrid, Thyra, Ulfhild, Ragnvor, Wulfwyn, Ylva, Alva, Bodil, Cerwen, Drifa, Embla, Frida, Gunnhild, Hilda, Idunn, Jora, Katla, Liv, Marta, Nanna, Olrun, Runa, Signe, Thora, Unn, Vigdis, Wulfrun, Yrsa, Solveig, Bergljot, Catriona, Dalla, Estrid, Finna</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Attribute 4</div>
+      <h4>Last Name</h4>
+      <p>Selected randomly from the class-appropriate surname pool. Each class has 25 surnames. After selecting a last name, the full name (first + last) is checked against a per-playthrough set of all names ever generated. If the combination has been used before, re-roll the last name only (not the first name) until a unique combination is found. If all 25 last names for that class have been exhausted in combination with this first name, re-roll the first name and repeat.</p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Class</th><th>Surname Theme</th><th>Example Names</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Warrior</td><td>Martial, battle-hardened</td><td>Ironhelm, Grimwall, Stonefist, Hammerfall, Ravenbrow</td></tr>
+          <tr><td>Archer</td><td>Precision, distance, nature</td><td>Trueshot, Eagleeye, Swiftflight, Hawkgaze, Longdraw</td></tr>
+          <tr><td>Mage</td><td>Arcane, ethereal, elemental</td><td>Runeborn, Ashenveil, Frostmantle, Grimrune, Shadowtongue</td></tr>
+          <tr><td>Healer</td><td>Gentle craft, herb and hand</td><td>Gentlehand, Brightbalm, Mosswick, Dawntouch, Willowmend</td></tr>
+          <tr><td>Captain</td><td>Command, honor, order</td><td>Goldmantle, Crownward, Bannerborn, Ironward, Valorhelm</td></tr>
+          <tr><td>Engineer</td><td>Craft, mechanism, structure</td><td>Stonethrower, Ironwright, Cogsworth, Forgewise, Timberfall</td></tr>
+          <tr><td>Mason</td><td>Stone, mortar, building trade</td><td>Stonewright, Mortarborn, Wallward, Hammerstone, Keystoneborn</td></tr>
+          <tr><td>Scout</td><td>Ranging, stealth, terrain</td><td>Shadowstep, Farwalker, Quietfoot, Windreader, Mistwalker</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Attribute 5</div>
+      <h4>Bio</h4>
+      <p>Selected from a pool of 256 complete bios organized by gender (male/female) and age category (young/old), giving four sub-pools of 64 bios each. One bio is selected at random from the appropriate sub-pool. Bios are not tracked for uniqueness — the same bio may appear on multiple recruits across a long playthrough. Each bio is a self-contained paragraph describing the recruit's background, motivation, and character.</p>
+
+      <table class="data-table">
+        <thead>
+          <tr><th>Sub-pool</th><th>Count</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Young Male</td><td>64 bios</td></tr>
+          <tr><td>Young Female</td><td>64 bios</td></tr>
+          <tr><td>Old Male</td><td>64 bios</td></tr>
+          <tr><td>Old Female</td><td>64 bios</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Attribute 6</div>
+      <h4>Starting Stats</h4>
+      <p>All recruits begin at Level 1 with base stats as defined in <a href="#units" style="color:var(--gold-light);">Section VIII — Unit Archetypes</a>. Year of Service is initialized to 0 and increments to 1 after their first battle. XP begins at 0.</p>
+    </div>
+
+    <h3>Greetings</h3>
+    <p>Each soldier has a greeting drawn from a data table keyed by <strong style="color:var(--gold-light);">class × year of service</strong> (years 1–7). The greeting is selected randomly from the pool matching the soldier's current class and current year of service. A new greeting is selected each off season — it is not fixed at generation time.</p>
+
+    <p>Greetings are displayed on the character detail screen (accessed from the Personnel table in Step 6) in the format:</p>
+    <p style="font-style:italic; color:var(--parchment-dark); margin: 12px 0 12px 24px;">"Commander [playername], [greeting]"</p>
+
+    <p>The greeting pool covers all eight classes across all seven years of service. Year 1 greetings reflect the uncertainty and ambition of a new recruit; later years reflect the weight of experience and survival. The same pool is used regardless of gender or age.</p>
+
+    <h3>Generation Order &amp; Edge Cases</h3>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Condition</th><th>Handling</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>No empty slots (roster full)</td><td>No recruits generated this year</td></tr>
+        <tr><td>Building constructed this year</td><td>All slots from the new building are treated as empty; recruits fill them normally</td></tr>
+        <tr><td>Officer Academy at cap (5 Captains living)</td><td>No Captain slots generated regardless of building level</td></tr>
+        <tr><td>All first+last combinations exhausted for a class</td><td>Edge case — practically impossible with 50 first names × 25 last names = 1,250 combinations per class. No handling required.</td></tr>
+        <tr><td>Portrait pool exhausted mid-generation</td><td>All portraits in that category (warrior or nonwarrior) have been assigned. No dead soldiers' portraits are returned until the pool is fully exhausted — at that point all portraits from dead and departed soldiers re-enter the pool.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Year of Service Tracking</h3>
+    <p>Year of Service is a persistent integer on each soldier object, incremented at the end of each battle they survive. A soldier who arrives at the start of Year 3 and survives through Year 9 has 7 years of service and becomes a hero at the end of Year 9's off season ceremony. The wall's promise is seven survived battles — not seven calendar years of enrollment.</p>
+  </section>
+
+  <div class="divider">· · ·</div>
+
+  <!-- VII. Battle Phase -->
   <section class="section" id="battle">
     <div class="section-header">
-      <span class="section-num">IV</span>
+      <span class="section-num">VII</span>
       <h2>The Battle Phase</h2>
     </div>
 
-    <p>Each year brings one battle. The wall is divided into three sections. Units assigned to a wall section cannot move during battle — they hold their ground. Warriors and Captains are never assigned to wall sections; they are always held in reserve. The player's real-time tactical decisions come from managing reserves.</p>
+    <p>Each year brings one battle. The wall is divided into three sections. Units assigned to a wall section cannot move during battle — they hold their ground. Warriors and Captains are never assigned to wall sections; they are always held in reserve. The player's real-time tactical decisions come from managing reserves and adjusting targeting preferences.</p>
 
     <h3>Map &amp; Wall Layout</h3>
-    <p>The battlefield is <strong>12 tiles wide × 16 tiles tall</strong>. The wall divides the map horizontally. The player side sits behind the wall; enemies approach from the far side.</p>
+    <p>The battlefield is <strong>12 tiles wide × 16 tiles tall</strong>, rendered at <strong>46 pixels per tile</strong> (canvas: 552 × 736 px). The wall sits at <strong>row 11</strong> (0-indexed from the top), giving approximately 10 rows of enemy approach space and 4 rows of player territory behind the wall.</p>
 
     <table class="data-table">
       <thead>
         <tr><th>Section</th><th>Tile Width</th><th>Notes</th></tr>
       </thead>
       <tbody>
-        <tr><td>Wall Left</td><td>4 tiles</td><td>Outer edge — often targeted for flanking attacks</td></tr>
-        <tr><td>Wall Center</td><td>4 tiles</td><td>Prime ranged position; highest enemy traffic</td></tr>
-        <tr><td>Wall Right</td><td>4 tiles</td><td>Outer edge — often targeted for flanking attacks</td></tr>
+        <tr><td>Wall Left</td><td>4 tiles (cols 0–3)</td><td>Outer edge — often targeted for flanking attacks</td></tr>
+        <tr><td>Wall Center</td><td>4 tiles (cols 4–7)</td><td>Prime ranged position; highest enemy traffic</td></tr>
+        <tr><td>Wall Right</td><td>4 tiles (cols 8–11)</td><td>Outer edge — often targeted for flanking attacks</td></tr>
       </tbody>
     </table>
 
     <h3>Wall Protection</h3>
     <p>The wall is a barrier with HP. Enemies cannot reach player units until the wall is breached (HP reaches zero). Only ranged enemies (Goblins, Catapults) can damage player units directly while the wall stands. Goblins cannot damage the wall itself — they are purely a unit-killing threat.</p>
 
-    <p>Melee enemies (Orcs, Ogres, Generals) attack the wall directly. The wall absorbs their damage until it falls. Catapults deal AoE damage that can hit both wall HP and player units on the wall.</p>
+    <p>Melee enemies (Orcs, Ogres, Generals) attack the wall directly. Catapults deal AoE damage that hits both wall HP and player units on the wall; AoE splash does <em>not</em> affect units currently standing on the wall (the wall provides cover).</p>
 
     <p>The wall grants a <strong>damage reduction bonus to all player units on it equal to 1% per foot of wall height</strong>:</p>
 
     <table class="data-table">
       <thead>
-        <tr><th>Wall Level</th><th>Height</th><th>Damage Reduction Bonus</th><th>Wall HP</th></tr>
+        <tr><th>Wall Level</th><th>Height</th><th>Damage Reduction Bonus</th><th>Wall HP</th><th>Upgrade Cost</th></tr>
       </thead>
       <tbody>
-        <tr><td>1</td><td>10 ft</td><td>+10%</td><td>200</td></tr>
-        <tr><td>2</td><td>20 ft</td><td>+20%</td><td>300</td></tr>
-        <tr><td>3</td><td>20 ft</td><td>+20%</td><td>400</td></tr>
-        <tr><td>4</td><td>30 ft</td><td>+30%</td><td>500</td></tr>
-        <tr><td>5</td><td>30 ft</td><td>+30%</td><td>600</td></tr>
+        <tr><td>1</td><td>10 ft</td><td>+10%</td><td>200</td><td>100</td></tr>
+        <tr><td>2</td><td>20 ft</td><td>+20%</td><td>300</td><td>200</td></tr>
+        <tr><td>3</td><td>20 ft</td><td>+20%</td><td>400</td><td>300</td></tr>
+        <tr><td>4</td><td>30 ft</td><td>+30%</td><td>500</td><td>400</td></tr>
+        <tr><td>5</td><td>30 ft</td><td>+30%</td><td>600</td><td>500</td></tr>
       </tbody>
     </table>
 
-    <p>When the wall falls, all units on it drop to ground level and lose the wall's damage reduction bonus. Enemies that breach then target the nearest ground unit. Engineers and reserve units on the player side become targets.</p>
+    <p>When the wall falls, all units on it drop to ground level and lose the damage reduction bonus. Breaching enemies then target the nearest ground unit. Engineers and reserve units on the player side become valid targets after any breach.</p>
 
     <h3>Targeting Rules</h3>
     <h3 style="font-size:13px; margin-top:16px;">Player Units</h3>
     <table class="data-table">
       <thead>
-        <tr><th>Unit</th><th>Targeting Priority</th></tr>
+        <tr><th>Unit</th><th>Default Targeting Priority</th></tr>
       </thead>
       <tbody>
         <tr><td>Warrior / Captain</td><td>Nearest enemy</td></tr>
-        <tr><td>Archer</td><td>Furthest enemy in range</td></tr>
-        <tr><td>Mage</td><td>Nearest elite (Ogre / General / Catapult); else furthest in range</td></tr>
-        <tr><td>Engineer</td><td>Furthest enemy in range</td></tr>
-        <tr><td>Healer</td><td>Lowest HP% friendly within 2 tiles</td></tr>
+        <tr><td>Archer / Engineer</td><td>Furthest enemy in range; nearest if none in range</td></tr>
+        <tr><td>Mage</td><td>Nearest elite (Ogre / General / Catapult) in range; else furthest in range</td></tr>
+        <tr><td>Healer</td><td>Lowest HP% friendly within 2 tiles (heal only — attacks nearest enemy in melee range)</td></tr>
       </tbody>
     </table>
 
     <h3 style="font-size:13px; margin-top:16px;">Enemy Units</h3>
     <table class="data-table">
       <thead>
-        <tr><th>Unit</th><th>Targeting Priority</th></tr>
+        <tr><th>Unit</th><th>Default Targeting Priority</th></tr>
       </thead>
       <tbody>
-        <tr><td>Orc / Ogre / General</td><td>Nearest wall section; on breach, nearest ground unit</td></tr>
-        <tr><td>Goblin / Catapult</td><td>Furthest player unit in range</td></tr>
+        <tr><td>Orc / Ogre / General</td><td>Nearest wall section; on breach (or player unit crosses wall), nearest player unit</td></tr>
+        <tr><td>Goblin</td><td>Furthest player unit in range; advances until in range</td></tr>
+        <tr><td>Catapult</td><td>Nearest wall section (same as melee); on breach, nearest player unit</td></tr>
       </tbody>
     </table>
 
+    <p>Enemy targeting override: if any wall is breached <em>or</em> any player unit crosses into enemy territory, all wall-targeting enemies switch to targeting the nearest player unit instead. This reverts to wall-targeting if neither condition holds.</p>
+
+    <h3>Targeting Preferences (Player Control)</h3>
+    <p>Players can override default targeting for three groups via dropdowns displayed below the battle canvas. Preferences are saved to localStorage and persist between sessions.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Group</th><th>Units Affected</th><th>Options</th><th>Notes</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Melee</td><td>Warrior, Captain</td><td>Default, Orc, Goblin, Ogre, General, Catapult</td><td>Default = nearest enemy</td></tr>
+        <tr><td>Ranged</td><td>Archer, Mage</td><td>Default, Orc, Goblin, Ogre, General, Catapult</td><td>Overrides Mage elite-priority when set</td></tr>
+        <tr><td>Siege</td><td>Engineer</td><td>Default, Orc, Goblin, Ogre, General, Catapult</td><td>Default = furthest in range</td></tr>
+      </tbody>
+    </table>
+
+    <p>Healer is excluded from targeting preferences — it targets friendly units for healing, not enemies.</p>
+
+    <h3>Battle Start — Countdown</h3>
+    <p>Each battle begins with a 3–2–1–FIGHT! countdown (1 second per number, 0.7 seconds for "FIGHT!"). The game loop is frozen during the countdown so the player can review and adjust targeting preferences before combat begins.</p>
+
+    <h3>Slow Motion</h3>
+    <p>A Slow Mo checkbox appears to the right of the targeting controls. When enabled, game time runs at 25% speed. Useful for studying unit behavior and making deployment decisions under pressure. State persists between sessions alongside targeting preferences.</p>
+
     <h3>Year Win Condition — Enemy Retreat</h3>
-    <p>Enemies retreat (rout) when <strong>all Ogres, Generals, and Catapults are dead AND remaining enemy units are below 50% of the year's starting count</strong>. Retreating enemies run toward the top of the screen and can still be attacked as they flee. The round ends when either:</p>
+    <p>Enemies retreat (rout) when <strong>all Ogres, Generals, and Catapults are dead AND remaining enemy count is below 50% of the year's starting total AND player units outnumber remaining enemies</strong>. Retreating enemies run toward the top of the screen and can still be attacked as they flee. The round ends when either:</p>
     <ul style="list-style:none; padding-left:0; color:var(--parchment-dark);">
-      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— All enemies have left the screen (player victory)</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— All active enemies have left the screen (player victory)</li>
       <li style="padding:6px 0;">— All player units are dead — wall units, reserves, and Engineers (total wipe = game over)</li>
     </ul>
+    <p>When rout triggers, all mobile player units (non-stationary, non-reserve) are released from any hold orders so they can give chase, including reinforce-hold warriors waiting behind the wall.</p>
 
     <h3>Enemy Compositions</h3>
-    <p>Each year has 3 possible enemy composition variations, randomly selected at the start of battle. Full composition tables to be defined in a separate spreadsheet (TBD).</p>
+    <p>Each year has 3 possible enemy composition variations (options A, B, C) randomly selected at the start of battle. Compositions are defined per year in <code>src/data/compositions.js</code> and include lane assignments, reserve slots, deployment logic, and a scouting report string. Years 1–3 are fully defined; remaining years use a placeholder stress test until authored.</p>
 
     <h3>Reserve System</h3>
-    <p>Three reserve slots exist on both the player and enemy side. Player reserve units start at the map edge and move in when deployed. The key decisions are:</p>
-    <ul style="list-style:none; padding-left:0;">
-      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light); color:var(--parchment-dark);">— <strong style="color:var(--gold-light)">Where</strong> to deploy (which wall section, or as a sortie beyond the wall)</li>
-      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light); color:var(--parchment-dark);">— <strong style="color:var(--gold-light)">When</strong> to commit (too early wastes them; too late means disaster)</li>
-      <li style="padding:6px 0; color:var(--parchment-dark);">— <strong style="color:var(--gold-light)">Whether</strong> to sortie to attack Catapults or flank retreating enemies</li>
-    </ul>
+    <p>Three reserve slots exist on both the player side (rows 14–15) and enemy side (rows 0–1). Reserve units are inert until deployed — they are skipped by targeting, movement, and attack logic and cannot be targeted by the opposing side.</p>
 
-    <h3>Battlefield Intelligence</h3>
-    <p>Enemy positioning is visible as they approach — formation and concentration signal their strategy. Players with a Scout Academy get advance intel on enemy composition before battle; without it, they go in blind.</p>
+    <table class="data-table">
+      <thead>
+        <tr><th>Parameter</th><th>Value</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Slots per side</td><td>3 (Left, Center, Right — aligned with wall sections)</td></tr>
+        <tr><td>Capacity per slot</td><td>Up to 25 units</td></tr>
+        <tr><td>Player reserve zone</td><td>Rows 14–15 (blue highlight)</td></tr>
+        <tr><td>Enemy reserve zone</td><td>Rows 0–1 (red highlight)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Player Reserve Deployment</h3>
+    <p>Pre-assigned before battle, deployed via an in-battle Deploy button. Tapping Deploy opens a 2-row selection grid:</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Row</th><th>Options</th><th>Behavior</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Sortie</td><td>Left · Center · Right</td><td>Units advance through the wall into enemy territory; normal targeting applies</td></tr>
+        <tr><td>Reinforce</td><td>Left · Center · Right</td><td>Archers, Mages, and Healers move to just behind the chosen wall section and engage enemies normally. Warriors and Captains advance to behind the wall and hold until breach or rout, then fight freely.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Deployment is one-way — there is no recall. All undeployed player reserves are automatically released on wall breach.</p>
+
+    <h3>Enemy Reserve Deployment</h3>
+    <p>Enemy reserves deploy based on per-composition logic:</p>
+    <ul style="list-style:none; padding-left:0; color:var(--parchment-dark);">
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">wait_for_breach</strong> — Deploys when any wall section is breached</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">left / center / right_after_delay</strong> — Deploys after 20 seconds OR on any wall breach, whichever comes first; advances toward the corresponding wall section</li>
+    </ul>
+    <p>Alarm condition: if any player unit crosses into rows 0–7 (deep enemy territory), all undeployed enemy reserves release immediately.</p>
+
+    <h3>Engineer Placement</h3>
+    <p>Engineers are stationary and deployed on the player side of the wall (row 12), not on the wall itself. Their range of 11 tiles covers nearly the full map length, allowing them to fire trebuchet-style over the wall at enemies on approach.</p>
 
     <h3>Elite Enemy Kill Announcements</h3>
     <p>When an Ogre, General, or Catapult is destroyed, a kill announcement displays on screen identifying the player unit that landed the killing blow. Killing blow XP for these units is <strong>tripled (6 XP)</strong>.</p>
@@ -634,7 +1037,7 @@
     </callout>
 
     <h3>Combat Resolution</h3>
-    <p>Combat is auto-battler style. Each unit follows its targeting rules and behavior patterns; outcomes are driven by matchups, levels, positioning, and randomness. The player controls deployment and timing only — not individual unit actions.</p>
+    <p>Combat is auto-battler style. Each unit follows its targeting rules and behavior patterns; outcomes are driven by matchups, levels, positioning, and building bonuses. The player controls deployment, timing, and targeting preferences — not individual unit actions.</p>
 
     <h3>Battle Outcomes</h3>
     <table class="data-table">
@@ -651,14 +1054,14 @@
 
   <div class="divider">· · ·</div>
 
-  <!-- V. Unit Archetypes -->
+  <!-- VIII. Unit Archetypes -->
   <section class="section" id="units">
     <div class="section-header">
-      <span class="section-num">V</span>
+      <span class="section-num">VIII</span>
       <h2>Unit Archetypes</h2>
     </div>
 
-    <p>Recruits arrive as generalists and specialize based on buildings available. Each archetype is enabled by a corresponding building. Without the building, that unit type cannot be recruited or developed. All speeds are expressed as reduction in attack interval in seconds.</p>
+    <p>Recruits arrive as generalists and specialize based on buildings available. Each archetype is enabled by a corresponding building. Without the building, that unit type cannot be recruited or developed. Attack speed values are given as seconds per attack; the floor is 0.5s regardless of bonuses.</p>
 
     <h3>Combat Unit Stats</h3>
     <table class="data-table">
@@ -666,12 +1069,12 @@
         <tr><th>Unit</th><th>HP</th><th>DMG</th><th>Atk Speed</th><th>Range</th><th>Armor</th><th>Lvl Up HP/DMG</th><th>Special</th></tr>
       </thead>
       <tbody>
-        <tr><td><strong style="color:var(--gold-light)">Warrior</strong></td><td>20</td><td>5</td><td>2s</td><td>1</td><td>20%</td><td>+10 / +3</td><td>—</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Warrior</strong></td><td>20</td><td>5</td><td>2s</td><td>1</td><td>20%</td><td>+10 / +3</td><td>Reserve only — never assigned to wall</td></tr>
         <tr><td><strong style="color:var(--gold-light)">Archer</strong></td><td>10</td><td>3</td><td>2s</td><td>5</td><td>10%</td><td>+5 / +2</td><td>—</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Mage</strong></td><td>7</td><td>7</td><td>5s</td><td>7</td><td>0%</td><td>+3 / +10</td><td>Ignores target armor</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Healer</strong></td><td>10</td><td>3</td><td>5s</td><td>1</td><td>10%</td><td>+5 / +1</td><td>Heals lowest-HP% friendly within 2 tiles to full every 10s</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Captain</strong></td><td>25</td><td>5</td><td>2s</td><td>1</td><td>20%</td><td>+15 / +3</td><td>+25% DMG aura to all friendlies in 3×3 tile area (additive)</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Engineer</strong></td><td>10</td><td>15</td><td>10s</td><td>11</td><td>10%</td><td>+5 / +10</td><td>AoE damage; trebuchet-style long range</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Mage</strong></td><td>7</td><td>7</td><td>5s</td><td>7</td><td>0%</td><td>+3 / +10</td><td>Ignores target armor entirely</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Healer</strong></td><td>10</td><td>3</td><td>5s</td><td>1</td><td>10%</td><td>+5 / +1</td><td>Heals lowest-HP% friendly within 2 tiles to full; fires on first injured ally immediately, then 10s cooldown. Earns 1 XP per 50 HP healed.</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Captain</strong></td><td>25</td><td>5</td><td>2s</td><td>1</td><td>20%</td><td>+15 / +3</td><td>+25% DMG aura to all friendlies in 3×3 tile area (additive). Reserve only — never assigned to wall.</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Engineer</strong></td><td>10</td><td>15</td><td>10s</td><td>11</td><td>10%</td><td>+5 / +10</td><td>AoE damage; stationary behind wall at row 12; trebuchet-style range covering nearly full map width</td></tr>
       </tbody>
     </table>
 
@@ -682,12 +1085,15 @@
       </thead>
       <tbody>
         <tr><td><strong style="color:var(--gold-light)">Mason</strong></td><td>Wall repair &amp; construction</td><td>Repairs or builds 50 HP of wall damage per Mason per off season</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Scout</strong></td><td>Pre-battle intelligence</td><td>60% success, 30% fail, 10% permanently captured. Reveals enemy attack style when successful.</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Scout</strong></td><td>Pre-battle intelligence</td><td>60% success, 30% fail, 10% permanently captured. Reveals enemy composition when successful.</td></tr>
       </tbody>
     </table>
 
+    <h3>Visual Indicators</h3>
+    <p>Units within the aura radius of a friendly Captain or enemy General display a dim gold border (postFX glow). This helps players immediately identify which of their units are receiving the damage bonus — and which enemy units are benefiting from a General's presence. The gold glow is temporarily replaced by a blue glow when a Healer heals a unit.</p>
+
     <h3>Fully Developed Stats (Level 5, All Buildings Maxed)</h3>
-    <p>For reference — reaching this state requires significant long-term investment across multiple building trees. Enemy armor scales commensurately, ensuring no unit trivializes late-game content.</p>
+    <p>For reference — reaching this state requires significant long-term investment across multiple building trees.</p>
     <table class="data-table">
       <thead>
         <tr><th>Unit</th><th>HP</th><th>DPS (base)</th><th>DPS (fully boosted)</th><th>Notes</th></tr>
@@ -697,18 +1103,18 @@
         <tr><td>Archer</td><td>30</td><td>5.5</td><td>~33.0</td><td>Archery Range + Weaponsmith + Monument. 45% armor.</td></tr>
         <tr><td>Mage</td><td>19</td><td>9.4</td><td>~23.5</td><td>Mage Workshop + Monument. Ignores all target armor. Squishy.</td></tr>
         <tr><td>Healer</td><td>30</td><td>1.4</td><td>~1.4</td><td>Offensive DPS negligible — value is healing output.</td></tr>
-        <tr><td>Captain</td><td>85</td><td>8.5</td><td>~51.0</td><td>+ 25% DMG aura to 3×3 area. Max 5 Captains total.</td></tr>
+        <tr><td>Captain</td><td>85</td><td>8.5</td><td>~51.0</td><td>+25% DMG aura to 3×3 area. Max 5 Captains total.</td></tr>
         <tr><td>Engineer</td><td>30</td><td>5.5</td><td>~5.8</td><td>AoE — effective DPS much higher vs grouped enemies. Range 11.</td></tr>
       </tbody>
     </table>
 
     <callout class="callout">
       <strong>Balance Note</strong>
-      High DPS ceilings are intentional but gated behind major building investment. Enemy armor scales with year number, keeping Mages essential throughout the campaign and preventing Warriors and Weaponsmiths from trivializing late-game battles. Weaponsmith damage bonus is applied before the Captain aura.
+      High DPS ceilings are intentional but gated behind major building investment. Enemy armor scales with year number, keeping Mages essential throughout the campaign and preventing Warriors and Weaponsmiths from trivializing late-game battles. Weaponsmith damage bonus is applied before the Captain aura calculation.
     </callout>
 
     <h3>Experience &amp; Deployment Risk</h3>
-    <p>Units earn XP through combat actions. A killing blow awards 2 XP; an assist (minimum 30% of target HP dealt) awards 1 XP; taking damage awards 1 XP. Killing blow XP is <strong>tripled (6 XP)</strong> when the target is an Ogre, General, or Catapult. The XP curve is front-loaded — early levels come quickly to give a sense of growth, while reaching Level 5 over a seven-year career is a genuine accomplishment worth protecting.</p>
+    <p>Units earn XP through combat actions. A killing blow awards 2 XP; an assist (minimum 30% of target HP dealt) awards 1 XP; taking damage awards 1 XP; Healers earn 1 XP per 50 HP healed. Killing blow XP is <strong>tripled (6 XP)</strong> when the target is an Ogre, General, or Catapult.</p>
 
     <table class="data-table">
       <thead>
@@ -728,18 +1134,18 @@
     </callout>
 
     <h3>Injuries</h3>
-    <p>Units can be injured during battle, preventing XP gain and participation during off-season recovery. Healers and upgraded Hospitals reduce recovery time. Injury is another cost layered on top of the deployment risk decision.</p>
+    <p>Units can be injured during battle, preventing XP gain and participation during off-season recovery. Healers and upgraded Hospitals reduce recovery time.</p>
 
     <h3>Attack Speed Floor</h3>
-    <p>Minimum attack interval is <strong>0.5 seconds</strong> regardless of building bonuses. Warriors and Archers hit this floor at Sparring Ground / Archery Range Level 5 combined with a maxed Monument bonus.</p>
+    <p>Minimum attack interval is <strong>0.5 seconds</strong> regardless of building bonuses.</p>
   </section>
 
   <div class="divider">· · ·</div>
 
-  <!-- VI. Enemies -->
+  <!-- IX. Enemy Types & Tactics -->
   <section class="section" id="enemies">
     <div class="section-header">
-      <span class="section-num">VI</span>
+      <span class="section-num">IX</span>
       <h2>Enemy Types &amp; Tactics</h2>
     </div>
 
@@ -747,21 +1153,33 @@
 
     <callout class="callout">
       <strong>Design Philosophy</strong>
-      Enemies rely on numbers — waves of weaker units punctuated by a few especially tough elites. The goal is never to overwhelm the player with 200 enemies, but to create pressure through volume while making elite units feel genuinely dangerous and rewarding to bring down. Late-game difficulty comes from smarter compositions and stronger scaling, not pure unit count.
+      Enemies rely on numbers — waves of weaker units punctuated by a few especially tough elites. The goal is never to overwhelm the player with 200 enemies, but to create pressure through volume while making elite units feel genuinely dangerous and rewarding to bring down.
     </callout>
 
     <h3>Enemy Unit Stats</h3>
-    <p>Year-up values represent how each stat increases per year of the campaign. DPS figures assume no building or level bonuses.</p>
     <table class="data-table">
       <thead>
         <tr><th>Unit</th><th>HP</th><th>DMG</th><th>Atk Speed</th><th>Move</th><th>Armor</th><th>Range</th><th>Year Up (HP/DMG/Armor)</th><th>Special</th></tr>
       </thead>
       <tbody>
         <tr><td><strong style="color:var(--gold-light)">Orc</strong></td><td>15</td><td>5</td><td>2s</td><td>Med</td><td>20%</td><td>1</td><td>+1 / +1 / +1%</td><td>—</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Goblin</strong></td><td>10</td><td>4</td><td>3s</td><td>Fast</td><td>10%</td><td>3</td><td>+1 / +1 / +0.5%</td><td>Fast move speed; nuisance unit that scales quietly</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Ogre</strong></td><td>50</td><td>20</td><td>5s</td><td>Slow</td><td>30%</td><td>1</td><td>+3 / +2 / +1%</td><td>Ignores player armor. High-value target.</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">General</strong></td><td>20</td><td>5</td><td>2s</td><td>Med</td><td>20%</td><td>1</td><td>+1 / +1 / +1.5%</td><td>+25% DMG aura to all friendlies within 1 tile. Armor scales fastest of all units. High-value target.</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Catapult</strong></td><td>20</td><td>15</td><td>10s</td><td>Slow</td><td>10%</td><td>10</td><td>+3 / +4 / +0.5%</td><td>AoE damage. Outranges archers. Counter: Engineers or sortie. High-value target.</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Goblin</strong></td><td>10</td><td>4</td><td>3s</td><td>Fast</td><td>10%</td><td>3</td><td>+1 / +1 / +0.5%</td><td>Cannot damage wall; targets furthest player unit in range</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Ogre</strong></td><td>50</td><td>20</td><td>5s</td><td>Slow</td><td>30%</td><td>1</td><td>+3 / +2 / +1%</td><td>Ignores player armor. Elite. Advances immediately at battle start.</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">General</strong></td><td>20</td><td>5</td><td>2s</td><td>Med</td><td>20%</td><td>1</td><td>+1 / +1 / +1.5%</td><td>+25% DMG aura to all friendlies within 1 tile. Armor scales fastest. Elite. Buffed allies show gold border glow.</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Catapult</strong></td><td>20</td><td>15</td><td>10s</td><td>Slow</td><td>10%</td><td>10</td><td>+3 / +4 / +0.5%</td><td>AoE damage. Targets nearest wall section. Splash does not affect units on wall. Elite.</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Move Speeds</h3>
+    <p>Move speed values in tiles per second (Sprint 1 starting values — subject to playtesting tuning):</p>
+    <table class="data-table">
+      <thead>
+        <tr><th>Speed Class</th><th>Tiles / Second</th><th>Units</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Slow</td><td>0.5</td><td>Ogre, Catapult</td></tr>
+        <tr><td>Med</td><td>1.0</td><td>Orc, General</td></tr>
+        <tr><td>Fast</td><td>2.0</td><td>Goblin</td></tr>
       </tbody>
     </table>
 
@@ -779,6 +1197,9 @@
       </tbody>
     </table>
 
+    <h3>Enemy Compositions</h3>
+    <p>Each year has three possible enemy compositions (A, B, C) randomly selected at battle start. Each composition defines unit assignments per lane (left, center, right), reserve slot contents, reserve deployment logic, and a scouting report string for the Scout Academy. Compositions for Years 1–3 are implemented in <code>src/data/compositions.js</code>. Years 4 and beyond fall back to a hardcoded stress test until authored.</p>
+
     <h3>Elite Kill Announcements</h3>
     <p>When an Ogre, General, or Catapult is destroyed, a kill announcement is displayed on screen identifying which player unit landed the killing blow. XP awarded for killing blow on these units is <strong>tripled (6 XP)</strong> instead of the standard 2 XP.</p>
 
@@ -791,27 +1212,21 @@
       <li style="padding:8px 0;">— <strong style="color:var(--parchment)">Feint &amp; Flank</strong> — Pressure one section to draw reserves, then commit hard to another</li>
     </ul>
 
-    <h3>Enemy Progression &amp; Variance</h3>
-    <p>Enemies evolve semi-independently across playthroughs, making different unit composition and tactical choices. One campaign may emphasize Catapults and Generals; another may rely on Ogre-led assaults. Players must read enemy development year over year and adapt building and recruitment priorities accordingly — no single strategy is universally optimal.</p>
-
-    <h3>Move Speed</h3>
-    <p>Fast / Med / Slow move speed values (tiles per second) to be determined during playtesting, as they have a significant effect on ranged unit power relative to melee. Goblins (Fast) will be most sensitive to this tuning.</p>
-
     <h3>V2 Deferred</h3>
-    <p>Enemy Mages are deferred to V2. Wall height ladders mechanic also deferred — wall height has no gameplay effect in V1 for simplicity.</p>
+    <p>Enemy Mages are deferred to V2. Ladder mechanics and wall height gameplay effects also deferred to V2.</p>
   </section>
 
   <div class="divider">· · ·</div>
 
-  <!-- VII. Progression -->
+  <!-- X. Progression & Legacy -->
   <section class="section" id="progression">
     <div class="section-header">
-      <span class="section-num">VII</span>
+      <span class="section-num">X</span>
       <h2>Progression &amp; Legacy Systems</h2>
     </div>
 
     <h3>The Seven-Year Arc</h3>
-    <p>Every recruit who survives seven years earns the right to leave as a hero. By default, a veteran's chance of choosing to stay is low (approximately 10%). The Monument building tracks hero names and applies the attack speed bonus accordingly — each hero who stayed is recorded, making the Monument both a mechanical tracker and a piece of narrative history. Financial incentives (stipends, bonuses) can further raise retention chances. Investing in retention is another resource trade-off.</p>
+    <p>Every recruit who survives seven years earns the right to leave as a hero. By default, a veteran's chance of choosing to stay is low (approximately 10%). The Monument building tracks hero names and applies the attack speed bonus accordingly — each hero who stayed is recorded, making the Monument both a mechanical tracker and a piece of narrative history. Financial incentives (stipends, bonuses) can further raise retention chances.</p>
 
     <h3>Super Units</h3>
     <p>Veterans who choose to stay become super units — seasoned soldiers who contribute in unique ways. Their exact advantages are to be determined, but they may include passive boosts to training speed, morale infrastructure, or specialized late-game combat roles. These units represent the pinnacle of investment and should feel irreplaceable.</p>
@@ -824,15 +1239,15 @@
       Players should feel attached to their soldiers, but not so attached that losses feel unfair. The high churn rate is the design — loss is expected, heroism is earned, and the wall marches on.
     </callout>
 
-    <p>See Section V for the full XP curve and level thresholds.</p>
+    <p>See Section VI for the full XP curve and level thresholds.</p>
   </section>
 
   <div class="divider">· · ·</div>
 
-  <!-- VIII. Buildings -->
+  <!-- XI. Buildings & Infrastructure -->
   <section class="section" id="buildings">
     <div class="section-header">
-      <span class="section-num">VIII</span>
+      <span class="section-num">XI</span>
       <h2>Buildings &amp; Infrastructure</h2>
     </div>
 
@@ -846,52 +1261,50 @@
       <tbody>
         <tr><td><strong style="color:var(--gold-light)">Barracks</strong></td><td>Houses Warriors &amp; Archers</td><td>+10 soldier capacity</td><td>200</td><td>—</td></tr>
         <tr><td><strong style="color:var(--gold-light)">Archery Range</strong></td><td>Speeds archer attack</td><td>-0.2s attack interval</td><td>150</td><td>Barracks</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Sparring Ground</strong></td><td>Speeds warrior attack</td><td>-0.2s attack interval</td><td>150</td><td>Barracks</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Sparring Ground</strong></td><td>Speeds warrior &amp; captain attack</td><td>-0.2s attack interval</td><td>150</td><td>Barracks</td></tr>
         <tr><td><strong style="color:var(--gold-light)">Library</strong></td><td>Houses Mages &amp; Healers</td><td>+5 capacity</td><td>200</td><td>—</td></tr>
         <tr><td><strong style="color:var(--gold-light)">Mage Workshop</strong></td><td>Speeds mage attack</td><td>-0.5s attack interval</td><td>150</td><td>Library</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Hospital</strong></td><td>Speeds healer healing cooldown</td><td>-1.0s heal interval</td><td>150</td><td>Library</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Hospital</strong></td><td>Speeds healer heal interval</td><td>-1.0s heal interval</td><td>150</td><td>Library</td></tr>
         <tr><td><strong style="color:var(--gold-light)">Artisan Workshop</strong></td><td>Houses Masons</td><td>+10 Mason capacity</td><td>200</td><td>—</td></tr>
         <tr><td><strong style="color:var(--gold-light)">Armory</strong></td><td>Increases armor (all units, additive)</td><td>+7% armor</td><td>200</td><td>Artisan Workshop</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Weaponsmith</strong></td><td>Increases DMG (Warriors, Archers, Captains)</td><td>+10% DMG multiplier</td><td>200</td><td>Artisan Workshop</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Weaponsmith</strong></td><td>Increases DMG (Warriors, Archers, Captains only)</td><td>+10% DMG multiplier</td><td>200</td><td>Artisan Workshop</td></tr>
         <tr><td><strong style="color:var(--gold-light)">Siege Workshop</strong></td><td>Houses Engineers</td><td>+1 Engineer capacity</td><td>200</td><td>Artisan Workshop + Archery Range</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Officer Academy</strong></td><td>Houses Captains</td><td>+1 Captain capacity</td><td>200</td><td>Sparring Ground</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Monument</strong></td><td>Boosts attack speed per 7-year hero</td><td>-0.1s attack interval per hero (max 5 heroes)</td><td>200</td><td>Officer Academy</td></tr>
-        <tr><td><strong style="color:var(--gold-light)">Scout Academy</strong></td><td>Houses Scouts</td><td>+1 Scout capacity</td><td>200</td><td>Archery Range</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Officer Academy</strong></td><td>Houses Captains</td><td>+1 Captain capacity (max 5)</td><td>200</td><td>Sparring Ground</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Monument</strong></td><td>Boosts attack speed per 7-year hero who stayed</td><td>-0.1s attack interval per hero (max 5 heroes)</td><td>200</td><td>Officer Academy</td></tr>
+        <tr><td><strong style="color:var(--gold-light)">Scout Academy</strong></td><td>Houses Scouts; reveals enemy composition</td><td>+1 Scout capacity</td><td>200</td><td>Archery Range</td></tr>
       </tbody>
     </table>
 
     <h3>Building Dependency Tree</h3>
-    <p>Two independent root chains plus a shared artisan branch:</p>
     <ul style="list-style:none; padding-left:0; color:var(--parchment-dark);">
-      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Barracks</strong> → Archery Range → Scout Academy / Siege Workshop</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Barracks</strong> → Archery Range → Scout Academy</li>
       <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Barracks</strong> → Sparring Ground → Officer Academy → Monument</li>
-      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Library</strong> → Mage Workshop</li>
-      <li style="padding:6px 0;">— <strong style="color:var(--parchment)">Library</strong> → Hospital</li>
-      <li style="padding:6px 0;">— <strong style="color:var(--parchment)">Artisan Workshop</strong> → Armory / Weaponsmith / Siege Workshop (also requires Archery Range)</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--parchment)">Library</strong> → Mage Workshop / Hospital</li>
+      <li style="padding:6px 0;">— <strong style="color:var(--parchment)">Artisan Workshop</strong> → Armory / Weaponsmith / Siege Workshop (Siege Workshop also requires Archery Range)</li>
     </ul>
 
     <h3>Wall Upgrade Levels</h3>
-    <p>The wall is upgraded per segment independently. Each level increases HP and the damage reduction bonus granted to units on the wall. Ladder mechanics are deferred to V2 — wall height has no gameplay effect in V1 beyond the damage reduction bonus.</p>
+    <p>The wall is upgraded per segment independently. Ladder mechanics are deferred to V2 — wall height has no gameplay effect in V1 beyond the damage reduction bonus.</p>
     <table class="data-table">
       <thead>
-        <tr><th>Level</th><th>Height</th><th>Thickness</th><th>HP</th><th>Cost</th><th>Special</th></tr>
+        <tr><th>Level</th><th>Height</th><th>Thickness</th><th>HP</th><th>Upgrade Cost</th></tr>
       </thead>
       <tbody>
-        <tr><td>1</td><td>10</td><td>1</td><td>200</td><td>100</td><td>—</td></tr>
-        <tr><td>2</td><td>20</td><td>1</td><td>300</td><td>200</td><td>—</td></tr>
-        <tr><td>3</td><td>20</td><td>2</td><td>400</td><td>300</td><td>—</td></tr>
-        <tr><td>4</td><td>30</td><td>2</td><td>500</td><td>400</td><td>—</td></tr>
-        <tr><td>5</td><td>30</td><td>3</td><td>600</td><td>500</td><td>—</td></tr>
+        <tr><td>1</td><td>10 ft</td><td>1</td><td>200</td><td>100</td></tr>
+        <tr><td>2</td><td>20 ft</td><td>1</td><td>300</td><td>200</td></tr>
+        <tr><td>3</td><td>20 ft</td><td>2</td><td>400</td><td>300</td></tr>
+        <tr><td>4</td><td>30 ft</td><td>2</td><td>500</td><td>400</td></tr>
+        <tr><td>5</td><td>30 ft</td><td>3</td><td>600</td><td>500</td></tr>
       </tbody>
     </table>
   </section>
 
   <div class="divider">· · ·</div>
 
-  <!-- IX. Difficulty -->
+  <!-- XII. Difficulty & Campaign Length -->
   <section class="section" id="difficulty">
     <div class="section-header">
-      <span class="section-num">IX</span>
+      <span class="section-num">XII</span>
       <h2>Difficulty &amp; Campaign Length</h2>
     </div>
 
@@ -919,23 +1332,21 @@
         </tr>
       </tbody>
     </table>
-
-    <p>The first ten years of any difficulty mode are essentially the same — enemies are simpler, threat types are limited, and the learning curve is gentle. Medium and Hard extend past this into more punishing territory.</p>
   </section>
 
   <div class="divider">· · ·</div>
 
-  <!-- X. Replayability -->
+  <!-- XIII. Replayability & Variance -->
   <section class="section" id="replayability">
     <div class="section-header">
-      <span class="section-num">X</span>
+      <span class="section-num">XIII</span>
       <h2>Replayability &amp; Variance</h2>
     </div>
 
     <p>Two sources of variance ensure each playthrough feels distinct:</p>
 
     <h3>Enemy Variance</h3>
-    <p>Enemy forces evolve semi-independently across runs, making different unit composition and tactical choices. One campaign may emphasize Catapults and Generals; another may rely on Ogre-led assaults with Goblin swarms. Players must read enemy development and adapt their building and recruitment decisions accordingly — no single strategy is universally optimal.</p>
+    <p>Each year's enemy composition is randomly selected from three options at battle start. One campaign may emphasize Catapults and Generals; another may rely on Ogre-led assaults with Goblin swarms. Players must read enemy development and adapt their building and recruitment decisions accordingly — no single strategy is universally optimal.</p>
 
     <h3>Recruit Variance</h3>
     <p>The annual recruit pool varies in composition. Some years bring melee-heavy cohorts; others skew toward healers or casters. Players must adapt their building and training priorities to make the most of what they receive.</p>
@@ -948,18 +1359,16 @@
 
   <div class="divider">· · ·</div>
 
-  <!-- XI. Scoring -->
+  <!-- XIV. Scoring -->
   <section class="section" id="scoring">
     <div class="section-header">
-      <span class="section-num">XI</span>
+      <span class="section-num">XIV</span>
       <h2>Win Conditions &amp; Scoring</h2>
     </div>
 
     <p><strong>Primary Win Condition:</strong> Survive to the end of the campaign. Game over occurs only when all player units are dead (total wipe).</p>
 
     <p><strong>Score:</strong> Total number of soldiers who achieved hero status (survived seven full years and were released honorably). This differentiates between "barely survived" and "truly excelled."</p>
-
-    <p>Survival alone is an accomplishment. A high hero count is mastery. Players who optimize for hero graduation must balance protecting veterans over seven years against the tactical demands of each battle — a meaningful tension that extends across the entire campaign.</p>
 
     <table class="data-table">
       <thead>
@@ -976,14 +1385,14 @@
 
   <div class="divider">· · ·</div>
 
-  <!-- XII. Tech Stack -->
+  <!-- XV. Tech Stack -->
   <section class="section" id="tech">
     <div class="section-header">
-      <span class="section-num">XII</span>
+      <span class="section-num">XV</span>
       <h2>Tech Stack</h2>
     </div>
 
-    <p>The game targets browser-native deployment, responsive across desktop and mobile, with no install required.</p>
+    <p>The game targets browser-native deployment on desktop. Mobile layout is deferred to a later sprint.</p>
 
     <h3>Core Technologies</h3>
     <table class="data-table">
@@ -997,53 +1406,166 @@
           <td>Browser-native, no install, cross-platform</td>
         </tr>
         <tr>
-          <td><strong style="color:var(--gold-light)">Phaser (latest)</strong></td>
+          <td><strong style="color:var(--gold-light)">Phaser 3 (CDN)</strong></td>
           <td>Battle phase rendering &amp; game loop</td>
-          <td>WebGL renderer handles 50+ simultaneous units comfortably; built-in sprite sheets, tweens, scene management, and groups</td>
+          <td>WebGL renderer handles 50+ simultaneous units comfortably; built-in postFX, tweens, scene management; no build step via CDN</td>
         </tr>
         <tr>
           <td><strong style="color:var(--gold-light)">CSS / HTML overlay</strong></td>
           <td>Off season menus, building screens, resource UI</td>
-          <td>Phaser's UI tools are limited; HTML/CSS layered over the canvas is cleaner and more responsive for complex menus</td>
+          <td>Layered over the Phaser canvas; cleaner and more responsive than Phaser's UI tools for complex menus</td>
         </tr>
         <tr>
           <td><strong style="color:var(--gold-light)">JavaScript (shared state)</strong></td>
           <td>Game state management</td>
-          <td>A shared JS state object bridges the Phaser battle scenes and HTML off season UI, keeping both in sync</td>
+          <td>A shared GameState object bridges the Phaser battle scene and HTML off season UI. All constants centralized in <code>src/data/constants.js</code> — no raw literals elsewhere.</td>
         </tr>
       </tbody>
     </table>
 
+    <h3>File Structure</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>File / Folder</th><th>Purpose</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>index.html</code></td><td>Production entry point — auto-starts Year 1 with random composition</td></tr>
+        <tr><td><code>testversion.html</code></td><td>Development entry point — scenario chooser, key/legend sidebar, stress test</td></tr>
+        <tr><td><code>src/state/GameState.js</code></td><td>Shared state object bridging battle and off-season</td></tr>
+        <tr><td><code>src/battle/BattleScene.js</code></td><td>Phaser scene — update loop, unit tick, combat, reserves, rout</td></tr>
+        <tr><td><code>src/battle/Unit.js</code></td><td>Unit class — stats, sprites, XP, postFX glows</td></tr>
+        <tr><td><code>src/battle/targeting.js</code></td><td>All targeting logic for player and enemy units</td></tr>
+        <tr><td><code>src/battle/Wall.js</code></td><td>WallSegment class — HP, breach, damage reduction</td></tr>
+        <tr><td><code>src/battle/Projectile.js</code></td><td>Projectile class — movement, hit detection, AoE</td></tr>
+        <tr><td><code>src/data/units.js</code></td><td>Player unit stat definitions</td></tr>
+        <tr><td><code>src/data/enemies.js</code></td><td>Enemy stat definitions</td></tr>
+        <tr><td><code>src/data/buildings.js</code></td><td>Building definitions, costs, prerequisites</td></tr>
+        <tr><td><code>src/data/compositions.js</code></td><td>Enemy compositions keyed by year (3 options each)</td></tr>
+        <tr><td><code>src/data/constants.js</code></td><td>All magic numbers — tile size, colors, thresholds, timings</td></tr>
+      </tbody>
+    </table>
+
     <h3>Architecture Pattern</h3>
-    <p>The game uses a hybrid rendering approach: Phaser owns the battle phase canvas entirely, while the off season is rendered as standard HTML/CSS positioned over or alongside the canvas. A central game state object holds all persistent data — unit rosters, building levels, resources, year count — and is read and written by both layers.</p>
+    <p>Phaser owns the battle phase canvas entirely. The off season is rendered as standard HTML/CSS positioned alongside the canvas. A central GameState object holds all persistent data — unit rosters, building levels, resources, year count — and is read and written by both layers. Game logic (combat resolution, targeting, XP math) runs in JavaScript; Phaser handles visual playback only.</p>
 
     <div class="phase">
       <div class="phase-label">Battle Phase</div>
       <h4>Phaser Scene</h4>
-      <p>All unit movement, combat resolution, animation, and real-time rendering handled inside Phaser. Designed to handle 50+ simultaneous moving sprites via WebGL. Phaser's Scene Manager maps cleanly to the yearly battle cycle.</p>
+      <p>All unit movement, combat resolution, projectile handling, and rendering handled inside Phaser. Validated at 50+ simultaneous units. Phaser's Scene Manager maps cleanly to the yearly battle cycle. PostFX system used for heal and aura glow effects.</p>
     </div>
 
     <div class="phase">
       <div class="phase-label">Off Season Phase</div>
       <h4>HTML / CSS UI</h4>
-      <p>Tabbed navigation, building cards, resource counters, and upgrade flows built in standard HTML and CSS. Responsive by default, works on mobile and desktop without Phaser involvement. Reads and writes to shared game state on confirmation.</p>
+      <p>Tabbed navigation, building cards, resource counters, and upgrade flows built in standard HTML and CSS. Reads and writes to shared GameState on confirmation.</p>
+    </div>
+  </section>
+
+  <div class="divider">· · ·</div>
+
+  <!-- XVI. Sprint 2 Implementation Plan -->
+  <section class="section" id="sprint2">
+    <div class="section-header">
+      <span class="section-num">XVI</span>
+      <h2>Sprint 2 — Off Season Implementation Plan</h2>
     </div>
 
-    <h3>Performance Notes</h3>
-    <p>Phaser's WebGL renderer comfortably handles 50+ moving sprites. Unit animations should use sprite sheets rather than individual images to minimize draw calls. Reserve logic and auto-battler resolution run in JavaScript; Phaser handles visual playback only — keeping game logic decoupled from rendering.</p>
+    <p>The following is a suggested build order for implementing the off season UI. Tasks are sequenced to allow each step to be tested in isolation before the next layer is added. Claude Code should treat this as a to-do list and adapt sequencing as needed based on implementation realities.</p>
+
+    <h3>Phase A — Data &amp; State Foundation</h3>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">1</span>
+      <div class="q-text">Extend <code>GameState.js</code> to support off season state: gold breakdown (base / wall-damage / destroyed-segment), building levels, wall segment HP and level per section, unit roster array (with name, class, gender, level, XP, year, portrait ID, assignment, injured flag), and per-playthrough used-name and used-portrait sets.</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">2</span>
+      <div class="q-text">Create <code>src/data/names.js</code> — export male and female first-name arrays (Anglo-Saxon / Northern European) and per-class surname pool arrays (combat classes: martial surnames; Mason: trade-craft surnames; Scout: ranger-style surnames).</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">3</span>
+      <div class="q-text">Create <code>src/data/portraits.js</code> — export portrait manifest arrays keyed by gender × type (male-combatant, female-combatant, male-noncombatant, female-noncombatant). Implement deck-draw logic: remove on assignment, return dead soldiers' portraits to the deck.</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">4</span>
+      <div class="q-text">Create <code>src/data/bios.js</code> — pool of modular bio fragments (origin, trait, motivation) that can be combined into a short background paragraph for each recruit at generation time.</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">5</span>
+      <div class="q-text">Implement recruit generation logic in <code>src/offseason/recruitGenerator.js</code>: determine class distribution (capacity-aware, roster-balancing, ±5 variance), generate name (unique-check against playthrough used-names set), assign portrait (deck-draw, unique among living), assemble bio. Expose as a function called after spending is confirmed.</div>
+    </div>
+
+    <h3>Phase B — Wizard Shell &amp; Navigation</h3>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">6</span>
+      <div class="q-text">Build the off season wizard shell in <code>src/offseason/OffSeasonUI.js</code> (or equivalent HTML/JS module). Implement step tracking, Next / Previous button logic, and step rendering dispatch. The shell should render one step at a time and preserve all step state on back-navigation.</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">7</span>
+      <div class="q-text">Implement Step 1 — Gold Summary screen. Pull gold breakdown from GameState, display base income, wall-damage bonus, destroyed-segment bonus, and running total. Read-only; Next advances to Step 2.</div>
+    </div>
+
+    <h3>Phase C — Wall &amp; Building Investment</h3>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">8</span>
+      <div class="q-text">Implement Step 2 — Wall &amp; Building Investment screen. Display all three wall segments (current HP, max HP, level, repair cost, upgrade cost). Display full building list: name, current level, cost to upgrade, prerequisite. Gray out and annotate buildings that are locked (prerequisite not met) or unaffordable. Show running gold total updated in real time as choices are made.</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">9</span>
+      <div class="q-text">Implement Step 3 — Confirm Spending dialogue. Summarize all purchases. Warn player that building choices drive which recruit classes arrive. On confirm, write choices to GameState, trigger recruit generation, advance to Step 4.</div>
+    </div>
+
+    <h3>Phase D — Personnel Table &amp; Assignment</h3>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">10</span>
+      <div class="q-text">Implement Step 4 — Personnel Table. Render all combatants (not Masons or Scouts) in a sortable, filterable table. Columns: Name, Class, Year of Service, Level, Assignment (dropdown). New recruits visually highlighted. Sort and filter state persists within the off season session; resets next year.</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">11</span>
+      <div class="q-text">Implement assignment dropdown logic. Options: Wall Left, Wall Center, Wall Right, Reserve Left, Reserve Center, Reserve Right. Warriors and Captains: wall options disabled. Assignments persist from prior year as defaults for returning soldiers. Block Next button until every combatant has an assignment. Show popup warning if any group exceeds hard capacity.</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">12</span>
+      <div class="q-text">Implement character detail modal. Triggered by a button on each row. Displays: portrait image, full name, class, year of service, level, XP, bio text. Dismissable; does not affect table state.</div>
+    </div>
+
+    <h3>Phase E — Deployment Preview</h3>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">13</span>
+      <div class="q-text">Implement Step 5 — Deployment Preview. Render a schematic of the wall and reserve zones populated with assigned units (name or class icon). Visually mirrors the battle map layout: wall left/center/right sections, and three reserve zones below. Include a Back button that returns to Step 4 with assignments intact.</div>
+    </div>
+
+    <h3>Phase F — Scout Phase</h3>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">14</span>
+      <div class="q-text">Implement Step 6 — Scout Deployment (conditional on Scout count &gt; 0). Present option to send Scouts. On confirm: apply 60/30/10 outcome probability, show ~3-second delay, display result message (intel revealed / no intel / Scout captured). On success, offer Back option to return to Step 4 for reassignment, then re-display Step 5 before proceeding.</div>
+    </div>
+
+    <h3>Phase G — Integration &amp; Handoff</h3>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">15</span>
+      <div class="q-text">Wire the end of the off season wizard to launch the battle phase: write final deployment assignments into GameState so <code>BattleScene.js</code> can read unit positions and reserve group contents on startup.</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">16</span>
+      <div class="q-text">Update <code>testversion.html</code> to support launching the off season wizard directly (alongside the existing battle scenario chooser) so each step can be tested independently.</div>
+    </div>
+    <div class="open-question">
+      <span class="q-marker" style="color:var(--gold-dark);">17</span>
+      <div class="q-text">Add a v0.5 entry to the changelog when Sprint 2 is complete.</div>
+    </div>
 
   </section>
 
   <div class="divider">· · ·</div>
 
-  <!-- XIII. Open Questions -->
+  <!-- XVII. Open Questions -->
   <section class="section" id="open">
     <div class="section-header">
-      <span class="section-num">XIII</span>
+      <span class="section-num">XVII</span>
       <h2>Open Questions</h2>
     </div>
 
-    <p>The following design questions remain unresolved and should be addressed during or after initial playtesting:</p>
+    <p>The following design questions remain unresolved and should be addressed during or after playtesting:</p>
 
     <div class="open-question">
       <span class="q-marker">?</span>
@@ -1075,18 +1597,130 @@
     </div>
     <div class="open-question">
       <span class="q-marker">?</span>
-      <div class="q-text">Move speed values (tiles/second) for Fast / Med / Slow — to be determined during playtesting. Goblins most sensitive to this tuning.</div>
+      <div class="q-text">Enemy composition spreadsheet — Years 4–30 need to be authored (3 variations per year). Years 1–3 are defined; remaining years fall back to a stress-test placeholder.</div>
     </div>
     <div class="open-question">
       <span class="q-marker">?</span>
-      <div class="q-text">Enemy composition spreadsheet (3 variations per year) — to be authored separately.</div>
+      <div class="q-text">Move speed values (Slow / Med / Fast) are set at 0.5 / 1.0 / 2.0 tiles/second for Sprint 1 — to be validated and tuned during playtesting.</div>
     </div>
+  </section>
+
+  <div class="divider">· · ·</div>
+
+  <!-- XVIII. Changelog -->
+  <section class="section" id="changelog">
+    <div class="section-header">
+      <span class="section-num">XVIII</span>
+      <h2>Changelog</h2>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version">v0.6 — Honoring the Fallen &amp; Heroes · Recruit Generation Rules</div>
+      <div class="changelog-date">2026-06-01</div>
+      <ul>
+        <li>New section V: Honoring the Fallen &amp; Heroes — the two sequential opening ceremonies of every off season.</li>
+        <li>Fallen ceremony specified: portrait-and-reading format, death order (not alphabetical), spare visual treatment, manual advance. Skipped if no deaths occurred.</li>
+        <li>Hero ceremony specified: same portrait-and-reading format, distinct Commander line ("A hero of the realm"), manual advance. Retention outcome revealed during the ceremony itself — not before.</li>
+        <li>Retention resolved before ceremony renders; heroes who stay presented last with distinct phrasing. Player has no agency over retention.</li>
+        <li>Retention probability: 25% base chance to stay. Monument provides additional bonus (exact per-level values TBD during playtesting). Veteran stipend investment also increases retention (TBD).</li>
+        <li>Summary screen specified: appears after both ceremonies, lists deaths / departures / retentions together. Only place both counts appear side by side.</li>
+        <li>Screen routing table added: four conditions mapped to which ceremony screens display.</li>
+        <li>New section VI: Recruit Generation Rules — full specification replacing the brief Character Generation summary previously in the Off Season section.</li>
+        <li>Generation sequence formalized as a 7-step process: determine total recruits → determine class split → generate gender → generate age category → generate first name → generate last name → assign portrait → assign bio → initialize stats.</li>
+        <li>Class split algorithm documented: ±1 cap from even split, applied independently to Warriors/Archers (Barracks) and Mages/Healers (Library). Masons, Engineers, Captains, Scouts fill independently.</li>
+        <li>First name pools documented in full: 50 male names, 50 female names from the data file.</li>
+        <li>Last name pools documented by class with theme and examples. Uniqueness constraint: re-roll last name first, then first name if all combinations exhausted.</li>
+        <li>Portrait deck-draw logic documented: gender × combatant/noncombatant pools, unique among living soldiers. Portraits are never returned to the pool mid-playthrough; only when the entire category pool (warrior or nonwarrior) is fully exhausted do portraits from dead and departed soldiers re-enter the pool.</li>
+        <li>Bio pool documented: 256 complete bios in four sub-pools of 64 (young male, young female, old male, old female). Bios not tracked for uniqueness.</li>
+        <li>Edge case table added: full roster, new buildings, Officer Academy cap, portrait pool exhaustion.</li>
+        <li>Year of Service rule clarified: injured soldiers who miss a battle still increment. Only death ends the count.</li>
+        <li>Off Season section (IV) Character Generation summary replaced with forward reference to new Section VI.</li>
+        <li>All section numbers updated: Battle Phase IV→VII, Unit Archetypes VI→VIII, Enemy Types VII→IX, Progression VIII→X, Buildings IX→XI, Difficulty X→XII, Replayability XI→XIII, Scoring XII→XIV, Tech Stack XIII→XV, Sprint 2 XIV→XVI, Open Questions XV→XVII, Changelog XVI→XVIII.</li>
+        <li>TOC updated to include new sections V and VI.</li>
+        <li>Version header updated to v0.6.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-date">2026-05-31</div>
+      <ul>
+        <li>New section II: World &amp; Culture — geography, isolation, social structure, tone, hero culture, key figures, the enemy, and flavor system.</li>
+        <li>Kingdom established as geographically isolated — impassable mountains, one valley, one wall, no outside world.</li>
+        <li>Social structure defined: predominantly agrarian, one city (simply called the City), small merchant middle class, tiny nobility.</li>
+        <li>Tone codified: grim but not hopeless — the stakes are understood by everyone from childhood, but are not paralyzing.</li>
+        <li>Hero culture formalized: seven-year veterans receive land grants, property deeds, and kingdom-wide recognition. Their names are known everywhere. Children grow up on their stories.</li>
+        <li>Adolescent training culture noted: qualifying as a recruit is itself an honor; service is the primary path to social advancement.</li>
+        <li>King Aldric established as a former wall commander — his authority is experiential, not merely inherited.</li>
+        <li>Player established as a former seven-year hero, recalled and appointed by Aldric as commander.</li>
+        <li>The enemy formalized: called the raiders or invaders in general usage; the monsters in children's stories. Nameless by design.</li>
+        <li>Flavor system planned: bios per character, organized by gender (M/F) and age (young/old). 256 complete bios targeting emotional investment. Superseded by Section VI.</li>
+        <li>Off Season section (IV) expanded with full wizard flow specification: 6-step wizard (Gold Summary → Wall &amp; Building Investment → Confirm Spending → Personnel &amp; Assignment → Deployment Preview → Scout Deployment).</li>
+        <li>Recruit generation system specified: class distribution with ±5 variance, Anglo-Saxon / Northern European name pools, class-appropriate surname pools, full-name uniqueness check per playthrough, portrait deck-draw system (dead soldiers' portraits recycled), modular bio fragments.</li>
+        <li>Personnel table design finalized: sortable/filterable, assignment dropdown per row (persists year to year), new recruits highlighted, character detail modal with portrait and bio.</li>
+        <li>Assignment rules documented: Warriors/Captains wall-options disabled; all combatants must be assigned before proceeding; hard-capacity popup warning.</li>
+        <li>Deployment Preview (Step 5) specified as schematic wall visualization.</li>
+        <li>Scout phase (Step 6) specified: conditional on Scout count, 60/30/10 outcome table, ~3s delay, intel triggers optional return to assignment step.</li>
+        <li>Sprint 2 implementation plan added as Section XIV: 17 sequenced to-do tasks organized into 7 phases (Data &amp; State, Wizard Shell, Wall &amp; Building, Personnel Table, Deployment Preview, Scout Phase, Integration).</li>
+        <li>All section numbers updated to accommodate new World &amp; Culture section.</li>
+        <li>TOC and version header updated to v0.5.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version">v0.3 — Sprint 1 Complete</div>
+      <div class="changelog-date">2026-05-29</div>
+      <ul>
+        <li>Battle phase fully implemented and playable. Validated at 50+ simultaneous units.</li>
+        <li>Map: 12×16 tiles, 46px/tile (552×736 canvas). Wall at row 11. Engineers stationary at row 12.</li>
+        <li>Move speeds resolved: Slow = 0.5, Med = 1.0, Fast = 2.0 tiles/second (tunable).</li>
+        <li>Enemy compositions defined for Years 1–3 (3 options each) in <code>src/data/compositions.js</code>.</li>
+        <li>Reserve system implemented: 3 slots per side, rows 0–1 (enemy) and 14–15 (player), capacity 25. Enemy deploy logics: wait_for_breach and timed (20s or breach).</li>
+        <li>Player deploy menu redesigned as 2-row grid: Sortie L/C/R and Reinforce L/C/R. Reinforce sends ranged/healers to wall section; warriors hold until breach or rout.</li>
+        <li>Rout condition finalized: all elites dead AND &lt;50% remaining AND player outnumbers. Mobile player units automatically released to give chase on rout.</li>
+        <li>Targeting preferences: 3 dropdowns (Melee, Ranged, Siege) with Default + 5 enemy types. Healer excluded (N/A). Persisted to localStorage alongside Slow Mo checkbox.</li>
+        <li>Battle countdown: 3–2–1–FIGHT! freezes game loop so player can set targeting before combat.</li>
+        <li>Aura glow visual: units within a Captain or General aura radius show a dim gold postFX border. Healer blue heal glow temporarily suppresses it.</li>
+        <li>Healer behavior: heals immediately on finding first injured ally (no startup delay), then 10s cooldown. Healer XP: 1 per 50 HP healed.</li>
+        <li>Catapult targeting corrected: targets nearest wall section (same as melee), not furthest player unit.</li>
+        <li>Mage targeting corrected: filters to elites actually in range before selecting nearest (was silently falling back to goblins when nearest elite was out of range).</li>
+        <li>Reserve units excluded from all targeting candidates while inert; automatically included on deploy.</li>
+        <li>Two HTML entry points: <code>index.html</code> (production, random Year 1 composition) and <code>testversion.html</code> (scenario chooser, key/legend, stress test).</li>
+        <li>All constants centralized in <code>src/data/constants.js</code>. No raw literals in other source files.</li>
+        <li>Bug fixes: announcement timer no longer hides battle-result text; heal glow callback guarded against destroyed sprite.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version">v0.2 — Design Complete</div>
+      <div class="changelog-date">2025-05-27</div>
+      <ul>
+        <li>Full game design documented: core loop, battle phase, all unit archetypes and enemy types, building dependency tree, progression and legacy systems, difficulty settings, scoring.</li>
+        <li>Tech stack decided: Phaser 3 (CDN) for battle rendering, HTML/CSS for off-season UI, shared GameState object bridging both.</li>
+        <li>All unit and enemy base stats defined and locked.</li>
+        <li>XP system designed: killing blow 2 XP (6 XP for elites), assist 1 XP, took damage 1 XP. Level thresholds: 5 / 10 / 20 / 30.</li>
+        <li>Gold economy defined: 100 base + 1 per missing wall HP + 200 per destroyed segment.</li>
+        <li>Building dependency tree finalized.</li>
+        <li>Reserve system concept established: 3 slots per side, Warriors/Captains reserve-only.</li>
+        <li>Game over condition: total wipe only (not wall breach alone).</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version">v0.1 — Initial Concept</div>
+      <div class="changelog-date">2025-05-01</div>
+      <ul>
+        <li>Initial concept: wall defense + generational strategy, 7-year service arc, hero graduation.</li>
+        <li>Platform decision: HTML5 browser game, no install required.</li>
+        <li>Core loop established: alternating off-season and battle phases.</li>
+      </ul>
+    </div>
+
   </section>
 
   <footer class="footer">
     <div class="ornament" style="margin-bottom:16px;">⚔ ✦ ⚔</div>
-    <p>Heroes of the Seventh Year &nbsp;·&nbsp; Game Design Document v0.2</p>
-    <p style="margin-top:8px; font-size:12px;">Working title. Core design complete — ready for development.</p>
+    <p>Heroes of the Seventh Year &nbsp;·&nbsp; Game Design Document v0.6</p>
+    <p style="margin-top:8px; font-size:12px;">Sprint 1 complete — battle phase shipped. Sprint 2 design complete — off season UI. World &amp; culture, ceremonies, and recruit generation documented.</p>
   </footer>
 
 </div>

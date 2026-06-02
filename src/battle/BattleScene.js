@@ -193,10 +193,77 @@ export class BattleScene extends Phaser.Scene {
   }
 
   _spawnPlayerUnits() {
-    // Wall: each section gets 5 archers + 1 healer (6 units across 4 tiles)
-    const WALL_SECTION_TYPES = [
-      'archer', 'archer', 'archer', 'healer',
+    const roster = GameState.roster.filter(u => !u.dead && u.assignment);
+
+    // If no roster assignments exist (e.g. launched directly from test picker without
+    // going through the off-season), fall back to the Sprint 1 hardcoded composition.
+    if (roster.length === 0) {
+      this._spawnPlayerUnitsHardcoded();
+      return;
+    }
+
+    const WALL_SECTIONS = [
+      { assignKey: 'wallLeft',   section: 'left',   startCol: 0 },
+      { assignKey: 'wallCenter', section: 'center', startCol: WALL_SECTION_W },
+      { assignKey: 'wallRight',  section: 'right',  startCol: WALL_SECTION_W * 2 },
     ];
+    const RESERVE_SLOTS = [
+      { assignKey: 'reserveLeft',   slotIdx: 0 },
+      { assignKey: 'reserveCenter', slotIdx: 1 },
+      { assignKey: 'reserveRight',  slotIdx: 2 },
+    ];
+
+    const wallY     = WALL_ROW + 0.5;
+    const engineerY = WALL_ROW + 1.5;  // engineers deploy behind the wall (row 12)
+
+    // ── Wall units ────────────────────────────────────────────────────────────
+    for (const ws of WALL_SECTIONS) {
+      const seg   = this.walls.find(w => w.section === ws.section);
+      const units = roster.filter(u => u.assignment === ws.assignKey);
+      const n     = Math.max(units.length, 1);
+      units.forEach((ru, k) => {
+        const def = UNIT_DEFS[ru.class];
+        if (!def) return;
+        const isEngineer = ru.class === 'engineer';
+        const x = ws.startCol + (k + 0.5) * (WALL_SECTION_W / n);
+        const y = isEngineer ? engineerY : wallY;
+        const u = this._spawnUnit(ru.class, def, 'player', x, y);
+        u.isStationary = true;
+        u.rosterId     = ru.id;
+        if (!isEngineer) {
+          u.isOnWall    = true;
+          u.wallSection = seg;
+        }
+      });
+    }
+
+    // ── Reserve units ─────────────────────────────────────────────────────────
+    for (const rs of RESERVE_SLOTS) {
+      const slot  = this.playerReserve[rs.slotIdx];
+      const units = roster.filter(u => u.assignment === rs.assignKey);
+      const n     = units.length;
+      const row1n = Math.ceil(n / 2);
+      units.forEach((ru, k) => {
+        const def = UNIT_DEFS[ru.class];
+        if (!def) return;
+        const row      = k < row1n ? 0 : 1;
+        const nInRow   = row === 0 ? row1n : n - row1n;
+        const idxInRow = row === 0 ? k : k - row1n;
+        const x = slot.startCol + (idxInRow + 0.5) * (WALL_SECTION_W / Math.max(nInRow, 1));
+        const y = PLAYER_RESERVE_ROW + 0.5 + row;
+        const u = this._spawnUnit(ru.class, def, 'player', x, y);
+        u.isInReserve  = true;
+        u.isStationary = true;
+        u.reserveSlot  = slot;
+        u.rosterId     = ru.id;
+        slot.units.push(u);
+      });
+    }
+  }
+
+  // Hardcoded Sprint 1 test composition — used when no roster assignments exist.
+  _spawnPlayerUnitsHardcoded() {
+    const WALL_SECTION_TYPES = ['archer', 'archer', 'archer', 'healer'];
     const SECTION_START_COLS = [0, WALL_SECTION_W, WALL_SECTION_W * 2];
     const SECTION_NAMES      = ['left', 'center', 'right'];
     const wallY = WALL_ROW + 0.5;
@@ -214,7 +281,6 @@ export class BattleScene extends Phaser.Scene {
       }
     }
 
-    // Reserve: left/right = 5 warriors + 1 mage; center = 5 warriors + 1 captain + 1 mage
     const RESERVE_SLOT_TYPES = [
       [...Array(5).fill('warrior'), 'mage'],
       [...Array(5).fill('warrior'), 'captain', 'mage'],

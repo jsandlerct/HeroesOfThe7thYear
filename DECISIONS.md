@@ -130,7 +130,7 @@
 
 ## Progression & Legacy
 
-- [2025-05-27] Seven-year arc: recruits who survive 7 years leave as heroes (base ~10% chance to stay)
+- [2025-05-27] Seven-year arc: recruits who survive 7 years leave as heroes (base 25% chance to stay; Monument and veteran stipend provide additional bonus — exact values TBD)
 - [2025-05-27] Veterans who stay become super units (exact advantages TBD — see Open Questions)
 - [2025-05-27] Legacy/mentorship system: departing heroes leave passive buff to future recruits in their archetype (exact mechanics TBD)
 - [2025-05-27] Goblin stats kept as-is for now; armor scaling to be evaluated during playtesting
@@ -208,6 +208,55 @@
 - [2026-05-29] Reinforce for archers/mages/healers: uses a waypoint to WALL_ROW+1 (same position as warriors) — waypoint clears on arrival so normal enemy targeting takes over; warriors/captains keep reinforceSection hold until breach; ranged units must NOT have wall segment set as target (causes them to attack/shoot the wall and refuse to move)
 - [2026-05-29] Slow-mo is a player-facing feature: moved from an in-canvas debug button to a "Slow Mo" checkbox in the HTML targeting controls bar (right-aligned, to the right of Siege dropdown); state lives in GameState.sloMo; BattleScene reads it each tick
 - [2026-05-29] Targeting preferences and slow-mo are persisted to localStorage under key 'hotyPrefs' (JSON: melee, ranged, siege, sloMo); loaded and applied to both GameState and UI elements on page init; shared between index.html and testversion.html
+
+---
+
+## Off-Season Data Layer (Sprint 2)
+
+- [2026-06-01] Recruit generation: `generateRecruits(gameState)` in `src/offseason/recruitGenerator.js`; called after spending confirmed; returns new unit array and pushes to `GameState.roster`
+- [2026-06-01] Portrait decks stored in `GameState.portraitDecks` (null until first generation); initialized via `buildPortraitDecks()` from `portraits.js`; `available` array shrinks on draw, `spent` array holds dead/departed until available exhausted
+- [2026-06-01] Unit ID: simple integer counter stored in `GameState._nextUnitId`, incremented per unit
+- [2026-06-01] Mages require `mageWorkshop > 0`; Healers require `hospital > 0`; both housed in Library slots — if only one building exists, all Library slots go to that class
+- [2026-06-01] `buildings.mason` key removed from GameState (was an earlier design artifact); mason housing uses `artisanWorkshop` level × `ARTISAN_MASON_SLOTS` per GDD spec
+- [2026-06-01] Bio pool has 10 entries per sub-pool (youngMale/youngFemale/oldMale/oldFemale) as starting content; target is 64 per pool — expand as content is written
+- [2026-06-01] `isNewRecruit` flag on unit: true on arrival, set to false on existing roster units when new recruits are generated
+- [2026-06-01] Wizard shell: `startOffSeason(gameState, onComplete)` in `OffSeasonUI.js`; `initNavButtons()` called once at page load to wire Previous/Next; step renderers receive `(gs, wizardState, contentEl, wizard)` where `wizard` exposes `setNextEnabled`, `setNextLabel`, `proceed`
+- [2026-06-01] Step files live in `src/offseason/steps/`; each exports a single `render` function; wizard imports all 8 and filters by conditionals at launch time
+- [2026-06-01] Hero retention resolved in `resolveHeroRetention()` before the ceremony step renders — `hero.staying` is set once and not re-rolled on back-navigation
+- [2026-06-01] `wizardState.spending` and `wizardState.assignments` are the authoritative in-wizard copies; final values written to GameState in `finish()` callback chain (steps write to wizardState; `onComplete` callback applies to GameState)
+- [2026-06-01] Off-season wizard is full-screen (position: fixed; inset: 0) — responsive to any viewport; header and nav are fixed strips; content area scrolls; step content centered at max-width 960px via .os-inner wrapper injected by OffSeasonUI.renderStep
+- [2026-06-01] Fallen ceremony: yearOfService = 0 displays as "First year of service"; 1 = "1 year of service"; N ≥ 2 = "N years of service" — reflects completed years, not the year they were in when they died
+- [2026-06-01] Hero ceremony: staying heroes noted with gold border on portrait and gold italic tagline; departed heroes use muted parchment text — same card layout for both outcomes
+- [2026-06-01] `wizardState.stayingHeroes` is populated in stepHeroes.render; onComplete handler applies their 1 XP/off-season bonus to the roster
+- [2026-06-01] Gold breakdown computed at wizard start in `OffSeasonUI.computeGoldBreakdown`; `wizardState.goldAvailable` = carryover + new income; `gs.gold` not modified until Confirm is clicked
+- [2026-06-01] Wall upgrades: one upgrade per segment per season (enforced in stepInvest by disabling the upgrade button after first purchase); buildings allow multiple upgrades per season
+- [2026-06-01] Prereq check in stepInvest uses effective level (gs.buildings[key] + spending.buildings[key]) — buying Barracks and Archery Range in the same season is allowed
+- [2026-06-01] `wizardState.spendingConfirmed = true` set on Confirm; re-visiting Step 5 via Previous shows a "confirmed" message rather than the form again
+- [2026-06-01] Wall repair: free (no gold); one Mason provides 50 HP capacity; Repair button adds min(50, remaining damage) HP per click; Undo removes the last 50 HP increment
+- [2026-06-01] Personnel table sort/filter state lives in `wizardState.personnelState` — persists across back/forward navigation within a session
+- [2026-06-01] New recruits generated in Step 5 are added to `wizardState.assignments` on Step 6 first render (seeded to null); units missing from the map after wizard start get added defensively at render time
+- [2026-06-01] Wall section capacity warning threshold: 10 units (placeholder — hard cap is an open design question; see TODO Backlog); reserve section warning: 25 units (from decisions)
+- [2026-06-01] Detail modal appended to `document.body` at z-index 200; single modal enforced by removing `#os-detail-modal` before creating a new one
+- [2026-06-01] Greeting in modal: "Commander, [greeting]" — player name system not yet implemented; "Commander" used as placeholder
+- [2026-06-01] Greetings file: `src/data/greetings.js`; 2 strings per class × year (56 combinations); `pickGreeting(cls, yearOfService)` maps yearOfService+1 to key 1–7
+- [2026-06-01] Deployment preview layout: enemy approach strip (top), 3 wall section cards with HP bars, THE WALL divider bar, 3 reserve zone cards (bottom); class legend at foot; read-only — Back returns to Step 6 with assignments intact via wizard shell
+- [2026-06-01] Unit dot colors in deployment preview derived from `UNIT_DEFS[cls].color` (integer) converted to CSS hex
+- [2026-06-01] Scouts captured during the off-season are added to `gs.capturedScouts[]` (not `fallenThisBattle`); at the start of the NEXT off-season, `startOffSeason` merges `capturedScouts` into `fallenThisBattle` so they appear in that year's Roll Call of the Fallen, then clears the buffer
+- [2026-06-01] Scout step odds: 60% success, 30% fail, 10% captured; resolved via single `Math.random()` roll
+- [2026-06-01] On scout success: enemy composition for the upcoming battle is pre-selected and stored in `wizardState.scoutedCompositionIndex`; `gs.enemyCompositionIndex` is set immediately so it persists to battle start
+- [2026-06-01] "Revise Deployment" on scout success uses `wizard.jumpTo('personnel')` to navigate back to Step 6; player then walks through Step 7 (deployment preview) again before returning to Step 8 which shows the cached result without re-rolling
+- [2026-06-01] Wizard API extended with `setPrevEnabled(bool)` and `jumpTo(stepId)` for scout step navigation control
+- [2026-06-01] `BattleScene._spawnPlayerUnits()`: reads `GameState.roster` (filtered to `!dead && assignment`) when populated; falls back to `_spawnPlayerUnitsHardcoded()` when roster is empty (e.g. battle launched directly from test picker)
+- [2026-06-01] Handoff sequence: `onComplete(wizardState)` → write `wizardState.assignments[id]` to each roster unit → `launchBattle()` → BattleScene reads assignments
+- [2026-06-01] Engineers assigned to wall sections spawn at WALL_ROW + 1.5 (behind the wall) rather than WALL_ROW + 0.5 — consistent with the "stationary behind wall" decision
+- [2026-06-01] Sprint 3 hook: `index.html` will trigger `startOffSeason` from a `battleComplete` event fired by BattleScene after Year 1; Year 1 launches directly into battle with no prior off-season
+- [2026-06-01] Portrait display size in ceremonies: 72×72px
+
+---
+
+## GDD Maintenance
+
+- [2026-05-29] GDD updates must use targeted Edit calls against specific sections — never rewrite the whole file from scratch. Full rewrites risk losing sections due to context window limits. Add a Changelog entry for each update session.
 
 ---
 
