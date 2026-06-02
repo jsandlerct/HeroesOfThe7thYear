@@ -24,9 +24,9 @@ export function computeEffectiveDef(rosterUnit, gameState) {
   const levelsUp = level - 1;
   const b = gameState.buildings;
 
-  // Level-scaled base stats (+ personal HP variance rolled at recruit generation)
-  let hp       = base.hp  + (base.lvlHp  ?? 0) * levelsUp + (rosterUnit.hpBonus ?? 0);
-  let dmg      = base.dmg + (base.lvlDmg ?? 0) * levelsUp;
+  // Level-scaled base stats (+ personal HP variance + accumulated level-up bonuses)
+  let hp       = base.hp  + (base.lvlHp  ?? 0) * levelsUp + (rosterUnit.hpBonus  ?? 0) + (rosterUnit.bonusHp  ?? 0);
+  let dmg      = base.dmg + (base.lvlDmg ?? 0) * levelsUp                               + (rosterUnit.bonusDmg ?? 0);
   let armor    = base.armor ?? 0;
   let atkSpeed = base.atkSpeed;
 

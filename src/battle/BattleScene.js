@@ -242,8 +242,10 @@ export class BattleScene extends Phaser.Scene {
         const x = ws.startCol + (k + 0.5) * (WALL_SECTION_W / n);
         const y = isEngineer ? engineerY : wallY;
         const u = this._spawnUnit(ru.class, def, 'player', x, y);
-        u.xp       = ru.xp ?? 0;
-        u.level    = ru.level ?? 1;
+        u.xp       = ru.xp      ?? 0;
+        u.level    = ru.level   ?? 1;
+        u.bonusHp  = ru.bonusHp ?? 0;
+        u.bonusDmg = ru.bonusDmg ?? 0;
         u.isStationary = true;
         u.rosterId     = ru.id;
         if (!isEngineer) {
@@ -268,8 +270,10 @@ export class BattleScene extends Phaser.Scene {
         const x = slot.startCol + (idxInRow + 0.5) * (WALL_SECTION_W / Math.max(nInRow, 1));
         const y = PLAYER_RESERVE_ROW + 0.5 + row;
         const u = this._spawnUnit(ru.class, def, 'player', x, y);
-        u.xp       = ru.xp ?? 0;
-        u.level    = ru.level ?? 1;
+        u.xp       = ru.xp      ?? 0;
+        u.level    = ru.level   ?? 1;
+        u.bonusHp  = ru.bonusHp ?? 0;
+        u.bonusDmg = ru.bonusDmg ?? 0;
         u.isInReserve  = true;
         u.isStationary = true;
         u.reserveSlot  = slot;
@@ -968,8 +972,10 @@ export class BattleScene extends Phaser.Scene {
     if (unit.rosterId != null && unit.team === 'player') {
       const ru = GameState.roster.find(r => r.id === unit.rosterId);
       if (ru) {
-        ru.dead = true;
-        ru.xp   = unit.xp;  // preserve XP earned before death
+        ru.dead    = true;
+        ru.xp      = unit.xp;
+        ru.bonusHp  = unit.bonusHp;
+        ru.bonusDmg = unit.bonusDmg;
       }
     }
 
@@ -1083,8 +1089,10 @@ export class BattleScene extends Phaser.Scene {
       if (u.team !== 'player' || u.rosterId == null) continue;
       const ru = GameState.roster.find(r => r.id === u.rosterId);
       if (!ru || ru.dead) continue;
-      ru.xp    = u.xp;
-      ru.level = u.level;
+      ru.xp       = u.xp;
+      ru.level    = u.level;
+      ru.bonusHp  = u.bonusHp;
+      ru.bonusDmg = u.bonusDmg;
     }
 
     GameState.battleResult = result;

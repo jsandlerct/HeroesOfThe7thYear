@@ -78,6 +78,8 @@ export class Unit {
     this.damageBy     = {};
     this.xp           = 0;
     this.level        = 1;
+    this.bonusHp      = 0;   // accumulated random HP bonuses from level-ups
+    this.bonusDmg     = 0;   // accumulated random DMG bonuses from level-ups
 
     const px    = x * TILE;
     const py    = y * TILE;
@@ -180,6 +182,16 @@ export class Unit {
       this.maxHp += this.lvlHp;
       this.hp    += this.lvlHp;
       this.dmg   += this.lvlDmg;
+      // Random bonus: +1–3 HP or +1–3 DMG
+      const roll = Math.floor(Math.random() * 3) + 1;
+      if (Math.random() < 0.5) {
+        this.maxHp   += roll;
+        this.hp      += roll;
+        this.bonusHp += roll;
+      } else {
+        this.dmg      += roll;
+        this.bonusDmg += roll;
+      }
     }
   }
 }
