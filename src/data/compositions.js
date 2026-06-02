@@ -339,7 +339,7 @@ export const ENEMY_COMPOSITIONS = {
         { slot: 'center', units: [{ type: 'catapult', count: 1 }, { type: 'general', count: 2 }], logic: 'left_after_delay' },
         { slot: 'right', units: [{ type: 'ogre', count: 3 }, { type: 'orc', count: 3 }], logic: 'right_after_delay' },
       ],
-      scoutingReport: 'Vast goblin numbers with a large orc contingent -- six ogres, three generals, and a catapult. Possibly the largest force we've ever faced.',
+      scoutingReport: 'Vast goblin numbers with a large orc contingent -- six ogres, three generals, and a catapult. Possibly the largest force we\'ve ever faced.',
     },
     // -- Year 9 / Option C
     {
