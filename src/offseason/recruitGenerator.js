@@ -162,6 +162,7 @@ function generateOne(unitClass, gameState) {
     yearOfService: 0,
     assignment:    null,
     isNewRecruit:  true,
+    hpBonus:       Math.floor(Math.random() * 3) + 1,  // 1–3 personal HP variance
   };
 }
 
