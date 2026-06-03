@@ -38,6 +38,10 @@ export function render(gs, wizardState, contentEl, wizard) {
     return;
   }
 
+  // Block Next until the Confirm button is explicitly clicked — otherwise the
+  // player can tap Next (always visible in sticky nav) and skip recruit generation.
+  wizard.setNextEnabled(false);
+
   const { spending } = wizardState;
   const totalSpent  = computeTotalSpent(gs, spending);
   const goldLeft    = wizardState.goldAvailable - totalSpent;
@@ -84,19 +88,12 @@ export function render(gs, wizardState, contentEl, wizard) {
       </table>`
     : `<p style="color:#6a5a3a;font-style:italic;margin-bottom:20px;">No spending this season — all gold carries over.</p>`;
 
-  const warn = `<div class="os-warn">
-    Your building decisions determine which recruit classes arrive this season.
-    Buildings purchased now will add housing capacity; recruits will fill those slots immediately after you confirm.
-    <strong style="color:#c9a84c;">You cannot revise spending after confirming.</strong>
-  </div>`;
-
-  contentEl.innerHTML = summaryHtml + warn;
-
+  // Confirm button rendered first so it's visible without scrolling on mobile
   const confirmBtn = document.createElement('button');
   confirmBtn.className = 'os-btn os-btn-primary';
   confirmBtn.textContent = 'Confirm & Receive Recruits →';
+  confirmBtn.style.cssText = 'width:100%;padding:14px;font-size:16px;margin-bottom:20px;';
   confirmBtn.onclick = () => {
-    // Apply spending synchronously (avoid async import)
     const { spending: sp } = wizardState;
 
     // Wall repairs
@@ -138,8 +135,16 @@ export function render(gs, wizardState, contentEl, wizard) {
 
   if (!hasAnySpending) {
     const skipNote = document.createElement('p');
-    skipNote.style.cssText = 'margin-top:12px;font-size:12px;color:#5a4a2a;';
+    skipNote.style.cssText = 'margin-bottom:16px;font-size:12px;color:#5a4a2a;';
     skipNote.textContent = 'Nothing was spent. Confirm to proceed with current gold and receive any recruits from existing building capacity.';
     contentEl.appendChild(skipNote);
   }
+
+  const summaryAndWarn = document.createElement('div');
+  summaryAndWarn.innerHTML = summaryHtml + `<div class="os-warn">
+    Your building decisions determine which recruit classes arrive this season.
+    Buildings purchased now will add housing capacity; recruits will fill those slots immediately after you confirm.
+    <strong style="color:#c9a84c;">You cannot revise spending after confirming.</strong>
+  </div>`;
+  contentEl.appendChild(summaryAndWarn);
 }
