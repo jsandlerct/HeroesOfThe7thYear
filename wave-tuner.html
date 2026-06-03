@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Wave Tuner — Heroes of the 7th Year</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0e0c09;
+      --bg2:      #161209;
+      --bg3:      #1c1710;
+      --border:   #2a2010;
+      --gold:     #c9a84c;
+      --gold-dim: #6a5a3a;
+      --text:     #c8bfa0;
+      --text-dim: #7a6a50;
+      --red:      #8a2020;
+      --red-dim:  #2a0808;
+      --blue:     #2a4a7a;
+      --blue-dim: #0e131a;
+      --green:    #2a5a1a;
+      --orc:      #c00000;
+      --goblin:   #375623;
+      --ogre:     #8b4513;
+      --general:  #ed7d31;
+      --catapult: #777777;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Georgia', serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* ── Header ───────────────────────────────────────────────────────────── */
+    #header {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    #header h1 {
+      font-size: 16px;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: var(--gold);
+      flex: 1;
+    }
+    #header .subtitle {
+      font-size: 11px;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    /* ── Buttons ─────────────────────────────────────────────────────────── */
+    button {
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      border: none;
+      border-radius: 2px;
+    }
+    .btn-primary {
+      background: var(--gold);
+      color: #0e0c09;
+      padding: 7px 16px;
+      font-weight: bold;
+      letter-spacing: 0.08em;
+    }
+    .btn-primary:hover { background: #e0be6a; }
+    .btn-primary:active { background: #b08a30; }
+
+    .btn-sm {
+      background: var(--bg3);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+    }
+    .btn-sm:hover { background: #2a2010; color: var(--text); }
+
+    .btn-danger {
+      background: transparent;
+      color: #663333;
+      border: 1px solid #3a1a1a;
+      padding: 2px 7px;
+      font-size: 11px;
+    }
+    .btn-danger:hover { background: #2a1010; color: #aa4444; }
+
+    .btn-add {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px dashed #2a2010;
+      padding: 4px 10px;
+      font-size: 11px;
+      width: 100%;
+      margin-top: 4px;
+    }
+    .btn-add:hover { border-color: var(--gold-dim); color: var(--gold-dim); background: #1a1505; }
+
+    /* ── Year nav ────────────────────────────────────────────────────────── */
+    #year-nav {
+      background: var(--bg2);
+      border-bottom: 1px solid var(--border);
+      padding: 0 20px;
+      display: flex;
+      gap: 2px;
+    }
+    .year-tab {
+      background: transparent;
+      color: var(--text-dim);
+      border: none;
+      border-bottom: 2px solid transparent;
+      padding: 8px 14px;
+      font-size: 13px;
+      letter-spacing: 0.05em;
+      cursor: pointer;
+      transition: color 0.1s;
+    }
+    .year-tab:hover { color: var(--text); }
+    .year-tab.active {
+      color: var(--gold);
+      border-bottom-color: var(--gold);
+    }
+    .year-tab.dirty::after {
+      content: '•';
+      color: #aa6633;
+      margin-left: 4px;
+      font-size: 10px;
+    }
+
+    /* ── Option nav ─────────────────────────────────────────────────────── */
+    #option-nav {
+      background: var(--bg3);
+      border-bottom: 1px solid var(--border);
+      padding: 6px 20px;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .option-tab {
+      background: var(--bg2);
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+      padding: 4px 18px;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      cursor: pointer;
+    }
+    .option-tab.active {
+      background: #1e1804;
+      border-color: var(--gold-dim);
+      color: var(--gold);
+    }
+    .option-tab:hover:not(.active) { background: #1a1508; color: var(--text); }
+
+    /* totals in option nav */
+    #totals-bar {
+      margin-left: auto;
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    #totals-bar .tot-item strong { color: var(--text); }
+    #totals-bar .tot-total strong { color: var(--gold); }
+
+    /* ── Layout ──────────────────────────────────────────────────────────── */
+    #content {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 20px 20px 60px;
+    }
+
+    .section-heading {
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-dim);
+      margin-bottom: 10px;
+      padding-bottom: 6px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    /* ── Lanes grid ──────────────────────────────────────────────────────── */
+    .lanes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .lane-card {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 12px;
+    }
+    .lane-title {
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--gold-dim);
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+    }
+    .lane-count {
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+
+    /* ── Unit row ────────────────────────────────────────────────────────── */
+    .unit-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 5px;
+    }
+    .unit-row select {
+      flex: 1;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      font-family: inherit;
+      font-size: 12px;
+      appearance: none;
+      -webkit-appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%236a5a3a'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 6px center;
+      padding-right: 22px;
+      cursor: pointer;
+    }
+    .unit-row select:focus { outline: 1px solid var(--gold-dim); }
+    .unit-row input[type=number] {
+      width: 52px;
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 4px 6px;
+      font-family: inherit;
+      font-size: 12px;
+      text-align: center;
+    }
+    .unit-row input[type=number]::-webkit-inner-spin-button { opacity: 0.3; }
+    .unit-row input:focus { outline: 1px solid var(--gold-dim); }
+
+    /* type indicator dot */
+    .type-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Reserves ────────────────────────────────────────────────────────── */
+    .reserves-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .reserve-card {
+      background: var(--blue-dim);
+      border: 1px solid #1e2e48;
+      padding: 12px;
+    }
+    .reserve-header {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .reserve-header select {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid #1e2e48;
+      padding: 3px 6px;
+      font-family: inherit;
+      font-size: 11px;
+      appearance: none;
+      -webkit-appearance: none;
+      padding-right: 18px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%234a6a8a'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 4px center;
+      cursor: pointer;
+    }
+    .reserve-header label {
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #4a6a8a;
+    }
+    .reserve-slot-row {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      padding: 10px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .remove-reserve-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+    }
+
+    /* ── Scouting report ─────────────────────────────────────────────────── */
+    .scouting-section {
+      margin-bottom: 20px;
+    }
+    .scouting-section textarea {
+      width: 100%;
+      background: var(--bg2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 10px 12px;
+      font-family: 'Georgia', serif;
+      font-size: 13px;
+      line-height: 1.5;
+      resize: vertical;
+      min-height: 70px;
+    }
+    .scouting-section textarea:focus { outline: 1px solid var(--gold-dim); }
+
+    /* ── Color map ───────────────────────────────────────────────────────── */
+    option[value=orc]      { color: var(--orc); }
+    option[value=goblin]   { color: var(--goblin); }
+    option[value=ogre]     { color: var(--ogre); }
+    option[value=general]  { color: var(--general); }
+    option[value=catapult] { color: var(--catapult); }
+
+    .dot-orc      { background: var(--orc); }
+    .dot-goblin   { background: var(--goblin); }
+    .dot-ogre     { background: var(--ogre); }
+    .dot-general  { background: var(--general); }
+    .dot-catapult { background: var(--catapult); }
+
+    /* ── Notice ──────────────────────────────────────────────────────────── */
+    #notice {
+      background: #1a1000;
+      border: 1px solid #3a2800;
+      color: #8a7040;
+      font-size: 11px;
+      padding: 8px 14px;
+      text-align: center;
+    }
+
+    /* ── Saved flash ─────────────────────────────────────────────────────── */
+    .save-flash {
+      font-size: 11px;
+      color: #4a8a2a;
+      padding-left: 12px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+    .save-flash.show { opacity: 1; }
+  </style>
+</head>
+<body>
+
+<div id="notice">
+  Wave Tuner requires a local web server (e.g. VS Code Live Server).
+  Save downloads a new <code>compositions.js</code> — replace the existing file at <code>src/data/compositions.js</code>.
+</div>
+
+<div id="header">
+  <h1>Wave Tuner</h1>
+  <span class="subtitle">Heroes of the Seventh Year</span>
+  <button class="btn-primary" id="save-btn">⬇ Save compositions.js</button>
+  <span class="save-flash" id="save-flash">Downloaded!</span>
+</div>
+
+<nav id="year-nav"></nav>
+
+<div id="option-nav">
+  <button class="option-tab active" data-opt="0">Option A</button>
+  <button class="option-tab"        data-opt="1">Option B</button>
+  <button class="option-tab"        data-opt="2">Option C</button>
+  <div id="totals-bar"></div>
+</div>
+
+<div id="content"></div>
+
+<script type="module">
+import { ENEMY_COMPOSITIONS } from './src/data/compositions.js';
+
+const ENEMY_TYPES   = ['orc', 'goblin', 'ogre', 'general', 'catapult'];
+const LOGIC_OPTIONS = ['left_after_delay', 'center_after_delay', 'right_after_delay', 'wait_for_breach'];
+const SLOTS         = ['left', 'center', 'right'];
+
+// Deep clone
+const data = JSON.parse(JSON.stringify(ENEMY_COMPOSITIONS));
+
+let year   = 1;
+let optIdx = 0;
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function totalForOption(opt) {
+  let n = 0;
+  for (const lane of SLOTS) n += opt[lane].reduce((s, u) => s + (u.count || 0), 0);
+  for (const r of opt.reserves) n += r.units.reduce((s, u) => s + (u.count || 0), 0);
+  return n;
+}
+
+function laneTotal(units) {
+  return units.reduce((s, u) => s + (u.count || 0), 0);
+}
+
+function markDirty() {
+  updateYearTabs();
+  updateTotals();
+}
+
+// ── Selects ────────────────────────────────────────────────────────────────
+
+function makeTypeSelect(current, onChange) {
+  const sel = document.createElement('select');
+  for (const t of ENEMY_TYPES) {
+    const opt = document.createElement('option');
+    opt.value = t;
+    opt.textContent = t.charAt(0).toUpperCase() + t.slice(1);
+    if (t === current) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.onchange = () => onChange(sel.value);
+  return sel;
+}
+
+function makeLogicSelect(current, onChange) {
+  const sel = document.createElement('select');
+  const labels = {
+    left_after_delay:   'Left / Delay',
+    center_after_delay: 'Center / Delay',
+    right_after_delay:  'Right / Delay',
+    wait_for_breach:    'Wait for Breach',
+  };
+  for (const v of LOGIC_OPTIONS) {
+    const opt = document.createElement('option');
+    opt.value = v;
+    opt.textContent = labels[v];
+    if (v === current) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.onchange = () => onChange(sel.value);
+  return sel;
+}
+
+function makeSlotSelect(current, onChange) {
+  const sel = document.createElement('select');
+  for (const s of SLOTS) {
+    const opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+    if (s === current) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.onchange = () => onChange(sel.value);
+  return sel;
+}
+
+// ── Unit row ───────────────────────────────────────────────────────────────
+
+function makeUnitRow(entry, onType, onCount, onRemove, laneRef) {
+  const row = document.createElement('div');
+  row.className = 'unit-row';
+
+  const dot = document.createElement('div');
+  dot.className = `type-dot dot-${entry.type}`;
+
+  const typeSel = makeTypeSelect(entry.type, (val) => {
+    entry.type = val;
+    dot.className = `type-dot dot-${val}`;
+    onType?.();
+    markDirty();
+  });
+
+  const countIn = document.createElement('input');
+  countIn.type = 'number';
+  countIn.min = 1;
+  countIn.max = 99;
+  countIn.value = entry.count;
+  countIn.oninput = () => {
+    const v = Math.max(1, parseInt(countIn.value) || 1);
+    entry.count = v;
+    onCount?.();
+    markDirty();
+  };
+
+  const rmBtn = document.createElement('button');
+  rmBtn.className = 'btn-danger';
+  rmBtn.textContent = '×';
+  rmBtn.onclick = onRemove;
+
+  row.appendChild(dot);
+  row.appendChild(typeSel);
+  row.appendChild(countIn);
+  row.appendChild(rmBtn);
+  return row;
+}
+
+// ── Lane card ──────────────────────────────────────────────────────────────
+
+function makeLaneCard(opt, lane) {
+  const card = document.createElement('div');
+  card.className = 'lane-card';
+
+  const header = document.createElement('div');
+  header.className = 'lane-title';
+  const lbl = document.createElement('span');
+  lbl.textContent = lane.charAt(0).toUpperCase() + lane.slice(1);
+  const cnt = document.createElement('span');
+  cnt.className = 'lane-count';
+
+  const updateCount = () => { cnt.textContent = laneTotal(opt[lane]) + ' units'; };
+  updateCount();
+
+  header.appendChild(lbl);
+  header.appendChild(cnt);
+  card.appendChild(header);
+
+  const list = document.createElement('div');
+  card.appendChild(list);
+
+  const renderList = () => {
+    list.innerHTML = '';
+    opt[lane].forEach((entry, i) => {
+      const row = makeUnitRow(
+        entry,
+        () => updateCount(),
+        () => updateCount(),
+        () => { opt[lane].splice(i, 1); renderList(); updateCount(); markDirty(); },
+      );
+      list.appendChild(row);
+    });
+  };
+  renderList();
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn-add';
+  addBtn.textContent = '+ Add unit';
+  addBtn.onclick = () => {
+    opt[lane].push({ type: 'orc', count: 1 });
+    renderList();
+    updateCount();
+    markDirty();
+  };
+  card.appendChild(addBtn);
+
+  return card;
+}
+
+// ── Reserve slot ───────────────────────────────────────────────────────────
+
+function makeReserveSlot(opt, resIdx, onRemove) {
+  const res = opt.reserves[resIdx];
+
+  const outer = document.createElement('div');
+  outer.className = 'reserve-slot-row';
+
+  // Header: slot + logic selects
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'display:flex;gap:10px;align-items:center;margin-bottom:8px;flex-wrap:wrap;';
+
+  const slotLbl = document.createElement('label');
+  slotLbl.textContent = 'Slot';
+  const slotSel = makeSlotSelect(res.slot, (v) => { res.slot = v; markDirty(); });
+
+  const logicLbl = document.createElement('label');
+  logicLbl.textContent = 'Logic';
+  const logicSel = makeLogicSelect(res.logic, (v) => { res.logic = v; markDirty(); });
+
+  slotLbl.style.cssText = logicLbl.style.cssText = 'font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#4a6a8a;';
+  slotSel.style.cssText = logicSel.style.cssText = 'background:#0e131a;color:#8aaac8;border:1px solid #1e2e48;padding:3px 20px 3px 6px;font-family:inherit;font-size:11px;appearance:none;-webkit-appearance:none;cursor:pointer;';
+
+  hdr.appendChild(slotLbl);
+  hdr.appendChild(slotSel);
+  hdr.appendChild(logicLbl);
+  hdr.appendChild(logicSel);
+  outer.appendChild(hdr);
+
+  const rmSlot = document.createElement('button');
+  rmSlot.className = 'btn-danger remove-reserve-btn';
+  rmSlot.title = 'Remove this reserve slot';
+  rmSlot.textContent = '× slot';
+  rmSlot.onclick = onRemove;
+  outer.appendChild(rmSlot);
+
+  const list = document.createElement('div');
+  outer.appendChild(list);
+
+  const renderList = () => {
+    list.innerHTML = '';
+    res.units.forEach((entry, i) => {
+      const row = makeUnitRow(
+        entry,
+        null, null,
+        () => { res.units.splice(i, 1); renderList(); markDirty(); },
+      );
+      list.appendChild(row);
+    });
+  };
+  renderList();
+
+  const addBtn = document.createElement('button');
+  addBtn.className = 'btn-add';
+  addBtn.textContent = '+ Add unit';
+  addBtn.onclick = () => {
+    res.units.push({ type: 'orc', count: 1 });
+    renderList();
+    markDirty();
+  };
+  outer.appendChild(addBtn);
+
+  return outer;
+}
+
+// ── Reserves section ───────────────────────────────────────────────────────
+
+function makeReservesSection(opt) {
+  const section = document.createElement('div');
+
+  const heading = document.createElement('div');
+  heading.className = 'section-heading';
+  heading.textContent = 'Reserves';
+  section.appendChild(heading);
+
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:flex;flex-direction:column;gap:10px;margin-bottom:20px;';
+  section.appendChild(grid);
+
+  const renderSlots = () => {
+    grid.innerHTML = '';
+    opt.reserves.forEach((_, i) => {
+      const slot = makeReserveSlot(opt, i, () => {
+        opt.reserves.splice(i, 1);
+        renderSlots();
+        markDirty();
+      });
+      grid.appendChild(slot);
+    });
+
+    const addBtn = document.createElement('button');
+    addBtn.className = 'btn-add';
+    addBtn.style.maxWidth = '220px';
+    addBtn.textContent = '+ Add reserve slot';
+    addBtn.onclick = () => {
+      opt.reserves.push({ slot: 'left', units: [{ type: 'orc', count: 1 }], logic: 'left_after_delay' });
+      renderSlots();
+      markDirty();
+    };
+    grid.appendChild(addBtn);
+  };
+  renderSlots();
+
+  return section;
+}
+
+// ── Scouting report ────────────────────────────────────────────────────────
+
+function makeScoutingSection(opt) {
+  const section = document.createElement('div');
+  section.className = 'scouting-section';
+
+  const heading = document.createElement('div');
+  heading.className = 'section-heading';
+  heading.textContent = 'Scouting Report';
+  section.appendChild(heading);
+
+  const ta = document.createElement('textarea');
+  ta.value = opt.scoutingReport ?? '';
+  ta.rows = 3;
+  ta.placeholder = 'Text shown to player when scouts succeed...';
+  ta.oninput = () => { opt.scoutingReport = ta.value; markDirty(); };
+  section.appendChild(ta);
+
+  return section;
+}
+
+// ── Main render ────────────────────────────────────────────────────────────
+
+function renderContent() {
+  const opt = data[year][optIdx];
+  const content = document.getElementById('content');
+  content.innerHTML = '';
+
+  // Lanes
+  const lanesHeading = document.createElement('div');
+  lanesHeading.className = 'section-heading';
+  lanesHeading.textContent = 'Main Battle — Lane Assignments';
+  content.appendChild(lanesHeading);
+
+  const lanesGrid = document.createElement('div');
+  lanesGrid.className = 'lanes-grid';
+  for (const lane of SLOTS) {
+    lanesGrid.appendChild(makeLaneCard(opt, lane));
+  }
+  content.appendChild(lanesGrid);
+
+  content.appendChild(makeReservesSection(opt));
+  content.appendChild(makeScoutingSection(opt));
+}
+
+// ── Year tabs ──────────────────────────────────────────────────────────────
+
+function buildYearTabs() {
+  const nav = document.getElementById('year-nav');
+  nav.innerHTML = '';
+  for (let y = 1; y <= 10; y++) {
+    const btn = document.createElement('button');
+    btn.className = 'year-tab' + (y === year ? ' active' : '');
+    btn.dataset.year = y;
+    btn.textContent = `Year ${y}`;
+    btn.onclick = () => {
+      year = y;
+      optIdx = 0;
+      updateYearTabs();
+      updateOptionTabs();
+      updateTotals();
+      renderContent();
+    };
+    nav.appendChild(btn);
+  }
+}
+
+function updateYearTabs() {
+  document.querySelectorAll('.year-tab').forEach(btn => {
+    const y = parseInt(btn.dataset.year);
+    btn.classList.toggle('active', y === year);
+  });
+}
+
+// ── Option tabs ────────────────────────────────────────────────────────────
+
+function updateOptionTabs() {
+  document.querySelectorAll('.option-tab').forEach(btn => {
+    const i = parseInt(btn.dataset.opt);
+    btn.classList.toggle('active', i === optIdx);
+  });
+}
+
+document.querySelectorAll('.option-tab').forEach(btn => {
+  btn.onclick = () => {
+    optIdx = parseInt(btn.dataset.opt);
+    updateOptionTabs();
+    updateTotals();
+    renderContent();
+  };
+});
+
+// ── Totals bar ─────────────────────────────────────────────────────────────
+
+function updateTotals() {
+  const opt = data[year][optIdx];
+  const bar = document.getElementById('totals-bar');
+  bar.innerHTML = '';
+
+  const labels = ['Left', 'Center', 'Right'];
+  SLOTS.forEach((lane, i) => {
+    const n = laneTotal(opt[lane]);
+    const el = document.createElement('span');
+    el.className = 'tot-item';
+    el.innerHTML = `${labels[i]}: <strong>${n}</strong>`;
+    bar.appendChild(el);
+  });
+
+  const resN = opt.reserves.reduce((s, r) => s + r.units.reduce((ss, u) => ss + (u.count || 0), 0), 0);
+  const resEl = document.createElement('span');
+  resEl.className = 'tot-item';
+  resEl.innerHTML = `Reserve: <strong>${resN}</strong>`;
+  bar.appendChild(resEl);
+
+  const total = totalForOption(opt);
+  const totEl = document.createElement('span');
+  totEl.className = 'tot-item tot-total';
+  totEl.innerHTML = `Total: <strong>${total}</strong>`;
+  bar.appendChild(totEl);
+}
+
+// ── Serializer ─────────────────────────────────────────────────────────────
+
+function serializeCompositions() {
+  const labels = ['A', 'B', 'C'];
+  let out = `// Enemy compositions by year.  Each year has 3 options (A=0, B=1, C=2).\n`;
+  out += `// Unit key -- type strings match ENEMY_DEFS keys: orc, goblin, ogre, general, catapult\n`;
+  out += `// Logic key: left_after_delay | center_after_delay | right_after_delay | wait_for_breach\n`;
+  out += `// (timer-based logics deploy at ENEMY_RESERVE_DEPLOY_S seconds OR on any breach)\n\n`;
+  out += `export const ENEMY_COMPOSITIONS = {\n`;
+
+  const years = Object.keys(data).map(Number).sort((a, b) => a - b);
+  for (const y of years) {
+    out += `  ${y}: [\n`;
+    data[y].forEach((opt, i) => {
+      out += `    // -- Year ${y} / Option ${labels[i]}\n`;
+      out += `    {\n`;
+
+      for (const lane of SLOTS) {
+        const units = (opt[lane] || []).map(u => `{ type: '${u.type}', count: ${u.count} }`).join(', ');
+        out += `      ${lane}:   [${units}],\n`;
+      }
+
+      out += `      reserves: [\n`;
+      for (const r of (opt.reserves || [])) {
+        const units = r.units.map(u => `{ type: '${u.type}', count: ${u.count} }`).join(', ');
+        out += `        { slot: '${r.slot}', units: [${units}], logic: '${r.logic}' },\n`;
+      }
+      out += `      ],\n`;
+      out += `      scoutingReport: ${JSON.stringify(opt.scoutingReport ?? '')},\n`;
+      out += `    },\n`;
+    });
+    out += `  ],\n\n`;
+  }
+
+  out += `};\n`;
+  return out;
+}
+
+// ── Save ───────────────────────────────────────────────────────────────────
+
+document.getElementById('save-btn').onclick = () => {
+  const content = serializeCompositions();
+  const blob = new Blob([content], { type: 'text/javascript' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = 'compositions.js';
+  a.click();
+  URL.revokeObjectURL(url);
+
+  const flash = document.getElementById('save-flash');
+  flash.classList.add('show');
+  setTimeout(() => flash.classList.remove('show'), 2500);
+};
+
+// ── Init ───────────────────────────────────────────────────────────────────
+
+buildYearTabs();
+updateOptionTabs();
+updateTotals();
+renderContent();
+</script>
+</body>
+</html>

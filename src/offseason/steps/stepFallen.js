@@ -5,7 +5,8 @@
 import { PORTRAIT_BY_ID } from '../../data/portraits.js';
 
 function yearsLabel(n) {
-  return `${n ?? 0} years of service`;
+  if (n === 1) return '1 year of service';
+  return `${n} years of service`;
 }
 
 function classLabel(cls) {
@@ -47,7 +48,7 @@ export function render(gs, wizardState, contentEl) {
 
     const detailEl = document.createElement('div');
     detailEl.style.cssText = 'font-size:12px;color:#6a5a3a;letter-spacing:0.03em;';
-    detailEl.textContent   = `${classLabel(unit.class ?? 'unknown')}  ·  ${yearsLabel(unit.yearOfService ?? 0)}`;
+    detailEl.textContent   = `${classLabel(unit.class ?? 'unknown')}  ·  ${yearsLabel((unit.yearOfService ?? 0) + 1)}`;
 
     info.appendChild(nameEl);
     info.appendChild(detailEl);

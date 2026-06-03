@@ -51,6 +51,17 @@ function prereqsMet(key, gs, spending) {
 export function render(gs, wizardState, contentEl) {
   const { spending } = wizardState;
 
+  // ── Artisan auto-repair notice ─────────────────────────────────────────
+  if (gs.artisanAutoRepair > 0) {
+    const notice = document.createElement('div');
+    notice.style.cssText =
+      'background:#0e1a0a;border:1px solid #2a4a1a;color:#5a8a3a;' +
+      'font-size:13px;padding:10px 14px;margin-bottom:14px;';
+    notice.textContent =
+      `Artisan Workshop: ${gs.artisanAutoRepair} HP of wall damage repaired automatically.`;
+    contentEl.appendChild(notice);
+  }
+
   // ── Gold bar (sticky) ──────────────────────────────────────────────────
   const goldBar = document.createElement('div');
   goldBar.className = 'os-gold-bar';

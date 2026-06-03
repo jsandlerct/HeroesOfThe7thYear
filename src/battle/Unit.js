@@ -6,6 +6,7 @@ import {
   HP_THRESH_MED, HP_THRESH_LOW,
   HEAL_GLOW_MS, HEAL_GLOW_COLOR, HEAL_GLOW_OUTER,
   AURA_GLOW_COLOR, AURA_GLOW_OUTER,
+  CRIT_GLOW_COLOR, CRIT_GLOW_OUTER, CRIT_GLOW_MS,
   HEALER_HEAL_S,
 } from '../data/constants.js';
 
@@ -155,6 +156,14 @@ export class Unit {
       this.sprite.postFX.remove(this._auraGlowFX);
       this._auraGlowFX = null;
     }
+  }
+
+  triggerCritGlow(scene) {
+    if (!this.sprite?.postFX) return;
+    const glow = this.sprite.postFX.addGlow(CRIT_GLOW_COLOR, CRIT_GLOW_OUTER, 0);
+    scene.time.delayedCall(CRIT_GLOW_MS, () => {
+      if (!this.isDead && this.sprite) this.sprite.postFX.remove(glow);
+    });
   }
 
   triggerHealGlow(scene) {

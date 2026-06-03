@@ -4,7 +4,8 @@
 
 import {
   HERO_RETENTION_CHANCE,
-  GOLD_BASE_PER_YEAR, GOLD_PER_MISSING_WALL_HP, GOLD_PER_DESTROYED_SEGMENT,
+  GOLD_TAX_OPTIONS, GOLD_PER_MISSING_WALL_HP, GOLD_PER_DESTROYED_SEGMENT,
+  ARTISAN_FREE_REPAIR_PER_LEVEL,
 } from '../data/constants.js';
 import { render as renderFallen }     from './steps/stepFallen.js';
 import { render as renderHeroes }     from './steps/stepHeroes.js';
@@ -105,7 +106,14 @@ export function startOffSeason(gameState, onComplete) {
   gs   = gameState;
   onDone = onComplete;
 
-  gameState.goldBreakdown = computeGoldBreakdown(gameState);
+  gameState.goldBreakdown = computeGoldBreakdown(gameState); // must run before artisan repairs
+  applyArtisanFreeRepairs(gameState);
+
+  // Starter veterans carry a one-time survivor greeting for Year 1 only.
+  // Clear it once they've served past their first year so normal greetings apply.
+  for (const unit of gameState.roster) {
+    if (unit.greeting && (unit.yearOfService ?? 0) > 1) unit.greeting = null;
+  }
 
   // Scouts captured in a prior off-season appear in this year's fallen ceremony
   if (gameState.capturedScouts?.length > 0) {
@@ -129,11 +137,25 @@ function computeGoldBreakdown(gs) {
     (sum, seg) => sum + Math.max(0, seg.maxHp - seg.hp), 0
   );
   const destroyed = gs.wallSegments.filter(seg => seg.hp <= 0).length;
+  const base = GOLD_TAX_OPTIONS[Math.floor(Math.random() * GOLD_TAX_OPTIONS.length)];
   return {
-    base:              GOLD_BASE_PER_YEAR,
+    base,
     wallDamage:        missingHp * GOLD_PER_MISSING_WALL_HP,
     destroyedSegments: destroyed * GOLD_PER_DESTROYED_SEGMENT,
   };
+}
+
+function applyArtisanFreeRepairs(gs) {
+  const artisanLevel = gs.buildings.artisanWorkshop ?? 0;
+  if (artisanLevel === 0) { gs.artisanAutoRepair = 0; return; }
+  const freePerSeg = artisanLevel * ARTISAN_FREE_REPAIR_PER_LEVEL;
+  let total = 0;
+  for (const seg of gs.wallSegments) {
+    const repaired = Math.min(freePerSeg, Math.max(0, seg.maxHp - seg.hp));
+    seg.hp  = Math.min(seg.hp + repaired, seg.maxHp);
+    total  += repaired;
+  }
+  gs.artisanAutoRepair = total;
 }
 
 function buildFreshWizardState(gameState) {

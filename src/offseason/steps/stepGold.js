@@ -16,8 +16,9 @@ export function render(gs, wizardState, contentEl) {
 
   const wallFunds = bd.wallDamage + bd.destroyedSegments;
 
-  const missingHp = gs.wallSegments.reduce((sum, seg) => sum + Math.max(0, seg.maxHp - seg.hp), 0);
-  const destroyed = gs.wallSegments.filter(seg => seg.hp <= 0).length;
+  // Use breakdown values (pre-repair) so artisan auto-repairs don't zero out the display
+  const missingHp = bd.wallDamage;           // wallDamage = missingHp × 1g
+  const destroyed = bd.destroyedSegments / 200;
 
   let wallDetail = '';
   const parts = [];
@@ -31,7 +32,7 @@ export function render(gs, wizardState, contentEl) {
     </p>
     <table style="width:100%;border-collapse:collapse;max-width:480px;">
       <colgroup><col style="width:70%"><col style="width:30%"></colgroup>
-      ${row('Base allocation (every year)', `+${bd.base} gold`)}
+      ${row('Gold raised from taxes', `+${bd.base} gold`)}
       ${row('Funds for wall repairs' + wallDetail, wallFunds > 0 ? `+${wallFunds} gold` : '—')}
       <tr><td colspan="2" style="padding:4px;border-top:1px solid #2a1e08;"></td></tr>
       ${gs.year === 1 && gs.gold > 0

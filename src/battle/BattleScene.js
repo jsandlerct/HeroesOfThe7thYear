@@ -12,6 +12,7 @@ import {
   RESERVE_ZONE_ROWS, ENEMY_RESERVE_ROW, PLAYER_RESERVE_ROW,
   ENEMY_RESERVE_DEPLOY_S, RESERVE_ALARM_ROW,
   ATK_RANGE_BUFFER, MAX_DR, ROUT_THRESHOLD,
+  CRIT_CHANCE, CRIT_MULTIPLIER,
   WALL_BLOCK_Y, WALL_BREACH_DROP, SLOMOER_SCALE, NUDGE_STOP_DIST,
   ENEMY_SPAWN_ROW, ENEMY_SPAWN_SPACING, ENEMY_MOVE_DELAY,
   HEALER_XP_PER_HP, ANNOUNCE_MS,
@@ -721,6 +722,16 @@ export class BattleScene extends Phaser.Scene {
         unit.target = null;
       }
 
+      // Mage: yield current non-elite target when an elite enters range (default pref only)
+      if (unit.type === 'mage' && unit.target && !unit.target.isElite &&
+          GameState.targetingPreference.ranged === 'default') {
+        const hasEliteInRange = this.units.some(e =>
+          e.team === 'enemy' && !e.isDead && !e.isInReserve && e.isElite &&
+          e.y >= 0 && tileDist(unit, e) <= unit.range
+        );
+        if (hasEliteInRange) unit.target = null;
+      }
+
       if (!unit.target) {
         unit.target = findTarget(unit, this.units, this.walls);
       }
@@ -882,12 +893,17 @@ export class BattleScene extends Phaser.Scene {
       ? (target.isOnWall && target.wallSection ? target.wallSection.getDamageReduction() : 0)
       : target.armor + (target.isOnWall && target.wallSection ? target.wallSection.getDamageReduction() : 0);
     effectiveDR = Math.min(effectiveDR, MAX_DR);
-    const finalDmg = Math.max(1, Math.floor(baseDmg * (1 - effectiveDR)));
+    let finalDmg = Math.max(1, Math.floor(baseDmg * (1 - effectiveDR)));
+
+    const isCrit = attacker.team === 'player' && Math.random() < CRIT_CHANCE;
+    if (isCrit) finalDmg = Math.floor(finalDmg * CRIT_MULTIPLIER);
 
     if (attacker.range > 1) {
-      this.projectiles.push(new Projectile(attacker, target, finalDmg, this, this));
+      const proj = new Projectile(attacker, target, finalDmg, this, this);
+      proj.isCrit = isCrit;
+      this.projectiles.push(proj);
     } else {
-      this._applyDamage(attacker, target, finalDmg);
+      this._applyDamage(attacker, target, finalDmg, isCrit);
       if (attacker.isAoe) this._applyAoeSplash(attacker, target, finalDmg);
     }
   }
@@ -908,11 +924,12 @@ export class BattleScene extends Phaser.Scene {
     }
   }
 
-  _applyDamage(attacker, target, amount) {
+  _applyDamage(attacker, target, amount, isCrit = false) {
     target.hp -= amount;
     target.damageTaken += amount;
     target.lastAttacker = attacker;
     target.damageBy[attacker.id] = (target.damageBy[attacker.id] ?? 0) + amount;
+    if (isCrit) target.triggerCritGlow(this);
     if (target.hp <= 0) this._handleDeath(target);
   }
 

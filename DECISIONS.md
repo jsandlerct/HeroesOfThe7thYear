@@ -102,12 +102,13 @@
 - [2025-05-27] Monument tracks hero names for bonus accounting; stores up to 5 heroes' worth of attack speed bonus (-0.1s per hero, max -0.5s total)
 - [2025-05-27] Hospital: -1.0s heal interval per level (applies to healer healing cooldown, not attack speed)
 - [2025-05-27] Mason: repairs/builds 50 HP of wall damage per Mason per off-season
+- [2026-06-02] Artisan Workshop: automatically repairs 50 HP per wall segment per level at off-season start (before gold breakdown is computed for display); shown as a notice on the investment screen
 
 ---
 
 ## Gold & Recruits
 
-- [2025-05-27] Gold per off-season: 100 base + 1 per missing wall HP + 200 per fully destroyed segment
+- [2026-06-02] Gold per off-season: base tax is random each year — 100, 150, or 200 gold (equal probability, rolled at off-season start); +1 per missing wall HP (pre-repair); +200 per fully destroyed segment
 - [2025-05-27] Gold is spent first; recruits arrive after all spending is complete
 - [2025-05-27] Recruits fill all empty housing slots after spending
 - [2025-05-27] Recruit composition: random but skews toward 50/50 balance based on current roster (not capacity)
@@ -227,7 +228,7 @@
 - [2026-06-01] Hero retention resolved in `resolveHeroRetention()` before the ceremony step renders — `hero.staying` is set once and not re-rolled on back-navigation
 - [2026-06-01] `wizardState.spending` and `wizardState.assignments` are the authoritative in-wizard copies; final values written to GameState in `finish()` callback chain (steps write to wizardState; `onComplete` callback applies to GameState)
 - [2026-06-01] Off-season wizard is full-screen (position: fixed; inset: 0) — responsive to any viewport; header and nav are fixed strips; content area scrolls; step content centered at max-width 960px via .os-inner wrapper injected by OffSeasonUI.renderStep
-- [2026-06-01] Fallen ceremony: yearOfService = 0 displays as "First year of service"; 1 = "1 year of service"; N ≥ 2 = "N years of service" — reflects completed years, not the year they were in when they died
+- [2026-06-02] Fallen ceremony: display yearOfService + 1 to include the year they fell in; "1 year of service" for singular, "N years of service" for N ≥ 2
 - [2026-06-01] Hero ceremony: staying heroes noted with gold border on portrait and gold italic tagline; departed heroes use muted parchment text — same card layout for both outcomes
 - [2026-06-01] `wizardState.stayingHeroes` is populated in stepHeroes.render; onComplete handler applies their 1 XP/off-season bonus to the roster
 - [2026-06-01] Gold breakdown computed at wizard start in `OffSeasonUI.computeGoldBreakdown`; `wizardState.goldAvailable` = carryover + new income; `gs.gold` not modified until Confirm is clicked
@@ -253,6 +254,14 @@
 - [2026-06-01] Engineers assigned to wall sections spawn at WALL_ROW + 1.5 (behind the wall) rather than WALL_ROW + 0.5 — consistent with the "stationary behind wall" decision
 - [2026-06-01] Sprint 3 hook: `index.html` will trigger `startOffSeason` from a `battleComplete` event fired by BattleScene after Year 1; Year 1 launches directly into battle with no prior off-season
 - [2026-06-01] Portrait display size in ceremonies: 72×72px
+
+---
+
+## Combat: Critical Hits
+
+- [2026-06-02] All player units have a 5% base crit chance on every attack; crits deal triple damage (CRIT_MULTIPLIER = 3)
+- [2026-06-02] On crit: bright red postFX glow (0xff2200) flashes on the target for 350ms; applies to both melee and ranged hits (ranged: triggers on projectile landing)
+- [2026-06-02] Crit is player-only — enemy units do not crit
 
 ---
 

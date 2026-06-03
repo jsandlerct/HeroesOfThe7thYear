@@ -193,10 +193,11 @@ export function generateStarterRoster(gameState) {
 
   const starters = specs.map(({ cls, level, xp }) => {
     const unit = generateOne(cls, gameState);
-    unit.level        = level;
-    unit.xp           = xp;
-    unit.isNewRecruit = false;
-    unit.greeting     = pickSurvivorGreeting(cls);
+    unit.level         = level;
+    unit.xp            = xp;
+    unit.yearOfService = 1;
+    unit.isNewRecruit  = false;
+    unit.greeting      = pickSurvivorGreeting(cls);
     return unit;
   });
 

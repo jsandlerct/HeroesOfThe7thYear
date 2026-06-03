@@ -19,6 +19,8 @@ export class Projectile {
     this.totalDist    = Math.sqrt(dx * dx + dy * dy) || 1;
     this.distTraveled = 0;
 
+    this.isCrit = false;  // set by caller for critical hits
+
     this.vx = dx / this.totalDist;
     this.vy = dy / this.totalDist;
     this.x  = attacker.x;
@@ -57,7 +59,7 @@ export class Projectile {
         this.battleScene._applyAoeSplash(this.attacker, this.target, this.finalDmg);
       }
     } else if (!this.target.isDead) {
-      this.battleScene._applyDamage(this.attacker, this.target, this.finalDmg);
+      this.battleScene._applyDamage(this.attacker, this.target, this.finalDmg, this.isCrit);
       if (this.attacker.isAoe) {
         this.battleScene._applyAoeSplash(this.attacker, this.target, this.finalDmg);
       }

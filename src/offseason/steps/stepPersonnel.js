@@ -6,6 +6,7 @@
 import { PORTRAIT_BY_ID }               from '../../data/portraits.js';
 import { pickGreeting }                  from '../../data/greetings.js';
 import { WALL_SECTION_CAPACITY, RESERVE_SECTION_CAPACITY } from '../../data/constants.js';
+import { computeEffectiveDef }           from '../../battle/buildingBonuses.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -63,7 +64,7 @@ function capacityWarnings(assignments) {
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
 
-function showDetailModal(unit) {
+function showDetailModal(unit, gs) {
   document.getElementById('os-detail-modal')?.remove();
 
   const portrait = unit.portraitId ? PORTRAIT_BY_ID[unit.portraitId] : null;
@@ -103,6 +104,8 @@ function showDetailModal(unit) {
     header.appendChild(img);
   }
 
+  const eff = computeEffectiveDef(unit, gs);
+
   const nameBlock = document.createElement('div');
   nameBlock.style.paddingTop = '4px';
   nameBlock.innerHTML = `
@@ -112,7 +115,11 @@ function showDetailModal(unit) {
       &nbsp;·&nbsp; Year ${(unit.yearOfService ?? 0) + 1} of service
       &nbsp;·&nbsp; Level ${unit.level ?? 1}
     </div>
-    <div style="font-size:12px;color:#6a5a3a;">XP: ${unit.xp ?? 0}</div>`;
+    <div style="font-size:12px;color:#6a5a3a;display:flex;gap:18px;margin-top:4px;">
+      <span>HP: <strong style="color:#8a9a6a">${Math.round(eff.hp)}</strong></span>
+      <span>Dmg: <strong style="color:#9a7a5a">${Math.round(eff.dmg)}</strong></span>
+      <span>XP: ${unit.xp ?? 0}</span>
+    </div>`;
   header.appendChild(nameBlock);
   box.appendChild(header);
 
@@ -230,11 +237,13 @@ export function render(gs, wizardState, contentEl, wizard) {
   headerRow.style.cssText = 'border-bottom:1px solid #3a2a10;';
 
   const COLUMNS = [
-    { key: 'name',    label: 'Name',       width: '22%', sortable: true  },
-    { key: 'class',   label: 'Class',      width: '12%', sortable: true  },
-    { key: 'year',    label: 'Yr',         width: '6%',  sortable: true  },
-    { key: 'level',   label: 'Lv',         width: '6%',  sortable: true  },
-    { key: 'assign',  label: 'Assignment', width: '22%', sortable: true  },
+    { key: 'name',    label: 'Name',       width: '20%', sortable: true  },
+    { key: 'class',   label: 'Class',      width: '10%', sortable: true  },
+    { key: 'year',    label: 'Yr',         width: '5%',  sortable: true  },
+    { key: 'level',   label: 'Lv',         width: '5%',  sortable: true  },
+    { key: 'hp',      label: 'HP',         width: '6%',  sortable: true  },
+    { key: 'dmg',     label: 'Dmg',        width: '6%',  sortable: true  },
+    { key: 'assign',  label: 'Assignment', width: '1%',  sortable: true  },
     { key: 'detail',  label: '',           width: '8%',  sortable: false },
   ];
 
@@ -276,6 +285,8 @@ export function render(gs, wizardState, contentEl, wizard) {
       case 'class':  return u.class ?? '';
       case 'year':   return u.yearOfService ?? 0;
       case 'level':  return u.level ?? 1;
+      case 'hp':     return computeEffectiveDef(u, gs).hp;
+      case 'dmg':    return computeEffectiveDef(u, gs).dmg;
       case 'assign': return ASSIGNMENT_SORT_ORDER[wizardState.assignments[u.id]] ?? 99;
       default:       return '';
     }
@@ -347,14 +358,23 @@ export function render(gs, wizardState, contentEl, wizard) {
       tdLevel.style.cssText = 'padding:8px 10px;color:#6a5a3a;text-align:center;';
       tdLevel.textContent = u.level ?? 1;
 
+      // HP / Dmg
+      const effStats = computeEffectiveDef(u, gs);
+      const tdHp = document.createElement('td');
+      tdHp.style.cssText = 'padding:8px 6px;color:#8a9a6a;text-align:center;font-size:13px;';
+      tdHp.textContent = Math.round(effStats.hp);
+      const tdDmg = document.createElement('td');
+      tdDmg.style.cssText = 'padding:8px 6px;color:#9a7a5a;text-align:center;font-size:13px;';
+      tdDmg.textContent = Math.round(effStats.dmg);
+
       // Assignment dropdown
       const tdAssign = document.createElement('td');
-      tdAssign.style.cssText = 'padding:6px 10px;';
+      tdAssign.style.cssText = 'padding:6px 6px;white-space:nowrap;';
 
       const sel = document.createElement('select');
       sel.style.cssText =
         'background:#0f0d08;border:1px solid #3a2a10;color:#c8bfa0;' +
-        'font-family:Georgia,serif;font-size:13px;padding:4px 8px;width:100%;' +
+        'font-family:Georgia,serif;font-size:13px;padding:4px 6px;width:155px;' +
         'border-radius:3px;cursor:pointer;';
 
       const blankOpt = document.createElement('option');
@@ -394,13 +414,15 @@ export function render(gs, wizardState, contentEl, wizard) {
         'cursor:pointer;border-radius:3px;';
       detailBtn.onmouseover = () => detailBtn.style.color = '#c9a84c';
       detailBtn.onmouseout  = () => detailBtn.style.color = '#8a7a5a';
-      detailBtn.onclick     = () => showDetailModal(u);
+      detailBtn.onclick     = () => showDetailModal(u, gs);
       tdDetail.appendChild(detailBtn);
 
       tr.appendChild(tdName);
       tr.appendChild(tdClass);
       tr.appendChild(tdYear);
       tr.appendChild(tdLevel);
+      tr.appendChild(tdHp);
+      tr.appendChild(tdDmg);
       tr.appendChild(tdAssign);
       tr.appendChild(tdDetail);
       tbody.appendChild(tr);
@@ -409,7 +431,7 @@ export function render(gs, wizardState, contentEl, wizard) {
     if (units.length === 0) {
       const emptyRow = document.createElement('tr');
       const emptyTd  = document.createElement('td');
-      emptyTd.colSpan = 6;
+      emptyTd.colSpan = 8;
       emptyTd.style.cssText = 'padding:20px 10px;color:#4a3a2a;font-style:italic;text-align:center;';
       emptyTd.textContent = filter ? 'No soldiers match this filter.' : 'No combatants to deploy.';
       emptyRow.appendChild(emptyTd);

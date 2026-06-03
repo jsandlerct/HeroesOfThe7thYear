@@ -123,9 +123,18 @@ export const HERO_RETENTION_CHANCE     = 0.25;// base probability a seven-year h
 export const WALL_SECTION_CAPACITY     = 10;   // warn if wall group exceeds this
 export const RESERVE_SECTION_CAPACITY  = 25;   // from decisions: 25 per reserve slot
 
-export const GOLD_BASE_PER_YEAR        = 100;
+export const GOLD_TAX_OPTIONS          = [100, 150, 200]; // random each year (multiples of 50)
 export const GOLD_PER_MISSING_WALL_HP  = 1;
 export const GOLD_PER_DESTROYED_SEGMENT = 200;
+
+export const ARTISAN_FREE_REPAIR_PER_LEVEL = 50; // HP of free wall repair per segment per artisan level
+
+// ── Combat: critical hits ─────────────────────────────────────────────────────
+export const CRIT_CHANCE      = 0.05;        // 5% base crit chance for all player units
+export const CRIT_MULTIPLIER  = 3;           // crit deals triple damage
+export const CRIT_GLOW_COLOR  = 0xff2200;    // bright red flash on target
+export const CRIT_GLOW_OUTER  = 6;           // glow outer width (px)
+export const CRIT_GLOW_MS     = 350;         // flash duration in ms
 
 // ── Unit progression ──────────────────────────────────────────────────────────
 export const ATK_SPEED_FLOOR                   = 0.5;   // minimum attack interval (all units)
