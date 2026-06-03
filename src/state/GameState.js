@@ -36,6 +36,8 @@ export const GameState = {
   // gender, age, portraitId, bio, level, xp, yearOfService, assignment, injured, isNewRecruit }
   roster: [],
 
+  commanderName: 'Commander',  // set on name-entry screen; used in unit greetings
+
   // Per-playthrough uniqueness tracking
   usedNames:     new Set(),  // "FirstName LastName" strings used since campaign start
   _nextUnitId:   1,          // incremented for each unit generated

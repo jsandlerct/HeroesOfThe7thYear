@@ -3,7 +3,7 @@
 // Returns array of new unit objects and pushes them onto GameState.roster.
 
 import { MALE_NAMES, FEMALE_NAMES, SURNAMES } from '../data/names.js';
-import { BIOS } from '../data/bios.js';
+import { buildBioDecks, drawBio } from '../data/bios.js';
 import { pickSurvivorGreeting } from '../data/greetings.js';
 import {
   buildPortraitDecks, drawPortrait, getPortraitCategory,
@@ -130,14 +130,6 @@ function generateName(gender, unitClass, usedNames) {
   return { firstName: fallback.split(' ')[0], lastName: fallback.split(' ')[1], name: fallback };
 }
 
-// ── Bio selection ─────────────────────────────────────────────────────────────
-
-function selectBio(gender, age) {
-  const key = `${age}${gender.charAt(0).toUpperCase() + gender.slice(1)}`; // e.g. 'youngMale'
-  const pool = BIOS[key] ?? BIOS.youngMale;
-  return pick(pool);
-}
-
 // ── Single recruit generation ─────────────────────────────────────────────────
 
 function generateOne(unitClass, gameState) {
@@ -147,7 +139,7 @@ function generateOne(unitClass, gameState) {
   const { gender, age } = portrait;
 
   const { firstName, lastName, name } = generateName(gender, unitClass, gameState.usedNames);
-  const bio = selectBio(gender, age);
+  const bio = drawBio(gameState.bioDecks, gender, age);
   const id  = gameState._nextUnitId++;
 
   return {
@@ -171,18 +163,17 @@ function generateOne(unitClass, gameState) {
 
 // ── Public API ────────────────────────────────────────────────────────────────
 
-// Initialize portrait decks on first call (start of a new campaign).
-function ensurePortraitDecks(gameState) {
-  if (!gameState.portraitDecks) {
-    gameState.portraitDecks = buildPortraitDecks();
-  }
+// Initialize portrait and bio decks on first call (start of a new campaign).
+function ensureDecks(gameState) {
+  if (!gameState.portraitDecks) gameState.portraitDecks = buildPortraitDecks();
+  if (!gameState.bioDecks)      gameState.bioDecks      = buildBioDecks();
 }
 
 // Generates the starting roster: 3 level-2 archers and 1 level-3 warrior.
 // Each unit receives a random survivor greeting drawn from their class pool.
 // Call once at campaign start, before the Year 1 off-season wizard.
 export function generateStarterRoster(gameState) {
-  ensurePortraitDecks(gameState);
+  ensureDecks(gameState);
 
   const specs = [
     { cls: 'archer',  level: 2, xp: 5  },
@@ -208,7 +199,7 @@ export function generateStarterRoster(gameState) {
 // Generate all recruits for this off-season. Mutates gameState.roster and
 // gameState.usedNames. Returns the array of newly generated unit objects.
 export function generateRecruits(gameState) {
-  ensurePortraitDecks(gameState);
+  ensureDecks(gameState);
 
   const slotCounts = computeSlots(gameState);
   const newRecruits = [];

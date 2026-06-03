@@ -2,7 +2,8 @@
 // Conditional: shown only when gs.fallenThisBattle.length > 0.
 // Sorted by yearOfService descending; alphabetical tiebreak.
 
-import { PORTRAIT_BY_ID } from '../../data/portraits.js';
+import { PORTRAIT_BY_ID }      from '../../data/portraits.js';
+import { makePortraitElement } from '../portraitHelper.js';
 
 function yearsLabel(n) {
   if (n === 1) return '1 year of service';
@@ -31,14 +32,7 @@ export function render(gs, wizardState, contentEl) {
       'display:flex;align-items:center;gap:16px;padding:12px 0;' +
       'border-bottom:1px solid #251a08;';
 
-    const img = document.createElement('img');
-    img.width  = 72;
-    img.height = 72;
-    img.style.cssText = 'object-fit:cover;flex-shrink:0;border:1px solid #3a2808;';
-    img.alt = unit.name ?? '';
-    img.src = portrait ? portrait.file : '';
-    if (!portrait) img.style.background = '#251a08';
-    card.appendChild(img);
+    card.appendChild(makePortraitElement(portrait, unit, 72));
 
     const info = document.createElement('div');
 

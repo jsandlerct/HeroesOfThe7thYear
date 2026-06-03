@@ -227,9 +227,15 @@ export class BattleScene extends Phaser.Scene {
       { assignKey: 'reserveCenter', slotIdx: 1 },
       { assignKey: 'reserveRight',  slotIdx: 2 },
     ];
+    const ENGINEER_SLOTS = [
+      { assignKey: 'engineerLeft',   startCol: 0 },
+      { assignKey: 'engineerCenter', startCol: WALL_SECTION_W },
+      { assignKey: 'engineerRight',  startCol: WALL_SECTION_W * 2 },
+    ];
 
-    const wallY     = WALL_ROW + 0.5;
-    const engineerY = WALL_ROW + 1.5;  // engineers deploy behind the wall (row 12)
+    const wallY        = WALL_ROW + 0.5;
+    const magWallY     = WALL_ROW + 1.5;  // mages stand to the rear on their section
+    const engineerY    = WALL_ROW + 2.5;  // engineers: midway between wall (row 12) and reserves (rows 14-15)
 
     // ── Wall units ────────────────────────────────────────────────────────────
     for (const ws of WALL_SECTIONS) {
@@ -239,9 +245,8 @@ export class BattleScene extends Phaser.Scene {
       units.forEach((ru, k) => {
         const def = computeEffectiveDef(ru, GameState);
         if (!def) return;
-        const isEngineer = ru.class === 'engineer';
         const x = ws.startCol + (k + 0.5) * (WALL_SECTION_W / n);
-        const y = isEngineer ? engineerY : wallY;
+        const y = ru.class === 'mage' ? magWallY : wallY;
         const u = this._spawnUnit(ru.class, def, 'player', x, y);
         u.xp       = ru.xp      ?? 0;
         u.level    = ru.level   ?? 1;
@@ -249,10 +254,26 @@ export class BattleScene extends Phaser.Scene {
         u.bonusDmg = ru.bonusDmg ?? 0;
         u.isStationary = true;
         u.rosterId     = ru.id;
-        if (!isEngineer) {
-          u.isOnWall    = true;
-          u.wallSection = seg;
-        }
+        u.isOnWall    = true;
+        u.wallSection = seg;
+      });
+    }
+
+    // ── Engineer field units (midway between wall and reserves) ───────────────
+    for (const es of ENGINEER_SLOTS) {
+      const units = roster.filter(u => u.assignment === es.assignKey);
+      const n     = Math.max(units.length, 1);
+      units.forEach((ru, k) => {
+        const def = computeEffectiveDef(ru, GameState);
+        if (!def) return;
+        const x = es.startCol + (k + 0.5) * (WALL_SECTION_W / n);
+        const u = this._spawnUnit(ru.class, def, 'player', x, engineerY);
+        u.xp       = ru.xp      ?? 0;
+        u.level    = ru.level   ?? 1;
+        u.bonusHp  = ru.bonusHp ?? 0;
+        u.bonusDmg = ru.bonusDmg ?? 0;
+        u.isStationary = true;
+        u.rosterId     = ru.id;
       });
     }
 

@@ -4,7 +4,8 @@
 // Staying heroes are granted 1 XP per off-season to the full roster — tracked here
 // by pushing them to wizardState.stayingHeroes for the onComplete handler to apply.
 
-import { PORTRAIT_BY_ID } from '../../data/portraits.js';
+import { PORTRAIT_BY_ID }      from '../../data/portraits.js';
+import { makePortraitElement } from '../portraitHelper.js';
 
 function classLabel(cls) {
   return cls.charAt(0).toUpperCase() + cls.slice(1);
@@ -28,16 +29,7 @@ export function render(gs, wizardState, contentEl) {
       'display:flex;align-items:flex-start;gap:16px;padding:14px 0;' +
       `border-bottom:1px solid ${staying ? '#3a2808' : '#251a08'};`;
 
-    const img = document.createElement('img');
-    img.width  = 72;
-    img.height = 72;
-    img.style.cssText =
-      `object-fit:cover;flex-shrink:0;` +
-      `border:1px solid ${staying ? '#c9a84c' : '#3a2808'};`;
-    img.alt = hero.name ?? '';
-    img.src = portrait ? portrait.file : '';
-    if (!portrait) img.style.background = '#251a08';
-    card.appendChild(img);
+    card.appendChild(makePortraitElement(portrait, hero, 72));
 
     const info = document.createElement('div');
 

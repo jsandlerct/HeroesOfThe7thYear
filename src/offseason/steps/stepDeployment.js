@@ -89,6 +89,7 @@ function makeWallBand(seg, label, borderRight) {
 export function render(gs, wizardState, contentEl) {
   const groups = {
     wallLeft: [], wallCenter: [], wallRight: [],
+    engineerLeft: [], engineerCenter: [], engineerRight: [],
     reserveLeft: [], reserveCenter: [], reserveRight: [],
   };
   const unassigned = [];
@@ -100,9 +101,10 @@ export function render(gs, wizardState, contentEl) {
     else unassigned.push(u);
   }
 
-  const sections = ['Left', 'Center', 'Right'];
-  const wallKeys    = ['wallLeft', 'wallCenter', 'wallRight'];
-  const reserveKeys = ['reserveLeft', 'reserveCenter', 'reserveRight'];
+  const sections     = ['Left', 'Center', 'Right'];
+  const wallKeys     = ['wallLeft', 'wallCenter', 'wallRight'];
+  const engineerKeys = ['engineerLeft', 'engineerCenter', 'engineerRight'];
+  const reserveKeys  = ['reserveLeft', 'reserveCenter', 'reserveRight'];
 
   // ── Enemy approach strip ─────────────────────────────────────────────────
   const enemyStrip = document.createElement('div');
@@ -114,7 +116,7 @@ export function render(gs, wizardState, contentEl) {
   contentEl.appendChild(enemyStrip);
 
   // ── Schematic container ──────────────────────────────────────────────────
-  // 3 columns × 3 rows: [wall units] / [wall] / [reserve]
+  // 3 columns × 4 rows: [wall units] / [wall] / [engineer field] / [reserve]
   const grid = document.createElement('div');
   grid.style.cssText =
     'display:grid;grid-template-columns:1fr 1fr 1fr;' +
@@ -137,7 +139,21 @@ export function render(gs, wizardState, contentEl) {
     grid.appendChild(makeWallBand(seg, sections[i], i < 2));
   }
 
-  // Row 3 — reserves (dots flow downward from wall)
+  // Row 3 — engineer field positions (midway between wall and reserves)
+  for (let i = 0; i < 3; i++) {
+    const cell = document.createElement('div');
+    cell.style.cssText =
+      'background:#101510;border-top:1px solid #1a2a18;border-bottom:1px solid #1a2a18;' +
+      (i < 2 ? 'border-right:1px solid #2a2010;' : '');
+    const inner = document.createElement('div');
+    inner.style.cssText = 'padding:4px 10px 2px;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:#2a4a2a;';
+    inner.textContent = 'Engineer Field';
+    cell.appendChild(inner);
+    cell.appendChild(makeDotCluster(groups[engineerKeys[i]], { alignEnd: false, minH: 50 }));
+    grid.appendChild(cell);
+  }
+
+  // Row 4 — reserves (dots flow downward from wall)
   for (let i = 0; i < 3; i++) {
     const cell = document.createElement('div');
     cell.style.cssText =
@@ -150,8 +166,9 @@ export function render(gs, wizardState, contentEl) {
   contentEl.appendChild(grid);
 
   // ── Summary row ───────────────────────────────────────────────────────────
-  const totalWall    = wallKeys.reduce((s, k) => s + groups[k].length, 0);
-  const totalReserve = reserveKeys.reduce((s, k) => s + groups[k].length, 0);
+  const totalWall     = wallKeys.reduce((s, k) => s + groups[k].length, 0);
+  const totalEngineer = engineerKeys.reduce((s, k) => s + groups[k].length, 0);
+  const totalReserve  = reserveKeys.reduce((s, k) => s + groups[k].length, 0);
 
   const summary = document.createElement('div');
   summary.style.cssText =
@@ -160,8 +177,9 @@ export function render(gs, wizardState, contentEl) {
 
   const items = [
     `Wall: <strong style="color:#c9a84c">${totalWall}</strong> units`,
+    ...(totalEngineer > 0 ? [`Engineer: <strong style="color:#6a9a6a">${totalEngineer}</strong> units`] : []),
     `Reserve: <strong style="color:#4a7aaa">${totalReserve}</strong> units`,
-    `Total: <strong style="color:#c8bfa0">${totalWall + totalReserve}</strong> combatants`,
+    `Total: <strong style="color:#c8bfa0">${totalWall + totalEngineer + totalReserve}</strong> combatants`,
   ];
   if (unassigned.length > 0) {
     items.push(`<span style="color:#aa4a2a">⚠ ${unassigned.length} unassigned</span>`);

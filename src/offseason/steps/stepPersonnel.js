@@ -7,26 +7,33 @@ import { PORTRAIT_BY_ID }               from '../../data/portraits.js';
 import { pickGreeting }                  from '../../data/greetings.js';
 import { WALL_SECTION_CAPACITY, RESERVE_SECTION_CAPACITY } from '../../data/constants.js';
 import { computeEffectiveDef }           from '../../battle/buildingBonuses.js';
+import { makePortraitElement }           from '../portraitHelper.js';
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const ASSIGNMENT_OPTIONS = [
-  { value: 'wallLeft',     label: 'Wall Left',     wallOnly: true  },
-  { value: 'wallCenter',   label: 'Wall Center',   wallOnly: true  },
-  { value: 'wallRight',    label: 'Wall Right',    wallOnly: true  },
-  { value: 'reserveLeft',  label: 'Reserve Left',  wallOnly: false },
-  { value: 'reserveCenter',label: 'Reserve Center',wallOnly: false },
-  { value: 'reserveRight', label: 'Reserve Right', wallOnly: false },
+  { value: 'wallLeft',       label: 'Wall Left',     wallOnly: true,  engineerOnly: false },
+  { value: 'wallCenter',     label: 'Wall Center',   wallOnly: true,  engineerOnly: false },
+  { value: 'wallRight',      label: 'Wall Right',    wallOnly: true,  engineerOnly: false },
+  { value: 'reserveLeft',    label: 'Reserve Left',  wallOnly: false, engineerOnly: false },
+  { value: 'reserveCenter',  label: 'Reserve Center',wallOnly: false, engineerOnly: false },
+  { value: 'reserveRight',   label: 'Reserve Right', wallOnly: false, engineerOnly: false },
+  { value: 'engineerLeft',   label: 'Left',          wallOnly: false, engineerOnly: true  },
+  { value: 'engineerCenter', label: 'Center',        wallOnly: false, engineerOnly: true  },
+  { value: 'engineerRight',  label: 'Right',         wallOnly: false, engineerOnly: true  },
 ];
 
-// Sort order for assignment values — wall sections first, reserves second, unassigned last
+// Sort order for assignment values — wall sections first, engineer field, reserves, unassigned last
 const ASSIGNMENT_SORT_ORDER = {
   wallLeft: 0, wallCenter: 1, wallRight: 2,
-  reserveLeft: 3, reserveCenter: 4, reserveRight: 5,
+  engineerLeft: 3, engineerCenter: 4, engineerRight: 5,
+  reserveLeft: 6, reserveCenter: 7, reserveRight: 8,
 };
 
 // Warriors and Captains cannot be placed on the wall
 const RESERVE_ONLY_CLASSES = new Set(['warrior', 'captain']);
+// Engineers deploy to their own midfield zone, not wall or reserve
+const ENGINEER_ONLY_CLASSES = new Set(['engineer']);
 // Masons and Scouts are not combat-deployed — excluded from this table
 const NON_COMBATANT_CLASSES = new Set(['mason', 'scout']);
 
@@ -96,13 +103,7 @@ function showDetailModal(unit, gs) {
   const header = document.createElement('div');
   header.style.cssText = 'display:flex;gap:20px;align-items:flex-start;margin-bottom:20px;';
 
-  if (portrait) {
-    const img = document.createElement('img');
-    img.src = portrait.file;
-    img.alt = unit.name;
-    img.style.cssText = 'width:100px;height:100px;object-fit:cover;border:1px solid #3a2808;flex-shrink:0;';
-    header.appendChild(img);
-  }
+  header.appendChild(makePortraitElement(portrait, unit, 100));
 
   const eff = computeEffectiveDef(unit, gs);
 
@@ -128,7 +129,7 @@ function showDetailModal(unit, gs) {
   greetDiv.style.cssText =
     'font-style:italic;color:#9a8a6a;font-size:14px;line-height:1.6;' +
     'border-left:2px solid #3a2a10;padding-left:14px;margin-bottom:20px;';
-  greetDiv.textContent = `"Commander, ${greeting}"`;
+  greetDiv.textContent = `"${gs.commanderName ?? 'Commander'}, ${greeting}"`;
   box.appendChild(greetDiv);
 
   // Divider
@@ -169,12 +170,14 @@ export function render(gs, wizardState, contentEl, wizard) {
   // reasonable starting deployment without needing to assign everyone manually.
   if (gs.year === 1 && !wizardState.autoAssignedYear1) {
     wizardState.autoAssignedYear1 = true;
-    const wallOpts    = ['wallLeft', 'wallCenter', 'wallRight'];
-    const reserveOpts = ['reserveLeft', 'reserveCenter', 'reserveRight'];
-    const allOpts     = [...wallOpts, ...reserveOpts];
+    const wallOpts     = ['wallLeft', 'wallCenter', 'wallRight'];
+    const reserveOpts  = ['reserveLeft', 'reserveCenter', 'reserveRight'];
+    const engineerOpts = ['engineerLeft', 'engineerCenter', 'engineerRight'];
+    const allOpts      = [...wallOpts, ...reserveOpts];
     for (const u of allCombatants) {
       if (!wizardState.assignments[u.id]) {
-        const opts = RESERVE_ONLY_CLASSES.has(u.class) ? reserveOpts : allOpts;
+        const opts = ENGINEER_ONLY_CLASSES.has(u.class) ? engineerOpts :
+                     RESERVE_ONLY_CLASSES.has(u.class)  ? reserveOpts  : allOpts;
         wizardState.assignments[u.id] = opts[Math.floor(Math.random() * opts.length)];
       }
     }
@@ -328,8 +331,9 @@ export function render(gs, wizardState, contentEl, wizard) {
 
     tbody.innerHTML = '';
     for (const u of units) {
-      const isNew       = !!u.isNewRecruit;
-      const reserveOnly = RESERVE_ONLY_CLASSES.has(u.class);
+      const isNew          = !!u.isNewRecruit;
+      const reserveOnly    = RESERVE_ONLY_CLASSES.has(u.class);
+      const isEngineerUnit = ENGINEER_ONLY_CLASSES.has(u.class);
 
       const tr = document.createElement('tr');
       tr.style.cssText =
@@ -384,6 +388,9 @@ export function render(gs, wizardState, contentEl, wizard) {
       sel.appendChild(blankOpt);
 
       for (const opt of ASSIGNMENT_OPTIONS) {
+        // Engineers only see engineer slots; non-engineers never see engineer slots
+        if (isEngineerUnit && !opt.engineerOnly) continue;
+        if (!isEngineerUnit && opt.engineerOnly) continue;
         const o = document.createElement('option');
         o.value   = opt.value;
         o.textContent = opt.label;
@@ -451,12 +458,15 @@ export function render(gs, wizardState, contentEl, wizard) {
   assignBtn.textContent = 'Assign unassigned units';
   assignBtn.style.cssText = 'margin-top:18px;';
   assignBtn.onclick = () => {
-    const wallOpts    = ['wallLeft', 'wallCenter', 'wallRight'];
-    const reserveOpts = ['reserveLeft', 'reserveCenter', 'reserveRight'];
-    const wallClasses = new Set(['archer', 'mage']);
+    const wallOpts     = ['wallLeft', 'wallCenter', 'wallRight'];
+    const reserveOpts  = ['reserveLeft', 'reserveCenter', 'reserveRight'];
+    const engineerOpts = ['engineerLeft', 'engineerCenter', 'engineerRight'];
+    const wallClasses  = new Set(['archer', 'mage', 'healer']);
     for (const u of allCombatants) {
       if (wizardState.assignments[u.id]) continue;  // already assigned
-      const opts = wallClasses.has(u.class) ? wallOpts : reserveOpts;
+      const opts = ENGINEER_ONLY_CLASSES.has(u.class) ? engineerOpts :
+                   RESERVE_ONLY_CLASSES.has(u.class)  ? reserveOpts  :
+                   wallClasses.has(u.class)            ? wallOpts     : reserveOpts;
       wizardState.assignments[u.id] = opts[Math.floor(Math.random() * opts.length)];
     }
     renderRows();

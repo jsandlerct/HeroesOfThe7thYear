@@ -222,6 +222,8 @@
 - [2026-06-02] Library enables both Mages and Healers for recruitment — no Mage Workshop or Hospital required; those buildings are performance upgrades only (attack speed / heal interval)
 - [2026-06-01] `buildings.mason` key removed from GameState (was an earlier design artifact); mason housing uses `artisanWorkshop` level × `ARTISAN_MASON_SLOTS` per GDD spec
 - [2026-06-01] Bio pool has 10 entries per sub-pool (youngMale/youngFemale/oldMale/oldFemale) as starting content; target is 64 per pool — expand as content is written
+- [2026-06-03] Bio selection uses deck-draw (no replacement until pool exhausted, then reset from spent), initialized as `gameState.bioDecks` alongside `portraitDecks` — prevents duplicate bios within a generation batch
+- [2026-06-03] Portrait display: every portrait is wrapped in stacked thin rectangular rings — 1px gold border per year of service, 2px gap between rings (3px per ring), outermost ring = most recently earned year (brightest); helper in `src/offseason/portraitHelper.js`; applied in stepFallen, stepHeroes, and the stepPersonnel detail modal
 - [2026-06-01] `isNewRecruit` flag on unit: true on arrival, set to false on existing roster units when new recruits are generated
 - [2026-06-01] Wizard shell: `startOffSeason(gameState, onComplete)` in `OffSeasonUI.js`; `initNavButtons()` called once at page load to wire Previous/Next; step renderers receive `(gs, wizardState, contentEl, wizard)` where `wizard` exposes `setNextEnabled`, `setNextLabel`, `proceed`
 - [2026-06-01] Step files live in `src/offseason/steps/`; each exports a single `render` function; wizard imports all 8 and filters by conditionals at launch time
@@ -240,7 +242,9 @@
 - [2026-06-01] New recruits generated in Step 5 are added to `wizardState.assignments` on Step 6 first render (seeded to null); units missing from the map after wizard start get added defensively at render time
 - [2026-06-01] Wall section capacity warning threshold: 10 units (placeholder — hard cap is an open design question; see TODO Backlog); reserve section warning: 25 units (from decisions)
 - [2026-06-01] Detail modal appended to `document.body` at z-index 200; single modal enforced by removing `#os-detail-modal` before creating a new one
-- [2026-06-01] Greeting in modal: "Commander, [greeting]" — player name system not yet implemented; "Commander" used as placeholder
+- [2026-06-03] Title screen and commander name entry added as HTML overlay screens (z-index 500) before the Year 1 off-season; title screen shows game title + flavor text; name screen prompts "How shall your soldiers address you?" with a text input; blank entry defaults to "Commander"; stored in `GameState.commanderName`
+- [2026-06-03] Unit greeting in personnel detail modal uses `gs.commanderName` — resolves the "Commander" placeholder noted below
+- [2026-06-01] Greeting in modal: "Commander, [greeting]" — player name system implemented 2026-06-03; see commanderName entry above
 - [2026-06-01] Greetings file: `src/data/greetings.js`; 2 strings per class × year (56 combinations); `pickGreeting(cls, yearOfService)` maps yearOfService+1 to key 1–7
 - [2026-06-01] Deployment preview layout: enemy approach strip (top), 3 wall section cards with HP bars, THE WALL divider bar, 3 reserve zone cards (bottom); class legend at foot; read-only — Back returns to Step 6 with assignments intact via wizard shell
 - [2026-06-01] Unit dot colors in deployment preview derived from `UNIT_DEFS[cls].color` (integer) converted to CSS hex
@@ -251,7 +255,8 @@
 - [2026-06-01] Wizard API extended with `setPrevEnabled(bool)` and `jumpTo(stepId)` for scout step navigation control
 - [2026-06-01] `BattleScene._spawnPlayerUnits()`: reads `GameState.roster` (filtered to `!dead && assignment`) when populated; falls back to `_spawnPlayerUnitsHardcoded()` when roster is empty (e.g. battle launched directly from test picker)
 - [2026-06-01] Handoff sequence: `onComplete(wizardState)` → write `wizardState.assignments[id]` to each roster unit → `launchBattle()` → BattleScene reads assignments
-- [2026-06-01] Engineers assigned to wall sections spawn at WALL_ROW + 1.5 (behind the wall) rather than WALL_ROW + 0.5 — consistent with the "stationary behind wall" decision
+- [2026-06-03] Engineers have their own deployment zone separate from wall sections and reserve: assigned as Left/Center/Right (not wall or reserve); spawn at WALL_ROW + 2.5 (row 13.5), midway between the wall face (row 12) and the player reserve zone (rows 14–15); deployment preview shows a dedicated "Engineer Field" row between wall and reserve
+- [2026-06-03] Mages assigned to a wall section stand to the rear: spawn at WALL_ROW + 1.5 (row 12.5) instead of the front-wall row 11.5; still flagged isOnWall with full wall section benefits
 - [2026-06-01] Sprint 3 hook: `index.html` will trigger `startOffSeason` from a `battleComplete` event fired by BattleScene after Year 1; Year 1 launches directly into battle with no prior off-season
 - [2026-06-01] Portrait display size in ceremonies: 72×72px
 

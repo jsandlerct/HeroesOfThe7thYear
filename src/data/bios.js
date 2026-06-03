@@ -1,5 +1,4 @@
 // Bio pools: four sub-pools of 64 bios each (GDD Section VI).
-// Bios are selected randomly; no uniqueness tracking.
 // Sub-pools keyed by gender × age: youngMale, youngFemale, oldMale, oldFemale.
 // TODO (content): expand each pool to 64 entries before content review.
 
@@ -56,3 +55,27 @@ export const BIOS = {
     "She came from a long line of women who worked hard, said little, and lasted. She expects to do the same. She will probably outlast your expectations.",
   ],
 };
+
+// Build fresh bio decks for a new playthrough — deck-draw ensures no duplicate bios
+// within a generation batch. When a sub-pool is exhausted it resets from spent.
+export function buildBioDecks() {
+  const decks = {};
+  for (const key of Object.keys(BIOS)) {
+    decks[key] = { available: [...BIOS[key]], spent: [] };
+  }
+  return decks;
+}
+
+// Draw one bio without repetition. Mutates bioDecks. Resets pool when exhausted.
+export function drawBio(bioDecks, gender, age) {
+  const key  = `${age}${gender.charAt(0).toUpperCase() + gender.slice(1)}`;
+  const deck = bioDecks[key] ?? bioDecks.youngMale;
+  if (deck.available.length === 0) {
+    deck.available = [...deck.spent];
+    deck.spent     = [];
+  }
+  const idx = Math.floor(Math.random() * deck.available.length);
+  const bio = deck.available.splice(idx, 1)[0];
+  deck.spent.push(bio);
+  return bio;
+}

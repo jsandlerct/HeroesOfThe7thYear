@@ -223,9 +223,131 @@
     .os-confirm-table td { padding: 9px 12px; border-bottom: 1px solid #251a08; }
     .os-confirm-table tr:last-child td { border-bottom: none; }
     .os-warn { background: #201408; border: 1px solid #5a3010; padding: 12px 16px; font-size: 13px; color: #a08050; margin-bottom: 20px; line-height: 1.6; }
+
+    /* ── Title screen & name-entry screen ──────────────────────────── */
+    .intro-screen {
+      position: fixed;
+      inset: 0;
+      background: #0e0c08;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 500;
+      font-family: Georgia, serif;
+      color: #e0d4b0;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .intro-screen.hidden { display: none; }
+
+    .intro-divider {
+      width: 160px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, #6a5030, transparent);
+      margin: 28px auto;
+    }
+
+    #title-screen .game-title {
+      font-size: clamp(28px, 5vw, 52px);
+      color: #c9a84c;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      line-height: 1.2;
+      max-width: 640px;
+    }
+
+    #title-screen .game-subtitle {
+      font-size: clamp(13px, 2vw, 16px);
+      color: #7a6a4a;
+      letter-spacing: 0.06em;
+      max-width: 480px;
+      line-height: 1.8;
+    }
+
+    #title-screen .game-tagline {
+      font-size: clamp(12px, 1.6vw, 14px);
+      color: #4a3a22;
+      letter-spacing: 0.04em;
+      margin-top: 8px;
+    }
+
+    .intro-btn {
+      margin-top: 40px;
+      background: #2a2010;
+      border: 1px solid #c9a84c;
+      color: #f0e0a0;
+      font-family: Georgia, serif;
+      font-size: 14px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 12px 36px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background .18s, border-color .18s;
+    }
+    .intro-btn:hover:not(:disabled) { background: #3a2e18; border-color: #f0e0a0; }
+    .intro-btn:disabled { opacity: 0.35; cursor: default; }
+
+    #name-screen .name-prompt {
+      font-size: clamp(14px, 2.2vw, 18px);
+      color: #c8bfa0;
+      letter-spacing: 0.04em;
+      margin-bottom: 28px;
+    }
+
+    #name-screen .name-note {
+      font-size: 12px;
+      color: #4a3a22;
+      margin-top: 12px;
+    }
+
+    #commander-name-input {
+      background: #1a1610;
+      border: none;
+      border-bottom: 1px solid #c9a84c;
+      color: #f0e0a0;
+      font-family: Georgia, serif;
+      font-size: clamp(18px, 3vw, 26px);
+      letter-spacing: 0.06em;
+      text-align: center;
+      width: min(320px, 80vw);
+      padding: 8px 4px;
+      outline: none;
+      caret-color: #c9a84c;
+    }
+    #commander-name-input::placeholder { color: #3a2a10; }
   </style>
 </head>
 <body>
+  <!-- ── Title screen ────────────────────────────────────────────────── -->
+  <div id="title-screen" class="intro-screen">
+    <div class="game-title">Heroes of the Seventh Year</div>
+    <div class="intro-divider"></div>
+    <div class="game-subtitle">
+      Seven years stand between a recruit and a hero.<br>
+      Most do not make it. A few become legend.<br>
+      You are the commander who decides which is which.
+    </div>
+    <div class="game-tagline">Defend the wall. Remember their names.</div>
+    <button class="intro-btn" id="title-begin-btn">Begin</button>
+  </div>
+
+  <!-- ── Commander name entry ────────────────────────────────────────── -->
+  <div id="name-screen" class="intro-screen hidden">
+    <div class="name-prompt">How shall your soldiers address you?</div>
+    <input
+      id="commander-name-input"
+      type="text"
+      maxlength="32"
+      placeholder="Commander"
+      autocomplete="off"
+      spellcheck="false"
+    >
+    <div class="name-note">Leave blank to be known simply as Commander.</div>
+    <button class="intro-btn" id="name-confirm-btn">Take Command</button>
+  </div>
+
   <div id="offseason-ui">
     <div id="os-header">
       <span id="os-year-label">Off Season · Year 1</span>
@@ -425,10 +547,34 @@
     document.getElementById('pref-siege').onchange   = e => { GameState.targetingPreference.siege  = e.target.value;   savePrefs(); };
     document.getElementById('slomo-toggle').onchange = e => { GameState.sloMo = e.target.checked;                      savePrefs(); };
 
-    // Generate 4 starter veterans before the Year 1 off-season wizard.
-    GameState.year = 1;
-    generateStarterRoster(GameState);
-    startOffSeason(GameState, onOffSeasonComplete);
+    // ── Intro screens → game start ────────────────────────────────────────────
+    function startGame(commanderName) {
+      GameState.commanderName = commanderName || 'Commander';
+      GameState.year = 1;
+      generateStarterRoster(GameState);
+      startOffSeason(GameState, onOffSeasonComplete);
+    }
+
+    // Title screen — click Begin to advance to name entry
+    document.getElementById('title-begin-btn').onclick = () => {
+      document.getElementById('title-screen').classList.add('hidden');
+      document.getElementById('name-screen').classList.remove('hidden');
+      document.getElementById('commander-name-input').focus();
+    };
+
+    // Name entry screen — confirm or press Enter to start
+    const nameInput   = document.getElementById('commander-name-input');
+    const confirmBtn  = document.getElementById('name-confirm-btn');
+
+    function confirmName() {
+      document.getElementById('name-screen').classList.add('hidden');
+      startGame(nameInput.value.trim());
+    }
+
+    confirmBtn.onclick = confirmName;
+    nameInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') confirmName();
+    });
   </script>
 </body>
 </html>
