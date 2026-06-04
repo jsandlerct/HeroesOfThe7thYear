@@ -206,7 +206,9 @@
 - [2026-05-29] Targeting candidates exclude isInReserve units — reserve units are inert and must not be targetable by either side; also fixes mage elite targeting which previously could pick an out-of-range reserve General as "nearest elite" and fail to find in-range active elites
 - [2026-05-29] Mage elite targeting uses elitesInRange (filter before nearest) not nearElite + range check after; old approach silently fell back to non-elite targets when the globally-nearest elite was out of range
 - [2026-05-29] On rout trigger: all non-reserve, non-stationary player units have reinforceSection and waypoint cleared so they give chase; previously reinforce-hold warriors stayed frozen behind the wall because only wall breach released reinforceSection
-- [2026-05-29] Reinforce for archers/mages/healers: uses a waypoint to WALL_ROW+1 (same position as warriors) — waypoint clears on arrival so normal enemy targeting takes over; warriors/captains keep reinforceSection hold until breach; ranged units must NOT have wall segment set as target (causes them to attack/shoot the wall and refuse to move)
+- [2026-06-04] Reinforce for archers/mages: unit walks to its wall row (archer WALL_ROW+0.5, mage WALL_ROW+1.5); on arrival mounts the wall — isOnWall=true, wallSection set, isStationary=true; gets full wall DR bonus; dropped on breach like any wall unit; tracked via reinforceWall property cleared on mount
+- [2026-05-29] Reinforce for healers: waypoint to WALL_ROW+1; clears on arrival so normal targeting takes over (healers do not mount wall)
+- [2026-05-29] Reinforce for warriors/captains: waypoint to WALL_ROW+1 with reinforceSection hold until breach; ranged units must NOT have wall segment set as target (causes them to attack/shoot the wall and refuse to move)
 - [2026-05-29] Slow-mo is a player-facing feature: moved from an in-canvas debug button to a "Slow Mo" checkbox in the HTML targeting controls bar (right-aligned, to the right of Siege dropdown); state lives in GameState.sloMo; BattleScene reads it each tick
 - [2026-05-29] Targeting preferences and slow-mo are persisted to localStorage under key 'hotyPrefs' (JSON: melee, ranged, siege, sloMo); loaded and applied to both GameState and UI elements on page init; shared between index.html and testversion.html
 
@@ -296,6 +298,13 @@
 - [2026-06-02] Unit death animation: greyscale via postFX ColorMatrix + 600ms alpha fade; `isDead` set immediately (game logic unaffected); sprites destroyed on tween complete; units removed from scene on `_spritesDone` flag
 - [2026-06-02] Wall damage visuals: 3-band tint (intact 0x888888 / damaged 0x776655 / critical 0x664433 / breached ALPHA_WALL_BREACH); crack lines drawn via Graphics at light (>25% HP) and heavy (≤25% HP) bands; crack pattern is section-indexed for visual variety
 - [2026-06-02] Unit icons are final art — no sprite sheet replacement needed; rout animation not needed (fleeing off-screen is sufficient)
+
+---
+
+## Opening Cinematic
+
+- [2026-06-04] Opening cinematic replaces the simple title screen; three full-screen graphic novel panels play before the name-entry screen: (1) breach.png — commander (a returned seven-year hero, per GDD) narrates being recalled by King Aldric and arriving to a breached wall; (2) reinforcements.png — annual volunteers arriving, drawn by the hero's promise (land deed + tavern fame); (3) wall charcoal→color — short recruit text, title card "HEROES OF THE SEVENTH YEAR" revealed as color bleeds into the charcoal image; skip button always visible; cinematic ends at the existing name-entry screen
+- [2026-06-04] Cinematic uses "the wall" (no invented proper name); enemy not named (raiders/invaders, per GDD); king is King Aldric (per GDD); previous commander unnamed; volunteers not conscripts (per GDD)
 
 ---
 

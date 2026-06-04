@@ -191,8 +191,11 @@ Goal: Make the game actually playable end-to-end. Add enough visual and UX polis
 - [x] Add unit death animations (greyscale → fade)
 - [x] Add wall damage visual states (cracks, rubble)
 - [x] Add elite kill announcement UI (who got the killing blow)
+- [x] Opening cinematic: 3-panel graphic novel intro (breach → reinforcements → wall charcoal-to-color + title), first-person commander narration, replaces simple title screen
 
 ### UX
+- [x] Sound toggle: persistent checkbox fixed to top-right of every screen; state saved to localStorage; wires into GameState.soundEnabled for future audio implementation
+- [x] Battle SFX: melee1/2/3 (random both sides), archer, spear (goblin), catapult/engineer, ogre, orc-on-wall, breach, retreat, battle-start, enemy-start-move
 - [ ] Responsive layout validation on mobile
 
 ### Balance Tuning (Playtesting)

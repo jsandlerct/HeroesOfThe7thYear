@@ -53,6 +53,7 @@ export const GameState = {
   capturedScouts:      [],
 
   sloMo: false,
+  soundEnabled: true,  // toggled by the persistent Sound checkbox; read by all audio code
 
   targetingPreference: {
     melee:  'default',  // warrior, captain

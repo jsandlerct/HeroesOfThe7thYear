@@ -109,15 +109,14 @@ export function render(gs, wizardState, contentEl, wizard) {
       seg.hp = Math.min(seg.hp + repair, seg.maxHp);
     }
 
-    // Wall upgrades — grant the HP difference so upgrades feel meaningful
+    // Wall upgrades — only allowed on fully-repaired walls; upgraded wall starts at full HP
     const HP_BY_LV = [0, 200, 300, 400, 500, 600];
     for (const seg of gs.wallSegments) {
       const levels = sp.wallUpgrades[seg.section] || 0;
       if (levels > 0) {
-        const oldMaxHp = seg.maxHp;
-        seg.level  = Math.min(seg.level + levels, 5);
-        seg.maxHp  = HP_BY_LV[seg.level] ?? seg.maxHp;
-        seg.hp     = Math.min(seg.hp + (seg.maxHp - oldMaxHp), seg.maxHp);
+        seg.level = Math.min(seg.level + levels, 5);
+        seg.maxHp = HP_BY_LV[seg.level] ?? seg.maxHp;
+        seg.hp    = seg.maxHp;  // upgrade fills to new max
       }
     }
 

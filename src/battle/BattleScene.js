@@ -42,6 +42,21 @@ export class BattleScene extends Phaser.Scene {
     this.load.svg('enemy_general',  'assets/sprites/enemy/skull.svg');
     this.load.svg('enemy_ogre',     'assets/sprites/enemy/ogre.svg');
     this.load.svg('enemy_catapult', 'assets/sprites/enemy/catapult.svg');
+
+    this.load.audio('sfx_battle_start', 'assets/SFX/battle start.wav');
+    this.load.audio('sfx_enemy_move',   'assets/SFX/enemy start move.wav');
+    this.load.audio('sfx_melee1',       'assets/SFX/melee1.wav');
+    this.load.audio('sfx_melee2',       'assets/SFX/melee2.wav');
+    this.load.audio('sfx_melee3',       'assets/SFX/melee3.wav');
+    this.load.audio('sfx_archer',       'assets/SFX/archer.mp3');
+    this.load.audio('sfx_spear',        'assets/SFX/spear.wav');
+    this.load.audio('sfx_catapult',     'assets/SFX/catapult engineer.wav');
+    this.load.audio('sfx_ogre',         'assets/SFX/ogre.mp3');
+    this.load.audio('sfx_orc_wall',     'assets/SFX/orc on wall.wav');
+    this.load.audio('sfx_breach',       'assets/SFX/breach.wav');
+    this.load.audio('sfx_retreat',      'assets/SFX/retreat.wav');
+    this.load.audio('sfx_mage',         'assets/SFX/mage.wav');
+    this.load.audio('sfx_heal',         'assets/SFX/heal.wav');
   }
 
   // ─────────────────────────────────────────────
@@ -58,8 +73,9 @@ export class BattleScene extends Phaser.Scene {
     this.battleTime      = 0;
     this.playerReserve   = [];
     this.enemyReserve    = [];
-    this._alarmTriggered = false;
-    this._routTriggered  = false;
+    this._alarmTriggered    = false;
+    this._routTriggered     = false;
+    this._enemyMoveStarted  = false;
     this._deployMenu     = null;
 
     this._buildMap();
@@ -73,6 +89,7 @@ export class BattleScene extends Phaser.Scene {
     this.startingEnemyCount       = this.units.filter(u => u.team === 'enemy').length;
     this.startingActiveEnemyCount = this.units.filter(u => u.team === 'enemy' && !u.isInReserve).length;
 
+    this._sfx('sfx_battle_start');
     this._startCountdown();
 
     const rendererType = this.game.renderer.type === Phaser.WEBGL ? 'WebGL' : 'Canvas';
@@ -583,12 +600,16 @@ export class BattleScene extends Phaser.Scene {
       if (mode === 'sortie' && targetWall) {
         u.waypoint = { x: targetWall.x, y: WALL_ROW };
       } else if (mode === 'reinforce' && targetWall) {
-        if (['archer', 'mage', 'healer'].includes(u.type)) {
-          // Move to just behind the wall, then engage enemies normally once arrived
+        if (u.type === 'archer' || u.type === 'mage') {
+          // Walk to their wall row; on arrival they mount the wall and become stationary
+          const wallY = u.type === 'mage' ? WALL_ROW + 1.5 : WALL_ROW + 0.5;
+          u.waypoint      = { x: targetWall.x, y: wallY };
+          u.reinforceWall = targetWall;
+        } else if (u.type === 'healer') {
           u.waypoint = { x: targetWall.x, y: WALL_ROW + 1 };
         } else {
-          // Move to just behind wall, then hold until breach releases them
-          u.waypoint = { x: targetWall.x, y: WALL_ROW + 1 };
+          // Warriors/Captains: hold just behind wall until breach releases them
+          u.waypoint         = { x: targetWall.x, y: WALL_ROW + 1 };
           u.reinforceSection = targetWall;
         }
       }
@@ -650,6 +671,7 @@ export class BattleScene extends Phaser.Scene {
 
   _deployEnemySlot(slot) {
     slot.deployed = true;
+    this._sfx('sfx_enemy_move');
     const dirSection = slot.logic === 'left_after_delay'   ? 'left'
                      : slot.logic === 'center_after_delay' ? 'center'
                      : slot.logic === 'right_after_delay'  ? 'right'
@@ -730,6 +752,11 @@ export class BattleScene extends Phaser.Scene {
         continue;
       }
 
+      if (unit.team === 'enemy' && !this._enemyMoveStarted) {
+        this._enemyMoveStarted = true;
+        this._sfx('sfx_enemy_move');
+      }
+
       // Refresh stale target
       if (unit.target && (
         unit.target.isDead ||
@@ -763,8 +790,16 @@ export class BattleScene extends Phaser.Scene {
           const wdx = unit.waypoint.x - unit.x;
           const wdy = unit.waypoint.y - unit.y;
           const arrived = (wdx * wdx + wdy * wdy) < NUDGE_STOP_DIST * NUDGE_STOP_DIST;
-          // Sortie: clear when past wall; ranged reinforce: clear when arrived at destination
+          // Sortie: clear when past wall; reinforce: clear on arrival
           if (!unit.reinforceSection && (unit.y <= WALL_ROW || arrived)) {
+            if (arrived && unit.reinforceWall) {
+              // Archer/mage reaches the wall — mount it and become stationary
+              unit.y            = unit.type === 'mage' ? WALL_ROW + 1.5 : WALL_ROW + 0.5;
+              unit.isOnWall     = true;
+              unit.wallSection  = unit.reinforceWall;
+              unit.isStationary = true;
+              unit.reinforceWall = null;
+            }
             unit.waypoint = null;
           } else {
             this._nudgeToward(unit, unit.waypoint.x, unit.waypoint.y, dt);
@@ -923,9 +958,18 @@ export class BattleScene extends Phaser.Scene {
       const proj = new Projectile(attacker, target, finalDmg, this, this);
       proj.isCrit = isCrit;
       this.projectiles.push(proj);
+      switch (attacker.type) {
+        case 'archer':   this._sfx('sfx_archer');   break;
+        case 'goblin':   this._sfx('sfx_spear');    break;
+        case 'mage':     this._sfx('sfx_mage');     break;
+        case 'engineer': this._sfx('sfx_catapult'); break;
+        case 'catapult': this._sfx('sfx_catapult'); break;
+      }
     } else {
       this._applyDamage(attacker, target, finalDmg, isCrit);
       if (attacker.isAoe) this._applyAoeSplash(attacker, target, finalDmg);
+      if (attacker.type === 'ogre') this._sfx('sfx_ogre');
+      else this._sfxMelee();
     }
   }
 
@@ -939,9 +983,12 @@ export class BattleScene extends Phaser.Scene {
     const baseDmg = Math.floor(attacker.dmg * (1 + this._getAuraBonus(attacker)));
     if (attacker.range > 1) {
       this.projectiles.push(new Projectile(attacker, wallSeg, baseDmg, this, this));
+      this._sfx('sfx_catapult');
     } else {
       const justBreached = wallSeg.takeDamage(baseDmg);
       if (justBreached) this._handleWallBreach(wallSeg);
+      if (attacker.type === 'ogre') this._sfx('sfx_ogre');
+      else this._sfxWallHit();
     }
   }
 
@@ -1067,6 +1114,7 @@ export class BattleScene extends Phaser.Scene {
         u.reinforceSection = null;
       }
     }
+    this._sfx('sfx_breach');
     this._showAnnouncement(`${seg.section.toUpperCase()} WALL BREACHED!`, '#ff4444');
   }
 
@@ -1089,6 +1137,7 @@ export class BattleScene extends Phaser.Scene {
         allAlive.length < this.startingEnemyCount * ROUT_THRESHOLD &&
         playerAlive > allAlive.length) {
       this._routTriggered = true;
+      this._sfx('sfx_retreat');
       for (const u of active) u.isRouting = true;
       // Release reinforce-hold player units so they give chase
       for (const u of this.units) {
@@ -1112,6 +1161,32 @@ export class BattleScene extends Phaser.Scene {
     if (playerAlive === 0) {
       this._endBattle('defeat');
     }
+  }
+
+  // ─────────────────────────────────────────────
+  // SFX HELPERS
+  // ─────────────────────────────────────────────
+  _sfx(key) {
+    if (!GameState.soundEnabled) return;
+    this.sound.play(key);
+  }
+
+  _sfxMelee() {
+    if (!GameState.soundEnabled) return;
+    const now = Date.now();
+    this._sfxCooldowns ??= {};
+    if (now - (this._sfxCooldowns.melee ?? 0) < 120) return;
+    this._sfxCooldowns.melee = now;
+    this.sound.play(`sfx_melee${Math.ceil(Math.random() * 3)}`);
+  }
+
+  _sfxWallHit() {
+    if (!GameState.soundEnabled) return;
+    const now = Date.now();
+    this._sfxCooldowns ??= {};
+    if (now - (this._sfxCooldowns.orc_wall ?? 0) < 250) return;
+    this._sfxCooldowns.orc_wall = now;
+    this.sound.play('sfx_orc_wall');
   }
 
   _endBattle(result) {

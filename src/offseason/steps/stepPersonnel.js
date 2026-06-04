@@ -129,7 +129,7 @@ function showDetailModal(unit, gs) {
   greetDiv.style.cssText =
     'font-style:italic;color:#9a8a6a;font-size:14px;line-height:1.6;' +
     'border-left:2px solid #3a2a10;padding-left:14px;margin-bottom:20px;';
-  greetDiv.textContent = `"${gs.commanderName ?? 'Commander'}, ${greeting}"`;
+  greetDiv.textContent = `"Commander ${gs.commanderName ?? 'Commander'}, ${greeting}"`;
   box.appendChild(greetDiv);
 
   // Divider

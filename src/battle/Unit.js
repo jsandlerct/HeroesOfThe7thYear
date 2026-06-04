@@ -167,6 +167,7 @@ export class Unit {
   }
 
   triggerHealGlow(scene) {
+    if (scene._sfx) scene._sfx('sfx_heal');
     // Suppress gold aura glow for the duration of the blue heal glow
     if (this._auraGlowFX) {
       this.sprite.postFX.remove(this._auraGlowFX);

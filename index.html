@@ -224,7 +224,202 @@
     .os-confirm-table tr:last-child td { border-bottom: none; }
     .os-warn { background: #201408; border: 1px solid #5a3010; padding: 12px 16px; font-size: 13px; color: #a08050; margin-bottom: 20px; line-height: 1.6; }
 
-    /* ── Title screen & name-entry screen ──────────────────────────── */
+    /* ── Opening cinematic sequence ─────────────────────────────────── */
+    #opening-sequence {
+      position: fixed;
+      inset: 0;
+      background: #080705;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 600;
+      font-family: Georgia, serif;
+      overflow: hidden;
+    }
+    #opening-sequence.hidden { display: none; }
+
+    .cin-panel {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(12px, 2vh, 24px) 20px;
+      transition: opacity 0.7s ease;
+    }
+    .cin-panel.cin-hidden { display: none; }
+
+    /* Image wrapper — natural parchment sizing */
+    .cin-img-wrap {
+      width: min(820px, 90vw);
+      border: 1px solid #2a1e08;
+      box-shadow: 0 6px 40px rgba(0,0,0,0.9);
+      flex-shrink: 0;
+      position: relative; /* needed for wall color overlay */
+    }
+    .cin-img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 52vh;
+      object-fit: contain;
+    }
+    /* Color overlay for the wall panel — absolutely stacked on charcoal */
+    .cin-wall-color {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transition: opacity 5s ease;
+    }
+    .cin-wall-color.revealed { opacity: 1; }
+
+    /* Caption box below image */
+    .cin-caption {
+      width: min(820px, 90vw);
+      background: #0a0806;
+      border: 1px solid #2a1e08;
+      border-top: none;
+      padding: 14px 24px 18px;
+      display: flex;
+      flex-direction: column;
+      min-height: 150px;
+    }
+
+    .cin-panel-label {
+      font-size: 10px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: #4a3a1a;
+      padding-bottom: 9px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #1e1508;
+    }
+
+    .cin-paragraphs {
+      flex: 1;
+      color: #ccc0a0;
+      font-size: clamp(13px, 1.7vw, 15px);
+      line-height: 1.8;
+    }
+    .cin-p {
+      margin-bottom: 9px;
+      opacity: 0;
+      transform: translateY(5px);
+      transition: opacity 0.65s ease, transform 0.65s ease;
+    }
+    .cin-p:last-child { margin-bottom: 0; }
+    .cin-p.visible { opacity: 1; transform: none; }
+
+    .cin-btn {
+      align-self: flex-end;
+      margin-top: 14px;
+      background: #1e1608;
+      border: 1px solid #5a4020;
+      color: #b09050;
+      font-family: Georgia, serif;
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 7px 20px;
+      cursor: pointer;
+      border-radius: 2px;
+      opacity: 0;
+      transition: opacity 0.45s ease, background 0.15s, border-color 0.15s;
+    }
+    .cin-btn.visible { opacity: 1; }
+    .cin-btn:hover { background: #2e2210; border-color: #8a6030; }
+
+    /* Skip button — top-left of cinematic, faint */
+    #cin-skip-btn {
+      position: absolute;
+      top: 14px;
+      left: 18px;
+      background: transparent;
+      border: 1px solid #1e1508;
+      color: #302010;
+      font-family: Georgia, serif;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      padding: 5px 14px;
+      cursor: pointer;
+      border-radius: 2px;
+      z-index: 10;
+      transition: color 0.25s, border-color 0.25s;
+    }
+    #cin-skip-btn:hover { color: #6a5a3a; border-color: #4a3a1a; }
+
+    /* Sound toggle — fixed top-right, visible on every screen */
+    #sound-toggle-wrap {
+      position: fixed;
+      top: 14px;
+      right: 18px;
+      z-index: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: Georgia, serif;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      color: #4a3a1a;
+      cursor: pointer;
+      user-select: none;
+      padding: 5px 10px;
+      background: rgba(8, 7, 5, 0.85);
+      border: 1px solid #1e1508;
+      border-radius: 2px;
+      transition: color 0.2s, border-color 0.2s;
+    }
+    #sound-toggle-wrap:hover { color: #8a7a5a; border-color: #3a2a10; }
+    #sound-toggle { cursor: pointer; accent-color: #c9a84c; }
+
+    /* Panel 3 — title card elements inside caption */
+    .cin-caption-p3 {
+      text-align: center;
+      align-items: center;
+    }
+    .cin-title-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 1.3s ease, transform 1.3s ease;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #2a1e08;
+      width: 100%;
+    }
+    .cin-title-block.visible { opacity: 1; transform: none; }
+    .cin-game-title {
+      font-size: clamp(20px, 3vw, 38px);
+      color: #c9a84c;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      line-height: 1.2;
+    }
+    .cin-game-subtitle {
+      font-size: clamp(11px, 1.5vw, 13px);
+      color: #6a5a3a;
+      letter-spacing: 0.07em;
+      font-style: italic;
+      margin-top: 7px;
+    }
+    .cin-btn-begin {
+      margin-top: 16px;
+      border-color: #c9a84c;
+      color: #f0e0a0;
+      font-size: 13px;
+      padding: 9px 30px;
+      background: #2a2010;
+    }
+    .cin-btn-begin:hover { background: #3e2e14; border-color: #f0e0a0; }
+
+    /* ── Name-entry screen ───────────────────────────────────────────── */
     .intro-screen {
       position: fixed;
       inset: 0;
@@ -240,37 +435,6 @@
       text-align: center;
     }
     .intro-screen.hidden { display: none; }
-
-    .intro-divider {
-      width: 160px;
-      height: 1px;
-      background: linear-gradient(to right, transparent, #6a5030, transparent);
-      margin: 28px auto;
-    }
-
-    #title-screen .game-title {
-      font-size: clamp(28px, 5vw, 52px);
-      color: #c9a84c;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-      line-height: 1.2;
-      max-width: 640px;
-    }
-
-    #title-screen .game-subtitle {
-      font-size: clamp(13px, 2vw, 16px);
-      color: #7a6a4a;
-      letter-spacing: 0.06em;
-      max-width: 480px;
-      line-height: 1.8;
-    }
-
-    #title-screen .game-tagline {
-      font-size: clamp(12px, 1.6vw, 14px);
-      color: #4a3a22;
-      letter-spacing: 0.04em;
-      margin-top: 8px;
-    }
 
     .intro-btn {
       margin-top: 40px;
@@ -320,17 +484,67 @@
   </style>
 </head>
 <body>
-  <!-- ── Title screen ────────────────────────────────────────────────── -->
-  <div id="title-screen" class="intro-screen">
-    <div class="game-title">Heroes of the Seventh Year</div>
-    <div class="intro-divider"></div>
-    <div class="game-subtitle">
-      Seven years stand between a recruit and a hero.<br>
-      Most do not make it. A few become legend.<br>
-      You are the commander who decides which is which.
+  <!-- ── Sound toggle — fixed, always on top ──────────────────────────── -->
+  <label id="sound-toggle-wrap">
+    <input type="checkbox" id="sound-toggle"> Sound
+  </label>
+
+  <!-- ── Opening cinematic sequence ───────────────────────────────────── -->
+  <div id="opening-sequence">
+    <button id="cin-skip-btn">Skip Intro ▶▶</button>
+
+    <!-- Panel 1: The Breach -->
+    <div class="cin-panel" id="cin-p1">
+      <div class="cin-img-wrap">
+        <img src="assets/images/breach.png" class="cin-img" alt="The breached wall">
+      </div>
+      <div class="cin-caption">
+        <div class="cin-panel-label">The Wall — One Month Ago</div>
+        <div class="cin-paragraphs" id="cin-text-1">
+          <p class="cin-p">I have stood on this wall before. I know the sound the stones make when something heavy is testing them. I know what a morning after a battle looks like.</p>
+          <p class="cin-p">Three weeks ago, King Aldric's rider found me bringing in the last of the harvest. <em>The wall commander is dead,</em> he said. <em>The Kingdom needs you once more.</em></p>
+          <p class="cin-p">I served seven years here. I earned my deed, went home, built a life. I believed I was finished with this place.</p>
+          <p class="cin-p">I was wrong. The wall is mine now.</p>
+        </div>
+        <button class="cin-btn" id="cin-btn-1">Continue ›</button>
+      </div>
     </div>
-    <div class="game-tagline">Defend the wall. Remember their names.</div>
-    <button class="intro-btn" id="title-begin-btn">Begin</button>
+
+    <!-- Panel 2: Reinforcements -->
+    <div class="cin-panel cin-hidden" id="cin-p2">
+      <div class="cin-img-wrap">
+        <img src="assets/images/reinforcements.png" class="cin-img" alt="Volunteers marching to the wall">
+      </div>
+      <div class="cin-caption">
+        <div class="cin-panel-label">The Wall Road</div>
+        <div class="cin-paragraphs" id="cin-text-2">
+          <p class="cin-p">They arrive every year — volunteers from farms, villages, and the City alike, drawn by the same promise that first brought me here.</p>
+          <p class="cin-p">Serve seven years at the wall. Hold the line. Come home a hero — with a land deed from the crown and your name in the tavern songs.</p>
+          <p class="cin-p">Most will not last seven years. They know this. They come anyway — some betting on themselves, some simply knowing that if the wall falls, everyone they love dies with it.</p>
+          <p class="cin-p">They are counting on me now. I have stood on this wall. I have never commanded it. There is a difference.</p>
+        </div>
+        <button class="cin-btn" id="cin-btn-2">Continue ›</button>
+      </div>
+    </div>
+
+    <!-- Panel 3: The Wall (charcoal → color) + title card -->
+    <div class="cin-panel cin-hidden" id="cin-p3">
+      <div class="cin-img-wrap">
+        <img src="assets/images/the wall charcoal.png" class="cin-img" id="cin-wall-charcoal" alt="An archer stands watch on the wall">
+        <img src="assets/images/the wall color.png" class="cin-wall-color" id="cin-wall-color" alt="">
+      </div>
+      <div class="cin-caption cin-caption-p3">
+        <div class="cin-paragraphs" id="cin-text-3">
+          <p class="cin-p">Every year, the faces change. The wall does not.</p>
+          <p class="cin-p">Each cohort arrives full of hope and uncertainty, stares out at the valley floor, and wonders if they have what it takes to last seven years.</p>
+          <p class="cin-p">Some will. Most won't. And a handful — if they are strong enough, lucky enough, and led well enough — hope to become...</p>
+        </div>
+        <div class="cin-title-block" id="cin-title-block">
+          <div class="cin-game-title">Heroes of the Seventh Year</div>
+          <button class="cin-btn cin-btn-begin visible" id="cin-btn-3">Take Command</button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- ── Commander name entry ────────────────────────────────────────── -->
@@ -541,11 +755,96 @@
 
     loadPrefs();
 
+    // ── Sound toggle ──────────────────────────────────────────────────────────
+    const SOUND_KEY = 'hotySoundEnabled';
+
+    function loadSoundPref() {
+      const saved = localStorage.getItem(SOUND_KEY);
+      const enabled = saved === null ? true : saved === 'true';
+      document.getElementById('sound-toggle').checked = enabled;
+      GameState.soundEnabled = enabled;
+    }
+
+    document.getElementById('sound-toggle').onchange = e => {
+      GameState.soundEnabled = e.target.checked;
+      localStorage.setItem(SOUND_KEY, String(e.target.checked));
+    };
+
+    loadSoundPref();
+
     // Wire targeting dropdowns to GameState
     document.getElementById('pref-melee').onchange   = e => { GameState.targetingPreference.melee  = e.target.value;   savePrefs(); };
     document.getElementById('pref-ranged').onchange  = e => { GameState.targetingPreference.ranged = e.target.value;   savePrefs(); };
     document.getElementById('pref-siege').onchange   = e => { GameState.targetingPreference.siege  = e.target.value;   savePrefs(); };
     document.getElementById('slomo-toggle').onchange = e => { GameState.sloMo = e.target.checked;                      savePrefs(); };
+
+    // ── Opening cinematic ─────────────────────────────────────────────────────
+
+    const CIN_PANEL_DELAY  = 800;   // ms before first paragraph appears after panel fades in
+    const CIN_PARA_INTERVAL = 1500; // ms between each paragraph reveal
+    const CIN_BTN_AFTER    = 700;   // ms after last paragraph before continue button shows
+
+    function revealParagraphs(panelTextId, afterAllFn) {
+      const paras = document.querySelectorAll(`#${panelTextId} .cin-p`);
+      let delay = CIN_PANEL_DELAY;
+      paras.forEach(p => {
+        setTimeout(() => p.classList.add('visible'), delay);
+        delay += CIN_PARA_INTERVAL;
+      });
+      if (afterAllFn) setTimeout(afterAllFn, delay + CIN_BTN_AFTER - CIN_PARA_INTERVAL);
+    }
+
+    function showCinPanel(panelId, textId, afterTextFn) {
+      const el = document.getElementById(panelId);
+      el.classList.remove('cin-hidden');
+      el.style.opacity = '0';
+      // Force reflow then fade in
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        el.style.transition = 'opacity 0.7s ease';
+        el.style.opacity = '1';
+        revealParagraphs(textId, afterTextFn);
+      }));
+    }
+
+    function hideCinPanel(panelId, cb) {
+      const el = document.getElementById(panelId);
+      el.style.transition = 'opacity 0.65s ease';
+      el.style.opacity = '0';
+      setTimeout(() => { el.classList.add('cin-hidden'); if (cb) cb(); }, 700);
+    }
+
+    function endCinematic() {
+      document.getElementById('opening-sequence').classList.add('hidden');
+      document.getElementById('name-screen').classList.remove('hidden');
+      document.getElementById('commander-name-input').focus();
+    }
+
+    // Panel 1
+    showCinPanel('cin-p1', 'cin-text-1', () => {
+      const btn = document.getElementById('cin-btn-1');
+      btn.classList.add('visible');
+      btn.onclick = () => hideCinPanel('cin-p1', () => {
+        // Panel 2
+        showCinPanel('cin-p2', 'cin-text-2', () => {
+          const btn2 = document.getElementById('cin-btn-2');
+          btn2.classList.add('visible');
+          btn2.onclick = () => hideCinPanel('cin-p2', () => {
+            // Panel 3 — charcoal-to-color + title
+            showCinPanel('cin-p3', 'cin-text-3', () => {
+              // Reveal title block first
+              document.getElementById('cin-title-block').classList.add('visible');
+              // Color bleed-in starts after title has settled
+              setTimeout(() => {
+                document.getElementById('cin-wall-color').classList.add('revealed');
+              }, 1800);
+            });
+            document.getElementById('cin-btn-3').onclick = endCinematic;
+          });
+        });
+      });
+    });
+
+    document.getElementById('cin-skip-btn').onclick = endCinematic;
 
     // ── Intro screens → game start ────────────────────────────────────────────
     function startGame(commanderName) {
@@ -554,13 +853,6 @@
       generateStarterRoster(GameState);
       startOffSeason(GameState, onOffSeasonComplete);
     }
-
-    // Title screen — click Begin to advance to name entry
-    document.getElementById('title-begin-btn').onclick = () => {
-      document.getElementById('title-screen').classList.add('hidden');
-      document.getElementById('name-screen').classList.remove('hidden');
-      document.getElementById('commander-name-input').focus();
-    };
 
     // Name entry screen — confirm or press Enter to start
     const nameInput   = document.getElementById('commander-name-input');

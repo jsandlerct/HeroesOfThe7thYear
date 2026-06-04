@@ -5,7 +5,7 @@
 import { BUILDING_DEFS } from '../../data/buildings.js';
 import {
   WALL_HP_BY_LEVEL, WALL_UPGRADE_COST_BY_LEVEL,
-  MASON_REPAIR_PER_SEASON, WALL_REPAIR_COST_PER_HP,
+  MASON_REPAIR_PER_SEASON, WALL_REPAIR_COST_PER_HP, WALL_DR,
 } from '../../data/constants.js';
 
 // Ordered display list — only keys present in gs.buildings are shown.
@@ -85,7 +85,8 @@ export function render(gs, wizardState, contentEl) {
   const wallGrid = document.createElement('div');
   wallGrid.className = 'os-wall-grid';
 
-  const wallButtons = {}; // { section: { repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn } }
+  // Each card exposes a refresh() closure — no fragile DOM queries needed.
+  const wallRefreshFns = [];
 
   for (const seg of gs.wallSegments) {
     const sec   = seg.section;
@@ -93,39 +94,91 @@ export function render(gs, wizardState, contentEl) {
 
     const card = document.createElement('div');
     card.className = 'os-wall-card';
-    card.innerHTML = `<h4>${label} Wall</h4>`;
 
-    // HP bar
-    const barWrap = document.createElement('div');
-    barWrap.className = 'os-hp-bar-wrap';
-    const fill = document.createElement('div');
-    fill.className = 'os-hp-bar-fill';
-    barWrap.appendChild(fill);
-    card.appendChild(barWrap);
+    // ── Card header ──────────────────────────────────────────────────────
+    const cardHeader = document.createElement('div');
+    cardHeader.style.cssText =
+      'display:flex;justify-content:space-between;align-items:baseline;margin-bottom:10px;';
+    const cardTitle = document.createElement('h4');
+    cardTitle.textContent = `${label} Wall`;
+    const levelBadge = document.createElement('span');
+    levelBadge.style.cssText = 'font-size:11px;color:#8a7a5a;letter-spacing:0.05em;';
+    cardHeader.appendChild(cardTitle);
+    cardHeader.appendChild(levelBadge);
+    card.appendChild(cardHeader);
 
-    const hpLabel = document.createElement('div');
-    hpLabel.className = 'os-hp-label';
-    card.appendChild(hpLabel);
+    // ── Tile damage display ──────────────────────────────────────────────
+    // 4 tiles = 4 tile widths of the wall section; each tile represents 25% of max HP.
+    // Color: intact (stone grey) / damaged (worn brown) / rubble (dark red).
+    const tilesRow = document.createElement('div');
+    tilesRow.style.cssText = 'display:flex;gap:3px;margin-bottom:10px;';
+    const tileEls = [];
+    for (let i = 0; i < 4; i++) {
+      const tile = document.createElement('div');
+      tile.style.cssText =
+        'flex:1;height:52px;border-radius:2px;position:relative;overflow:hidden;' +
+        'border:1px solid #333;transition:background .25s;';
+      // Crack line drawn inside each tile as an absolutely-positioned child
+      const crack = document.createElement('div');
+      crack.style.cssText =
+        'position:absolute;top:0;left:38%;width:1px;height:100%;' +
+        'background:rgba(0,0,0,0.55);transform:skewX(8deg);display:none;';
+      const crack2 = document.createElement('div');
+      crack2.style.cssText =
+        'position:absolute;top:0;left:62%;width:1px;height:85%;' +
+        'background:rgba(0,0,0,0.40);transform:skewX(-6deg);display:none;';
+      tile.appendChild(crack);
+      tile.appendChild(crack2);
+      tilesRow.appendChild(tile);
+      tileEls.push({ tile, crack, crack2 });
+    }
+    card.appendChild(tilesRow);
 
-    // Repair button (costs gold: MASON_REPAIR_PER_SEASON HP per click)
+    // ── Stats line ───────────────────────────────────────────────────────
+    const statsLine = document.createElement('div');
+    statsLine.style.cssText = 'font-size:12px;color:#8a7a5a;margin-bottom:12px;line-height:1.6;';
+    card.appendChild(statsLine);
+
+    // ── Repair controls ──────────────────────────────────────────────────
+    const repairRow = document.createElement('div');
+    repairRow.style.cssText = 'margin-bottom:10px;';
     const repairBtn = document.createElement('button');
     repairBtn.className = 'os-btn-sm';
     repairBtn.textContent = `Repair +50 HP (${MASON_REPAIR_PER_SEASON * WALL_REPAIR_COST_PER_HP}g)`;
-
     const undoRepairBtn = document.createElement('button');
     undoRepairBtn.className = 'os-btn-sm';
-    undoRepairBtn.textContent = 'Undo Repair';
+    undoRepairBtn.textContent = 'Undo';
+    repairRow.appendChild(repairBtn);
+    repairRow.appendChild(undoRepairBtn);
+    card.appendChild(repairRow);
 
+    // ── Upgrade panel ────────────────────────────────────────────────────
+    const upgradePanel = document.createElement('div');
+    upgradePanel.style.cssText =
+      'background:#181208;border:1px solid #2a1e08;padding:10px 12px;border-radius:2px;';
+    const upgradeInfo = document.createElement('div');
+    upgradeInfo.style.cssText = 'font-size:12px;color:#7a6a4a;margin-bottom:8px;line-height:1.6;';
+    const upgradeRow = document.createElement('div');
+    const upgradeBtn = document.createElement('button');
+    upgradeBtn.className = 'os-btn-sm';
+    const undoUpgradeBtn = document.createElement('button');
+    undoUpgradeBtn.className = 'os-btn-sm';
+    undoUpgradeBtn.textContent = 'Undo';
+    upgradeRow.appendChild(upgradeBtn);
+    upgradeRow.appendChild(undoUpgradeBtn);
+    upgradePanel.appendChild(upgradeInfo);
+    upgradePanel.appendChild(upgradeRow);
+    card.appendChild(upgradePanel);
+
+    // ── Button handlers ──────────────────────────────────────────────────
     repairBtn.onclick = () => {
       const damage   = seg.maxHp - seg.hp;
       const alreadyR = spending.wallRepairs[sec] || 0;
       const blockHp  = Math.min(MASON_REPAIR_PER_SEASON, damage - alreadyR);
       const cost     = blockHp * WALL_REPAIR_COST_PER_HP;
-      const spent    = computeGoldSpent(gs, spending);
-      if (blockHp <= 0 || wizardState.goldAvailable - spent < cost) return;
+      if (blockHp <= 0 || wizardState.goldAvailable - computeGoldSpent(gs, spending) < cost) return;
       spending.wallRepairs[sec] = alreadyR + blockHp;
       updateGoldBar();
-      updateWallCard(seg, fill, hpLabel, repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn);
     };
 
     undoRepairBtn.onclick = () => {
@@ -133,25 +186,16 @@ export function render(gs, wizardState, contentEl) {
       if (alreadyR <= 0) return;
       spending.wallRepairs[sec] = Math.max(0, alreadyR - MASON_REPAIR_PER_SEASON);
       updateGoldBar();
-      updateWallCard(seg, fill, hpLabel, repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn);
     };
-
-    // Upgrade button
-    const upgradeBtn     = document.createElement('button');
-    upgradeBtn.className = 'os-btn-sm';
-    const undoUpgradeBtn     = document.createElement('button');
-    undoUpgradeBtn.className = 'os-btn-sm';
 
     upgradeBtn.onclick = () => {
       const committed = spending.wallUpgrades[sec] || 0;
       const currentLv = seg.level + committed;
       if (currentLv >= 5) return;
       const cost = WALL_UPGRADE_COST_BY_LEVEL[currentLv];
-      const spent = computeGoldSpent(gs, spending);
-      if (wizardState.goldAvailable - spent < cost) return;
+      if (wizardState.goldAvailable - computeGoldSpent(gs, spending) < cost) return;
       spending.wallUpgrades[sec] = committed + 1;
       updateGoldBar();
-      updateWallCard(seg, fill, hpLabel, repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn);
     };
 
     undoUpgradeBtn.onclick = () => {
@@ -159,65 +203,116 @@ export function render(gs, wizardState, contentEl) {
       if (committed <= 0) return;
       spending.wallUpgrades[sec] = committed - 1;
       updateGoldBar();
-      updateWallCard(seg, fill, hpLabel, repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn);
     };
 
-    card.appendChild(repairBtn);
-    card.appendChild(undoRepairBtn);
-    card.appendChild(document.createElement('br'));
-    card.appendChild(upgradeBtn);
-    card.appendChild(undoUpgradeBtn);
+    // ── Refresh function (called by updateGoldBar → refreshButtons) ──────
+    function makeRefresh(seg, tileEls, levelBadge, statsLine,
+                         repairBtn, undoRepairBtn, upgradePanel,
+                         upgradeInfo, upgradeBtn, undoUpgradeBtn) {
+      return function refresh() {
+        const sec      = seg.section;
+        const repair   = spending.wallRepairs[sec] || 0;
+        const upgrades = spending.wallUpgrades[sec] || 0;
+        const effLevel = seg.level + upgrades;
+        const effMaxHp = WALL_HP_BY_LEVEL[effLevel] || seg.maxHp;
+        const effHp    = Math.min(seg.hp + repair, effMaxHp);
+        const damage   = seg.maxHp - seg.hp;
+        const dr       = WALL_DR[effLevel] ?? 0;
 
-    wallButtons[sec] = { repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn };
-    wallGrid.appendChild(card);
+        // Level badge
+        levelBadge.textContent = `Level ${effLevel}`;
 
-    // Initial render of this card
-    updateWallCard(seg, fill, hpLabel, repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn);
-  }
+        // Tile coloring
+        for (let i = 0; i < 4; i++) {
+          const { tile, crack, crack2 } = tileEls[i];
+          const tileLow  = (i / 4) * effMaxHp;
+          const tileHigh = ((i + 1) / 4) * effMaxHp;
+          if (effHp >= tileHigh) {
+            // Intact
+            tile.style.background = 'linear-gradient(180deg,#7e7e7e 0%,#525252 100%)';
+            tile.style.borderColor = '#444';
+            crack.style.display = 'none';
+            crack2.style.display = 'none';
+          } else if (effHp > tileLow) {
+            // Partially damaged — the "active damage" tile
+            tile.style.background = 'linear-gradient(180deg,#7a6550 0%,#4a3020 100%)';
+            tile.style.borderColor = '#4a3010';
+            crack.style.display = 'block';
+            crack2.style.display = 'block';
+          } else {
+            // Rubble
+            tile.style.background = 'linear-gradient(180deg,#4a2010 0%,#1e0800 100%)';
+            tile.style.borderColor = '#2a0a00';
+            crack.style.display = 'none';
+            crack2.style.display = 'none';
+          }
+        }
 
-  function updateWallCard(seg, fill, hpLabel, repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn) {
-    const sec       = seg.section;
-    const repair    = spending.wallRepairs[sec] || 0;
-    const upgrades  = spending.wallUpgrades[sec] || 0;
-    const effLevel  = seg.level + upgrades;
-    const effMaxHp  = WALL_HP_BY_LEVEL[effLevel] || seg.maxHp;
-    const effHp     = Math.min(seg.hp + repair, effMaxHp);
-    const damage    = seg.maxHp - seg.hp;
+        // Stats line
+        let hpText = `<strong style="color:#c8bfa0">${effHp}</strong> / ${effMaxHp} HP`;
+        if (repair > 0)
+          hpText += ` <span style="color:#5a8a3a">(+${repair} repaired)</span>`;
+        const drPct = Math.round(dr * 100);
+        hpText += `<br>Defenders on this wall receive <strong style="color:#c9a84c">+${drPct}%</strong> damage reduction.`;
+        statsLine.innerHTML = hpText;
 
-    fill.style.width = `${(effHp / effMaxHp) * 100}%`;
-    fill.style.background = effHp < effMaxHp * 0.25 ? '#aa3322'
-      : effHp < effMaxHp * 0.5 ? '#cc8822' : '#5a8a3a';
+        // Repair buttons
+        const hasArtisan    = (gs.buildings.artisanWorkshop || 0) + (spending.buildings.artisanWorkshop || 0) > 0;
+        const remaining     = damage - repair;
+        const blockHp       = Math.min(MASON_REPAIR_PER_SEASON, remaining);
+        const repairCost    = blockHp * WALL_REPAIR_COST_PER_HP;
+        const canAffordRep  = wizardState.goldAvailable - computeGoldSpent(gs, spending) >= repairCost;
+        repairBtn.disabled  = !hasArtisan || remaining <= 0 || !canAffordRep;
+        repairBtn.title     = !hasArtisan ? 'Requires Artisan Workshop'
+                            : remaining <= 0 ? 'No damage remaining'
+                            : !canAffordRep ? 'Not enough gold' : '';
+        undoRepairBtn.disabled = repair <= 0;
 
-    let hpText = `${effHp} / ${effMaxHp} HP · Level ${effLevel}`;
-    if (repair > 0) hpText += ` <span style="color:#5a8a3a">(+${repair} repaired)</span>`;
-    hpLabel.innerHTML = hpText;
+        // Upgrade panel
+        const nextLevel = effLevel + 1;
+        if (nextLevel > 5) {
+          upgradeInfo.textContent = 'Maximum level reached.';
+          upgradeBtn.textContent  = 'Max level';
+          upgradeBtn.disabled     = true;
+          undoUpgradeBtn.disabled = true;
+          upgradePanel.style.borderColor = '#1a1a0a';
+        } else {
+          const upgCost   = WALL_UPGRADE_COST_BY_LEVEL[effLevel];
+          const nextHp    = WALL_HP_BY_LEVEL[nextLevel];
+          const nextDr    = WALL_DR[nextLevel] ?? 0;
+          const nextDrPct = Math.round(nextDr * 100);
+          const drChange  = nextDrPct !== drPct
+            ? `DR: <strong style="color:#c9a84c">+${drPct}% → +${nextDrPct}%</strong>`
+            : `DR: +${drPct}% <span style="color:#4a3a2a">(no change)</span>`;
+          upgradeInfo.innerHTML =
+            `<strong style="color:#c8bfa0">Upgrade to Level ${nextLevel}</strong> — ${upgCost}g<br>` +
+            `HP: <strong style="color:#c8bfa0">${effMaxHp} → ${nextHp}</strong> (+${nextHp - effMaxHp}) &nbsp;·&nbsp; ${drChange}`;
 
-    const hasArtisan  = (gs.buildings.artisanWorkshop || 0) + (spending.buildings.artisanWorkshop || 0) > 0;
-    const blockHp     = Math.min(MASON_REPAIR_PER_SEASON, damage - repair);
-    const repairCost  = blockHp * WALL_REPAIR_COST_PER_HP;
-    const spent       = computeGoldSpent(gs, spending);
-    const canAffordRepair = wizardState.goldAvailable - spent >= repairCost;
-    const canRepairMore   = hasArtisan && damage - repair > 0 && canAffordRepair;
-    repairBtn.disabled    = !canRepairMore || damage === 0;
-    repairBtn.title       = !hasArtisan ? 'Requires Artisan Workshop' : damage === 0 ? 'No damage' : !canAffordRepair ? 'Not enough gold' : '';
-    undoRepairBtn.disabled = repair <= 0;
-
-    const nextLevel = effLevel + 1;
-    if (nextLevel > 5) {
-      upgradeBtn.textContent     = 'Max level';
-      upgradeBtn.disabled        = true;
-      undoUpgradeBtn.textContent = 'Undo Upgrade';
-      undoUpgradeBtn.disabled    = true;
-    } else {
-      const cost  = WALL_UPGRADE_COST_BY_LEVEL[effLevel];
-      const spent = computeGoldSpent(gs, spending);
-      const canAfford = wizardState.goldAvailable - spent >= cost;
-      upgradeBtn.textContent  = `Upgrade → Lv${nextLevel} (${cost}g)`;
-      upgradeBtn.disabled     = !canAfford || upgrades > 0; // one upgrade per segment per season
-      upgradeBtn.className    = `os-btn-sm${upgrades > 0 ? ' committed' : ''}`;
-      undoUpgradeBtn.textContent = upgrades > 0 ? `Undo Upgrade (refund ${WALL_UPGRADE_COST_BY_LEVEL[seg.level]}g)` : 'Undo Upgrade';
-      undoUpgradeBtn.disabled = upgrades <= 0;
+          const canAffordUpg  = wizardState.goldAvailable - computeGoldSpent(gs, spending) >= upgCost;
+          const alreadyBought = upgrades > 0;
+          // Upgrade requires the wall to be fully repaired (pending repairs count)
+          const isFullyRepaired = (seg.hp + repair) >= seg.maxHp;
+          upgradeBtn.textContent  = alreadyBought ? `Upgrade committed (Lv ${seg.level} → ${nextLevel})` : `Upgrade → Lv ${nextLevel}`;
+          upgradeBtn.disabled     = !canAffordUpg || alreadyBought || !isFullyRepaired;
+          upgradeBtn.className    = `os-btn-sm${alreadyBought ? ' committed' : ''}`;
+          upgradeBtn.title        = !isFullyRepaired ? 'Wall must be fully repaired before upgrading' : '';
+          undoUpgradeBtn.disabled = !alreadyBought;
+          undoUpgradeBtn.textContent = alreadyBought
+            ? `Undo (refund ${WALL_UPGRADE_COST_BY_LEVEL[seg.level]}g)` : 'Undo';
+          upgradePanel.style.borderColor = alreadyBought ? '#4a3808' : '#2a1e08';
+          if (!isFullyRepaired) {
+            upgradeInfo.innerHTML += `<br><span style="color:#7a4a2a;font-size:11px;">Wall must be fully repaired before upgrading.</span>`;
+          }
+        }
+      };
     }
+
+    const refresh = makeRefresh(seg, tileEls, levelBadge, statsLine,
+                                repairBtn, undoRepairBtn, upgradePanel,
+                                upgradeInfo, upgradeBtn, undoUpgradeBtn);
+    wallRefreshFns.push(refresh);
+    wallGrid.appendChild(card);
+    refresh();
   }
 
   // ── Building section ───────────────────────────────────────────────────
@@ -337,17 +432,8 @@ export function render(gs, wizardState, contentEl) {
   }
 
   function refreshButtons() {
-    for (const { updateBuildingRow } of Object.values(buyButtons)) {
-      updateBuildingRow();
-    }
-    for (const seg of gs.wallSegments) {
-      const { repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn } = wallButtons[seg.section];
-      updateWallCard(seg,
-        wallGrid.querySelector(`.os-wall-card:nth-child(${gs.wallSegments.indexOf(seg) + 1}) .os-hp-bar-fill`),
-        wallGrid.querySelector(`.os-wall-card:nth-child(${gs.wallSegments.indexOf(seg) + 1}) .os-hp-label`),
-        repairBtn, undoRepairBtn, upgradeBtn, undoUpgradeBtn
-      );
-    }
+    for (const { updateBuildingRow } of Object.values(buyButtons)) updateBuildingRow();
+    for (const refresh of wallRefreshFns) refresh();
   }
 
   table.appendChild(tbody);
