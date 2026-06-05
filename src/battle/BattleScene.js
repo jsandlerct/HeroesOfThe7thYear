@@ -340,7 +340,8 @@ export class BattleScene extends Phaser.Scene {
     // ── Reserve units ─────────────────────────────────────────────────────────
     for (const rs of RESERVE_SLOTS) {
       const slot  = this.playerReserve[rs.slotIdx];
-      const units = roster.filter(u => u.assignment === rs.assignKey);
+      const units = roster.filter(u => u.assignment === rs.assignKey)
+        .sort((a, b) => (a.class === 'healer' ? 1 : 0) - (b.class === 'healer' ? 1 : 0));
       const n     = units.length;
       const row1n = Math.ceil(n / 2);
       units.forEach((ru, k) => {
@@ -969,6 +970,9 @@ export class BattleScene extends Phaser.Scene {
       for (let j = i + 1; j < units.length; j++) {
         const b = units[j];
         if (b.isDead) continue;
+
+        // Friendly units pass through healers freely
+        if (a.team === b.team && (a.type === 'healer' || b.type === 'healer')) continue;
 
         const minDist = a.collisionRadius + b.collisionRadius;
         const dx = a.x - b.x;
