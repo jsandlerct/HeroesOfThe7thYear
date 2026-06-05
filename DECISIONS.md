@@ -308,6 +308,15 @@
 
 ---
 
+## Music
+
+- [2026-06-05] Music system uses HTML5 Audio API (not Phaser) so it works across both Phaser battle phase and HTML/CSS off-season; managed by `src/audio/MusicManager.js`
+- [2026-06-05] Five tracks: `Intro theme.mp3` (cinematic + name entry, loop), `Offseason theme.mp3` (off-season wizard, loop), `Hot7Y battle theme.mp3` (battle, loop), `victory.mp3` (victory, play once then silence), `game over.mp3` (defeat, plays after 1.2s fade-out of battle theme)
+- [2026-06-05] Battle music starts on FIGHT! (not at countdown); victory and game-over music start inside `_endBattle()`
+- [2026-06-05] Sound toggle (GameState.soundEnabled) controls both SFX and music via `setMusicEnabled()`
+
+---
+
 ## GDD Maintenance
 
 - [2026-05-29] GDD updates must use targeted Edit calls against specific sections — never rewrite the whole file from scratch. Full rewrites risk losing sections due to context window limits. Add a Changelog entry for each update session.

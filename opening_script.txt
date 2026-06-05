@@ -1,0 +1,68 @@
+HEROES OF THE SEVENTH YEAR
+Opening Cinematic Script
+================================================
+
+
+PANEL 1 — "The Wall — One Month Ago"
+[Image: The breached wall]
+------------------------------------------------
+
+I have stood on this wall before. I know the sound the stones make when
+something heavy is testing them. I know what a morning after a battle looks like.
+
+Three weeks ago, King Aldric's rider found me bringing in the last of the harvest.
+"The wall commander is dead," he said. "The Kingdom needs you once more."
+
+I served seven years here. I earned my deed, went home, built a life.
+I believed I was finished with this place.
+
+I was wrong. The wall is mine now.
+
+
+PANEL 2 — "The Wall Road"
+[Image: Volunteers marching to the wall]
+------------------------------------------------
+
+They arrive every year — volunteers from farms, villages, and the City alike,
+drawn by the same promise that first brought me here.
+
+Serve seven years at the wall. Hold the line. Come home a hero —
+with a land deed from the crown and your name in the tavern songs.
+
+Most will not last seven years. They know this. They come anyway —
+some betting on themselves, some simply knowing that if the wall falls,
+everyone they love dies with it.
+
+They are counting on me now. I have stood on this wall.
+I have never commanded it. There is a difference.
+
+
+PANEL 3 — "The Wall" (charcoal to color)
+[Image: An archer stands watch on the wall]
+------------------------------------------------
+
+Every year, the faces change. The wall does not.
+
+Each cohort arrives full of hope and uncertainty, stares out at the valley floor,
+and wonders if they have what it takes to last seven years.
+
+Some will. Most won't. And a handful — if they are strong enough, lucky enough,
+and led well enough — hope to become...
+
+[Title card reveals]
+
+HEROES OF THE SEVENTH YEAR
+
+
+NAME ENTRY SCREEN
+------------------------------------------------
+
+How shall your soldiers address you?
+
+[Leave blank to be known simply as Commander.]
+
+[Button: Take Command]
+
+
+================================================
+END OF OPENING SCREENS

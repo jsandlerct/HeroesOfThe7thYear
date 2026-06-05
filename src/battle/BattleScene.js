@@ -7,6 +7,7 @@ import { GameState } from '../state/GameState.js';
 import { findTarget, findHealTarget, tileDist } from './targeting.js';
 import { Projectile } from './Projectile.js';
 import { computeEffectiveDef, applyLevelUpsToRosterUnit } from './buildingBonuses.js';
+import { playMusic, fadeOutMusic } from '../audio/MusicManager.js';
 import {
   TILE, MAP_W, MAP_H, WALL_ROW, WALL_SECTION_W,
   COLOR_WALL_FILL,
@@ -522,6 +523,7 @@ export class BattleScene extends Phaser.Scene {
     this.time.delayedCall(COUNTDOWN_STEP_MS * 2, () => txt.setText('1'));
     this.time.delayedCall(COUNTDOWN_STEP_MS * 3, () => {
       txt.setText('FIGHT!').setStyle({ ...style, fontSize: '64px', color: '#ffdd44' });
+      playMusic('battle');
     });
     this.time.delayedCall(COUNTDOWN_STEP_MS * 3 + COUNTDOWN_FIGHT_MS, () => {
       txt.destroy();
@@ -1047,8 +1049,26 @@ export class BattleScene extends Phaser.Scene {
     } else {
       this._applyDamage(attacker, target, finalDmg, isCrit);
       if (attacker.isAoe) this._applyAoeSplash(attacker, target, finalDmg);
+      this._spawnBloodBurst(target.x * TILE, target.y * TILE, 4);
       if (attacker.type === 'ogre') this._sfx('sfx_ogre');
       else this._sfxMelee();
+    }
+  }
+
+  _spawnBloodBurst(worldX, worldY, count = 4) {
+    for (let i = 0; i < count; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const dist  = (0.3 + Math.random() * 0.7) * TILE;
+      const dot   = this.add.rectangle(worldX, worldY, 3, 3, 0xCC1111).setDepth(7);
+      this.tweens.add({
+        targets:  dot,
+        x:        worldX + Math.cos(angle) * dist,
+        y:        worldY + Math.sin(angle) * dist,
+        alpha:    0,
+        duration: 260 + Math.random() * 120,
+        ease:     'Quad.easeOut',
+        onComplete: () => dot.destroy(),
+      });
     }
   }
 
@@ -1299,6 +1319,12 @@ export class BattleScene extends Phaser.Scene {
     for (const wall of this.walls) {
       const seg = GameState.wallSegments.find(s => s.section === wall.section);
       if (seg) seg.hp = wall.hp;
+    }
+
+    if (result === 'victory') {
+      playMusic('victory', { loop: false });
+    } else {
+      fadeOutMusic(1200, 'gameover');
     }
 
     GameState.battleResult = result;

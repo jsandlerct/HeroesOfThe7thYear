@@ -353,6 +353,31 @@
     }
     #cin-skip-btn:hover { color: #6a5a3a; border-color: #4a3a1a; }
 
+    #cin-start-overlay {
+      position: absolute;
+      inset: 0;
+      background: #0d0b08;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      cursor: pointer;
+      transition: opacity 0.6s ease;
+    }
+    #cin-start-overlay.fading { opacity: 0; pointer-events: none; }
+    #cin-start-prompt {
+      font-family: Georgia, serif;
+      font-size: 15px;
+      color: #7a6a4a;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      animation: cin-pulse 2s ease-in-out infinite;
+    }
+    @keyframes cin-pulse {
+      0%, 100% { opacity: 0.5; }
+      50%       { opacity: 1.0; }
+    }
+
     /* Sound toggle — fixed top-right, visible on every screen */
     #sound-toggle-wrap {
       position: fixed;
@@ -491,6 +516,7 @@
 
   <!-- ── Opening cinematic sequence ───────────────────────────────────── -->
   <div id="opening-sequence">
+    <div id="cin-start-overlay"><span id="cin-start-prompt">Click to Begin</span></div>
     <button id="cin-skip-btn">Skip Intro ▶▶</button>
 
     <!-- Panel 1: The Breach -->
@@ -527,7 +553,7 @@
       </div>
     </div>
 
-    <!-- Panel 3: The Wall (charcoal → color) + title card -->
+    <!-- Panel 3: The Wall (charcoal → color) -->
     <div class="cin-panel cin-hidden" id="cin-p3">
       <div class="cin-img-wrap">
         <img src="assets/images/the wall charcoal.png" class="cin-img" id="cin-wall-charcoal" alt="An archer stands watch on the wall">
@@ -539,9 +565,19 @@
           <p class="cin-p">Each cohort arrives full of hope and uncertainty, stares out at the valley floor, and wonders if they have what it takes to last seven years.</p>
           <p class="cin-p">Some will. Most won't. And a handful — if they are strong enough, lucky enough, and led well enough — hope to become...</p>
         </div>
+        <button class="cin-btn" id="cin-btn-3">Continue ›</button>
+      </div>
+    </div>
+
+    <!-- Panel 4: Title screen (placeholder: ogre image) -->
+    <div class="cin-panel cin-hidden" id="cin-p4">
+      <div class="cin-img-wrap">
+        <img src="assets/images/ogre.png" class="cin-img" alt="Title screen placeholder">
+      </div>
+      <div class="cin-caption cin-caption-p3">
         <div class="cin-title-block" id="cin-title-block">
           <div class="cin-game-title">Heroes of the Seventh Year</div>
-          <button class="cin-btn cin-btn-begin visible" id="cin-btn-3">Take Command</button>
+          <button class="cin-btn cin-btn-begin" id="cin-btn-4">Take Command</button>
         </div>
       </div>
     </div>
@@ -627,6 +663,7 @@
     import { initNavButtons, startOffSeason } from './src/offseason/OffSeasonUI.js';
     import { generateStarterRoster } from './src/offseason/recruitGenerator.js';
     import './src/main.js';
+    import { playMusic, stopMusic, setMusicEnabled, playVO, stopVO } from './src/audio/MusicManager.js';
 
     initNavButtons();
 
@@ -731,6 +768,7 @@
       // Advance year before off-season
       GameState.year += 1;
 
+      playMusic('offseason');
       startOffSeason(GameState, onOffSeasonComplete);
     });
 
@@ -766,11 +804,13 @@
       const enabled = saved === null ? true : saved === 'true';
       document.getElementById('sound-toggle').checked = enabled;
       GameState.soundEnabled = enabled;
+      setMusicEnabled(enabled);
     }
 
     document.getElementById('sound-toggle').onchange = e => {
       GameState.soundEnabled = e.target.checked;
       localStorage.setItem(SOUND_KEY, String(e.target.checked));
+      setMusicEnabled(e.target.checked);
     };
 
     loadSoundPref();
@@ -822,38 +862,60 @@
       document.getElementById('commander-name-input').focus();
     }
 
-    // Panel 1
-    showCinPanel('cin-p1', 'cin-text-1', () => {
-      const btn = document.getElementById('cin-btn-1');
-      btn.classList.add('visible');
-      btn.onclick = () => hideCinPanel('cin-p1', () => {
-        // Panel 2
-        showCinPanel('cin-p2', 'cin-text-2', () => {
-          const btn2 = document.getElementById('cin-btn-2');
-          btn2.classList.add('visible');
-          btn2.onclick = () => hideCinPanel('cin-p2', () => {
-            // Panel 3 — charcoal-to-color + title
-            showCinPanel('cin-p3', 'cin-text-3', () => {
-              // Reveal title block first
-              document.getElementById('cin-title-block').classList.add('visible');
-              // Color bleed-in starts after title has settled
-              setTimeout(() => {
-                document.getElementById('cin-wall-color').classList.add('revealed');
-              }, 1800);
-            });
-            document.getElementById('cin-btn-3').onclick = endCinematic;
-          });
-        });
-      });
-    });
+    function startCinematic() {
+      const overlay = document.getElementById('cin-start-overlay');
+      overlay.classList.add('fading');
+      overlay.addEventListener('transitionend', () => overlay.remove(), { once: true });
 
-    document.getElementById('cin-skip-btn').onclick = endCinematic;
+      playMusic('intro');
+      playVO('assets/voiceover/Intro screen1 voiceover.mp3');
+
+      // Panel 1
+      showCinPanel('cin-p1', 'cin-text-1', () => {
+        const btn = document.getElementById('cin-btn-1');
+        btn.classList.add('visible');
+        btn.onclick = () => { stopVO(); hideCinPanel('cin-p1', () => {
+          // Panel 2
+          playVO('assets/voiceover/Intro screen2 voiceover.mp3');
+          showCinPanel('cin-p2', 'cin-text-2', () => {
+            const btn2 = document.getElementById('cin-btn-2');
+            btn2.classList.add('visible');
+            btn2.onclick = () => { stopVO(); hideCinPanel('cin-p2', () => {
+              // Panel 3 — charcoal-to-color
+              playVO('assets/voiceover/Intro screen3 voiceover.mp3');
+              showCinPanel('cin-p3', 'cin-text-3', () => {
+                // Color bleed-in after text settles
+                setTimeout(() => {
+                  document.getElementById('cin-wall-color').classList.add('revealed');
+                }, 600);
+                const btn3 = document.getElementById('cin-btn-3');
+                btn3.classList.add('visible');
+                btn3.onclick = () => { stopVO(); hideCinPanel('cin-p3', () => {
+                  // Panel 4 — title screen
+                  showCinPanel('cin-p4', 'cin-text-4', () => {});
+                  setTimeout(() => {
+                    document.getElementById('cin-title-block').classList.add('visible');
+                    const btn4 = document.getElementById('cin-btn-4');
+                    btn4.classList.add('visible');
+                    btn4.onclick = () => endCinematic();
+                  }, 800);
+                }); };
+              });
+            }); };
+          });
+        }); };
+      });
+    }
+
+    document.getElementById('cin-start-overlay').onclick = startCinematic;
+    document.getElementById('cin-skip-btn').onclick = () => { stopVO(); endCinematic(); };
 
     // ── Intro screens → game start ────────────────────────────────────────────
     function startGame(commanderName) {
       GameState.commanderName = commanderName || 'Commander';
       GameState.year = 1;
       generateStarterRoster(GameState);
+      playMusic('offseason');
       startOffSeason(GameState, onOffSeasonComplete);
     }
 

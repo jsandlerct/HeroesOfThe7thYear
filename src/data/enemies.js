@@ -34,7 +34,7 @@ export const ENEMY_DEFS = {
     yearUp: { hp: 1, dmg: 1, armor: 0.015 },
   },
   catapult: {
-    hp: 20, dmg: 15, atkSpeed: 10, range: 10, armor: 0.10,
+    hp: 20, dmg: 15, atkSpeed: 10, range: 9, armor: 0.10,
     moveSpeed: 0.5,
     color: 0x777777,
     isElite: true,

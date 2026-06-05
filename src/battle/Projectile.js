@@ -1,6 +1,5 @@
 import { TILE, PROJECTILE_STYLES, PROJ_DEFAULT_STYLE, PROJ_HIT_DIST } from '../data/constants.js';
 
-const PARTICLE_COLOR  = 0xCC1111;
 const PARTICLE_COUNT_NORMAL = 4;
 const PARTICLE_COUNT_AOE    = 7;
 
@@ -36,7 +35,7 @@ export class Projectile {
       style.w, style.h, style.color
     ).setDepth(6).setRotation(Math.atan2(dy, dx));
 
-    this._trailColor = style.color;
+    this._trailColor = 0xcccccc;
     this._trail = scene.add.graphics().setDepth(5);
   }
 
@@ -54,7 +53,7 @@ export class Projectile {
     }
 
     // Trail — short fading line behind the projectile
-    const trailTiles = Math.min(this.distTraveled, 0.7);
+    const trailTiles = Math.min(this.distTraveled, 0.35);
     this._trail.clear();
     if (trailTiles > 0.05) {
       this._trail.lineStyle(2, this._trailColor, 0.5);
@@ -84,7 +83,10 @@ export class Projectile {
       }
     }
 
-    this._spawnImpactBurst();
+    if (!this.target.isWall) {
+      const count = this.attacker.isAoe ? PARTICLE_COUNT_AOE : PARTICLE_COUNT_NORMAL;
+      this.battleScene._spawnBloodBurst(this.x * TILE, this.y * TILE, count);
+    }
 
     if (this.attacker.isAoe) {
       // Enemy catapult: harder shake. Player engineer (trebuchet): lighter.
@@ -96,27 +98,6 @@ export class Projectile {
     this._trail.destroy();
     this.rect.destroy();
     this.done = true;
-  }
-
-  _spawnImpactBurst() {
-    const scene = this.scene;
-    const px    = this.x * TILE;
-    const py    = this.y * TILE;
-    const count = this.attacker.isAoe ? PARTICLE_COUNT_AOE : PARTICLE_COUNT_NORMAL;
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const dist  = (0.3 + Math.random() * 0.7) * TILE;
-      const dot   = scene.add.rectangle(px, py, 3, 3, PARTICLE_COLOR).setDepth(7);
-      scene.tweens.add({
-        targets:  dot,
-        x:        px + Math.cos(angle) * dist,
-        y:        py + Math.sin(angle) * dist,
-        alpha:    0,
-        duration: 260 + Math.random() * 120,
-        ease:     'Quad.easeOut',
-        onComplete: () => dot.destroy(),
-      });
-    }
   }
 
   destroy() {
