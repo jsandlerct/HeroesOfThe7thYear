@@ -274,7 +274,7 @@
       height: 100%;
       object-fit: cover;
       opacity: 0;
-      transition: opacity 5s ease;
+      transition: opacity 10s ease;
     }
     .cin-wall-color.revealed { opacity: 1; }
 
@@ -553,11 +553,10 @@
       </div>
     </div>
 
-    <!-- Panel 3: The Wall (charcoal → color) -->
+    <!-- Panel 3: The Wall (charcoal, static) -->
     <div class="cin-panel cin-hidden" id="cin-p3">
       <div class="cin-img-wrap">
-        <img src="assets/images/the wall charcoal.png" class="cin-img" id="cin-wall-charcoal" alt="An archer stands watch on the wall">
-        <img src="assets/images/the wall color.png" class="cin-wall-color" id="cin-wall-color" alt="">
+        <img src="assets/images/the wall charcoal.png" class="cin-img" alt="An archer stands watch on the wall">
       </div>
       <div class="cin-caption cin-caption-p3">
         <div class="cin-paragraphs" id="cin-text-3">
@@ -569,10 +568,11 @@
       </div>
     </div>
 
-    <!-- Panel 4: Title screen (placeholder: ogre image) -->
+    <!-- Panel 4: The Wall (charcoal → color) + title -->
     <div class="cin-panel cin-hidden" id="cin-p4">
       <div class="cin-img-wrap">
-        <img src="assets/images/ogre.png" class="cin-img" alt="Title screen placeholder">
+        <img src="assets/images/the wall charcoal.png" class="cin-img" alt="The wall comes to life">
+        <img src="assets/images/the wall color.png" class="cin-wall-color" id="cin-wall-color" alt="">
       </div>
       <div class="cin-caption cin-caption-p3">
         <div class="cin-title-block" id="cin-title-block">
@@ -845,7 +845,7 @@
       requestAnimationFrame(() => requestAnimationFrame(() => {
         el.style.transition = 'opacity 0.7s ease';
         el.style.opacity = '1';
-        revealParagraphs(textId, afterTextFn);
+        if (textId) revealParagraphs(textId, afterTextFn);
       }));
     }
 
@@ -884,21 +884,19 @@
               // Panel 3 — charcoal-to-color
               playVO('assets/voiceover/Intro screen3 voiceover.mp3');
               showCinPanel('cin-p3', 'cin-text-3', () => {
-                // Color bleed-in after text settles
-                setTimeout(() => {
-                  document.getElementById('cin-wall-color').classList.add('revealed');
-                }, 600);
                 const btn3 = document.getElementById('cin-btn-3');
                 btn3.classList.add('visible');
                 btn3.onclick = () => { stopVO(); hideCinPanel('cin-p3', () => {
-                  // Panel 4 — title screen
-                  showCinPanel('cin-p4', 'cin-text-4', () => {});
+                  // Panel 4 — color transition + title
+                  showCinPanel('cin-p4', null, null);
+                  // Start color bleed as soon as panel fades in
                   setTimeout(() => {
+                    document.getElementById('cin-wall-color').classList.add('revealed');
                     document.getElementById('cin-title-block').classList.add('visible');
                     const btn4 = document.getElementById('cin-btn-4');
                     btn4.classList.add('visible');
                     btn4.onclick = () => endCinematic();
-                  }, 800);
+                  }, 700);
                 }); };
               });
             }); };
