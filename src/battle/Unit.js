@@ -92,6 +92,8 @@ export class Unit {
     this._barW        = sw;
     this.collisionRadius = (sw / 2) / TILE;
 
+    this.shadow = scene.add.ellipse(px, py, sw * 0.9, sw * 0.35, 0x000000, 0.25).setDepth(3);
+
     if (team === 'player') {
       this.sprite = scene.add.circle(px, py, spriteR, def.color).setDepth(4);
       const prefix = PLAYER_ICON_PREFIX[type];
@@ -129,6 +131,7 @@ export class Unit {
   syncSprite() {
     const px = this.x * TILE;
     const py = this.y * TILE;
+    this.shadow.setPosition(px, py);
     this.sprite.setPosition(px, py);
 
     if (this.icon) {
@@ -167,6 +170,7 @@ export class Unit {
   destroySprites() {
     if (this._spritesDestroyed) return;
     this._spritesDestroyed = true;
+    this.shadow.destroy();
     this.sprite.destroy();
     if (this.icon) this.icon.destroy();
     this.hpBarBg.destroy();
