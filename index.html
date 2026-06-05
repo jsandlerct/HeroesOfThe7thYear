@@ -549,6 +549,7 @@
 
   <!-- ── Commander name entry ────────────────────────────────────────── -->
   <div id="name-screen" class="intro-screen hidden">
+    <img src="assets/images/wall banner.png" style="position:absolute;top:0;left:0;width:100%;height:160px;object-fit:cover;object-position:center;">
     <div class="name-prompt">How shall your soldiers address you?</div>
     <input
       id="commander-name-input"
@@ -693,18 +694,24 @@
           'align-items:center;justify-content:center;gap:16px;z-index:999;' +
           'font-family:Georgia,serif;color:#e0d4b0;';
         screen.innerHTML =
-          `<div style="font-size:36px;color:#cc2222;margin-bottom:8px;">The Wall Has Fallen</div>` +
-          `<div style="font-size:16px;color:#8a7a5a;">Year ${GameState.year} — all defenders lost.</div>` +
-          `<div style="font-size:15px;color:#6a5a3a;">` +
-            `Heroes who served: <strong style="color:#c9a84c">${heroCount}</strong>` +
+          `<div style="display:flex;align-items:flex-end;gap:48px;">` +
+            `<img src="assets/images/ogre.png" style="height:220px;object-fit:contain;opacity:0.92;">` +
+            `<div style="display:flex;flex-direction:column;align-items:center;gap:12px;padding-bottom:16px;">` +
+              `<div style="font-size:36px;color:#cc2222;">The Wall Has Fallen</div>` +
+              `<div style="font-size:16px;color:#8a7a5a;">Year ${GameState.year} — all defenders lost.</div>` +
+              `<div style="font-size:15px;color:#6a5a3a;">` +
+                `Heroes who served: <strong style="color:#c9a84c">${heroCount}</strong>` +
+              `</div>` +
+            `</div>` +
+            `<img src="assets/images/goblins.png" style="height:220px;object-fit:contain;opacity:0.92;">` +
           `</div>`;
         const restartBtn = document.createElement('button');
         restartBtn.textContent = 'Start New Campaign';
         restartBtn.style.cssText =
-          'margin-top:24px;background:#2a2010;border:1px solid #c9a84c;color:#f0e0a0;' +
+          'background:#2a2010;border:1px solid #c9a84c;color:#f0e0a0;' +
           'font-family:Georgia,serif;font-size:14px;padding:10px 28px;cursor:pointer;border-radius:3px;';
         restartBtn.onclick = () => location.reload();
-        screen.appendChild(restartBtn);
+        screen.querySelector('div > div:nth-child(2)').appendChild(restartBtn);
         document.body.appendChild(screen);
         return;
       }
@@ -718,12 +725,8 @@
       // Detect graduating heroes
       GameState.newHeroesThisBattle = survivors.filter(u => u.yearOfService === 7);
 
-      // Collect fallen from this battle
-      const existingFallenIds = new Set(GameState.fallenThisBattle.map(u => u.id));
-      GameState.fallenThisBattle = [
-        ...GameState.fallenThisBattle,
-        ...GameState.roster.filter(u => u.dead && !existingFallenIds.has(u.id)),
-      ];
+      // Collect fallen from this battle only — diedYear set by _handleDeath
+      GameState.fallenThisBattle = GameState.roster.filter(u => u.diedYear === GameState.year);
 
       // Advance year before off-season
       GameState.year += 1;

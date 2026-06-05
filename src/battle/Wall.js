@@ -1,7 +1,7 @@
 import {
   TILE, MAP_W, MAP_H, WALL_ROW, WALL_SECTION_W,
   WALL_DR, WALL_HP_BAR_H, WALL_HP_BAR_Y, WALL_LABEL_SIZE,
-  COLOR_WALL_FILL, ALPHA_WALL_BREACH,
+  COLOR_WALL_FILL, ALPHA_WALL_BREACH, WALL_BLOCK_Y,
   COLOR_WALL_HP_BAR_BG, COLOR_WALL_HP_HIGH, COLOR_WALL_HP_MED, COLOR_WALL_HP_LOW,
   HP_THRESH_MED, HP_THRESH_LOW,
   COLOR_WALL_DAMAGED, COLOR_WALL_CRITICAL,
@@ -30,12 +30,12 @@ const CRACK_DATA = [
 ];
 
 export class WallSegment {
-  constructor(section, startTile, level, hp, scene) {
+  constructor(section, startTile, level, hp, maxHp, scene) {
     this.isWall    = true;
     this.section   = section;
     this.startTile = startTile;
     this.level     = level;
-    this.maxHp     = hp;
+    this.maxHp     = maxHp;
     this.hp        = hp;
     this.isBreached = false;
 
@@ -43,13 +43,22 @@ export class WallSegment {
     this.x = startTile + WALL_SECTION_W / 2;
     this.y = WALL_ROW + 0.5;
 
-    const px = startTile * TILE;
-    const py = WALL_ROW * TILE;
-    const w  = WALL_SECTION_W * TILE;
-    const h  = TILE;
+    const px         = startTile * TILE;
+    const pyBottom   = (WALL_ROW + 1) * TILE;  // bottom edge stays fixed
+    const w          = WALL_SECTION_W * TILE;
+    // Visual height scales with level — higher-level walls extend toward the enemy
+    const extraTiles = level >= 5 ? 2 : level >= 3 ? 1 : 0;
+    const h          = TILE * (1 + extraTiles);
+    const rectCY     = pyBottom - h / 2;  // center Y: wall grows upward as h increases
+    const pyTop      = pyBottom - h;      // top edge moves toward the enemy
+
+    // Tile-space top row (used for unit positioning and enemy blocking)
+    this.topTile = WALL_ROW - extraTiles;
+    // Y at which enemies are stopped (just north of wall face)
+    this.blockY  = this.topTile - WALL_BLOCK_Y;
 
     this._px    = px;
-    this._py    = py;
+    this._py    = pyTop;   // stored as top edge for crack drawing
     this._w     = w;
     this._h     = h;
     this._scene = scene;
@@ -57,15 +66,15 @@ export class WallSegment {
     this._damageState = 0;  // 0 = intact, 1 = light, 2 = heavy, 3 = breached
     this._crackGraphics = null;
 
-    this.rect = scene.add.rectangle(px + w / 2, py + h / 2, w, h, COLOR_WALL_FILL)
+    this.rect = scene.add.rectangle(px + w / 2, rectCY, w, h, COLOR_WALL_FILL)
       .setDepth(1);
 
-    this.hpBarBg = scene.add.rectangle(px + w / 2, py + WALL_HP_BAR_Y, w, WALL_HP_BAR_H, COLOR_WALL_HP_BAR_BG)
+    this.hpBarBg = scene.add.rectangle(px + w / 2, pyTop + WALL_HP_BAR_Y, w, WALL_HP_BAR_H, COLOR_WALL_HP_BAR_BG)
       .setOrigin(0.5, 0.5).setDepth(2);
-    this.hpBarFg = scene.add.rectangle(px, py + WALL_HP_BAR_Y, w, WALL_HP_BAR_H, COLOR_WALL_HP_HIGH)
+    this.hpBarFg = scene.add.rectangle(px, pyTop + WALL_HP_BAR_Y, w, WALL_HP_BAR_H, COLOR_WALL_HP_HIGH)
       .setOrigin(0, 0.5).setDepth(2);
 
-    scene.add.text(px + w / 2, py + h / 2, section[0].toUpperCase(), {
+    scene.add.text(px + w / 2, rectCY, section[0].toUpperCase(), {
       fontSize: WALL_LABEL_SIZE, color: '#ffffff', fontStyle: 'bold',
     }).setOrigin(0.5, 0.5).setDepth(3);
   }

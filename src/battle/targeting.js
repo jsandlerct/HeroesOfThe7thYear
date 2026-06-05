@@ -44,10 +44,12 @@ function lowestHpPct(unit, allies, range) {
 }
 
 // True when enemies should switch from wall-targeting to unit-targeting:
-// a wall is breached, or a player unit has crossed to the enemy side.
+// a wall is breached, or a player unit has crossed to the enemy side (sortie).
+// Wall-mounted units are excluded — thick walls place defenders north of WALL_ROW
+// but they are not "in the field"; only sortieing units trigger this.
 function playerPressureActive(playerUnits, wallSegments) {
   return wallSegments.some(w => w.isBreached) ||
-         playerUnits.some(u => u.y < WALL_ROW);
+         playerUnits.some(u => u.y < WALL_ROW && !u.isOnWall);
 }
 
 export function findTarget(unit, allUnits, wallSegments) {
@@ -69,10 +71,26 @@ export function findTarget(unit, allUnits, wallSegments) {
     case 'captain':
       return nearest(unit, enemyUnits);
 
-    case 'archer':
-    case 'engineer': {
+    case 'archer': {
       const inRange = farthestInRange(unit, enemyUnits);
       return inRange ?? nearest(unit, enemyUnits);
+    }
+
+    case 'engineer': {
+      const inRange = enemyUnits.filter(e => tileDist(unit, e) <= unit.range);
+      // 1. Catapults in range first
+      const catapultsInRange = inRange.filter(e => e.type === 'catapult');
+      if (catapultsInRange.length) return nearest(unit, catapultsInRange);
+      // 2. Largest clump — most enemies within aoeRadius of the candidate
+      if (inRange.length) {
+        const aoeR = unit.aoeRadius ?? 1.5;
+        return inRange.reduce((best, c) => {
+          const cCount = inRange.filter(e => tileDist(c, e) <= aoeR).length;
+          const bCount = inRange.filter(e => tileDist(best, e) <= aoeR).length;
+          return cCount > bCount ? c : best;
+        });
+      }
+      return nearest(unit, enemyUnits);
     }
 
     case 'mage': {

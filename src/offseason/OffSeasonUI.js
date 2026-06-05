@@ -24,48 +24,56 @@ const STEP_DEFS = [
     id: 'fallen',
     label: 'Roll Call of the Fallen',
     conditional: gs => gs.fallenThisBattle.length > 0,
+    banner: 'assets/images/fallen banner.png',
     render: renderFallen,
   },
   {
     id: 'heroes',
     label: 'The Hero Departures',
     conditional: gs => gs.newHeroesThisBattle.length > 0,
+    banner: 'assets/images/heroes banner.png',
     render: renderHeroes,
   },
   {
     id: 'gold',
     label: 'Gold Summary',
     conditional: null,
+    banner: 'assets/images/gold banner.png',
     render: renderGold,
   },
   {
     id: 'invest',
     label: 'Wall & Building Investment',
     conditional: null,
+    banner: 'assets/images/building banner.png',
     render: renderInvest,
   },
   {
     id: 'confirm',
     label: 'Confirm Spending',
     conditional: null,
+    banner: 'assets/images/confirm banner.png',
     render: renderConfirm,
   },
   {
     id: 'personnel',
     label: 'Personnel & Deployment',
     conditional: null,
+    banner: 'assets/images/deployment banner.png',
     render: renderPersonnel,
   },
   {
     id: 'deployment',
     label: 'Deployment Preview',
     conditional: null,
+    banner: 'assets/images/deployment preview banner.png',
     render: renderDeployment,
   },
   {
     id: 'scouts',
     label: 'Scout Deployment',
     conditional: gs => gs.roster.filter(u => u.class === 'scout' && !u.dead).length > 0,
+    banner: 'assets/images/scout banner.png',
     render: renderScouts,
   },
 ];
@@ -212,7 +220,20 @@ function renderStep() {
   document.getElementById('os-btn-next').textContent =
     stepIndex === activeSteps.length - 1 ? 'Begin Battle →' : 'Next →';
 
-  step.render(gs, wizardState, inner, wizard);
+  if (step.banner) {
+    const banner = document.createElement('img');
+    banner.src = step.banner;
+    banner.style.cssText =
+      'display:block;width:calc(100% + 56px);margin:-28px -28px 24px -28px;' +
+      'height:160px;object-fit:cover;object-position:center;';
+    inner.appendChild(banner);
+  }
+
+  // Give each step a sub-div so banner is never wiped by contentEl.innerHTML = ...
+  const stepContent = document.createElement('div');
+  inner.appendChild(stepContent);
+
+  step.render(gs, wizardState, stepContent, wizard);
 }
 
 function advance(direction) {

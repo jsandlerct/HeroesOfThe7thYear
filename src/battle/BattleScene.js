@@ -9,11 +9,12 @@ import { Projectile } from './Projectile.js';
 import { computeEffectiveDef, applyLevelUpsToRosterUnit } from './buildingBonuses.js';
 import {
   TILE, MAP_W, MAP_H, WALL_ROW, WALL_SECTION_W,
+  COLOR_WALL_FILL,
   RESERVE_ZONE_ROWS, ENEMY_RESERVE_ROW, PLAYER_RESERVE_ROW,
   ENEMY_RESERVE_DEPLOY_S, RESERVE_ALARM_ROW,
   ATK_RANGE_BUFFER, MAX_DR, ROUT_THRESHOLD,
   CRIT_CHANCE, CRIT_MULTIPLIER,
-  WALL_BLOCK_Y, WALL_BREACH_DROP, SLOMOER_SCALE, NUDGE_STOP_DIST,
+  WALL_BREACH_DROP, SLOMOER_SCALE, NUDGE_STOP_DIST,
   ENEMY_SPAWN_ROW, ENEMY_SPAWN_SPACING, ENEMY_MOVE_DELAY,
   HEALER_XP_PER_HP, ANNOUNCE_MS,
   COUNTDOWN_STEP_MS, COUNTDOWN_FIGHT_MS,
@@ -136,8 +137,48 @@ export class BattleScene extends Phaser.Scene {
     ];
     for (const d of defs) {
       const gsState = GameState.wallSegments.find(w => w.section === d.section);
-      const seg = new WallSegment(d.section, d.startTile, gsState.level, gsState.hp, this);
+      const seg = new WallSegment(d.section, d.startTile, gsState.level, gsState.hp, gsState.maxHp, this);
       this.walls.push(seg);
+    }
+    this._drawWallTransitions();
+  }
+
+  _drawWallTransitions() {
+    const pyBottom = (WALL_ROW + 1) * TILE;
+
+    for (let i = 0; i < this.walls.length - 1; i++) {
+      const left  = this.walls[i];
+      const right = this.walls[i + 1];
+      const bx    = right.startTile * TILE;
+
+      const pyLeft  = left.topTile  * TILE;
+      const pyRight = right.topTile * TILE;
+      if (pyLeft === pyRight) continue;
+
+      // Ramp width equals the height difference — keeps a consistent 45° slope
+      // regardless of whether the step is 1 tile (lv 1↔3) or 2 tiles (lv 1↔5).
+      const rampW = Math.abs(pyLeft - pyRight);
+
+      const g = this.add.graphics().setDepth(1);
+      g.fillStyle(COLOR_WALL_FILL, 1);
+      g.beginPath();
+
+      if (pyLeft > pyRight) {
+        // Right section is taller — ramp on left edge of right section
+        g.moveTo(bx,          pyLeft);
+        g.lineTo(bx + rampW,  pyRight);
+        g.lineTo(bx + rampW,  pyBottom);
+        g.lineTo(bx,          pyBottom);
+      } else {
+        // Left section is taller — ramp on right edge of left section
+        g.moveTo(bx - rampW,  pyLeft);
+        g.lineTo(bx,          pyRight);
+        g.lineTo(bx,          pyBottom);
+        g.lineTo(bx - rampW,  pyBottom);
+      }
+
+      g.closePath();
+      g.fillPath();
     }
   }
 
@@ -250,25 +291,26 @@ export class BattleScene extends Phaser.Scene {
       { assignKey: 'engineerRight',  startCol: WALL_SECTION_W * 2 },
     ];
 
-    const wallY        = WALL_ROW + 0.5;
-    const magWallY     = WALL_ROW + 1.5;  // mages stand to the rear on their section
     const engineerY    = WALL_ROW + 2.5;  // engineers: midway between wall (row 12) and reserves (rows 14-15)
 
     // ── Wall units ────────────────────────────────────────────────────────────
     for (const ws of WALL_SECTIONS) {
       const seg   = this.walls.find(w => w.section === ws.section);
+      const wallY    = seg.topTile + 0.5;  // front face of wall (advances as wall levels up)
+      const magWallY = seg.topTile + 1.5;  // mages stand one row behind the front
       const units = roster.filter(u => u.assignment === ws.assignKey);
       const n     = Math.max(units.length, 1);
       units.forEach((ru, k) => {
         const def = computeEffectiveDef(ru, GameState);
         if (!def) return;
         const x = ws.startCol + (k + 0.5) * (WALL_SECTION_W / n);
-        const y = ru.class === 'mage' ? magWallY : wallY;
+        const y = (ru.class === 'mage' || ru.class === 'healer') ? magWallY : wallY;
         const u = this._spawnUnit(ru.class, def, 'player', x, y);
-        u.xp       = ru.xp      ?? 0;
-        u.level    = ru.level   ?? 1;
-        u.bonusHp  = ru.bonusHp ?? 0;
-        u.bonusDmg = ru.bonusDmg ?? 0;
+        u.xp          = ru.xp      ?? 0;
+        u.level       = ru.level   ?? 1;
+        u._startLevel = u.level;
+        u.bonusHp     = ru.bonusHp ?? 0;
+        u.bonusDmg    = ru.bonusDmg ?? 0;
         u.isStationary = true;
         u.rosterId     = ru.id;
         u.isOnWall    = true;
@@ -285,10 +327,11 @@ export class BattleScene extends Phaser.Scene {
         if (!def) return;
         const x = es.startCol + (k + 0.5) * (WALL_SECTION_W / n);
         const u = this._spawnUnit(ru.class, def, 'player', x, engineerY);
-        u.xp       = ru.xp      ?? 0;
-        u.level    = ru.level   ?? 1;
-        u.bonusHp  = ru.bonusHp ?? 0;
-        u.bonusDmg = ru.bonusDmg ?? 0;
+        u.xp          = ru.xp      ?? 0;
+        u.level       = ru.level   ?? 1;
+        u._startLevel = u.level;
+        u.bonusHp     = ru.bonusHp ?? 0;
+        u.bonusDmg    = ru.bonusDmg ?? 0;
         u.isStationary = true;
         u.rosterId     = ru.id;
       });
@@ -309,10 +352,11 @@ export class BattleScene extends Phaser.Scene {
         const x = slot.startCol + (idxInRow + 0.5) * (WALL_SECTION_W / Math.max(nInRow, 1));
         const y = PLAYER_RESERVE_ROW + 0.5 + row;
         const u = this._spawnUnit(ru.class, def, 'player', x, y);
-        u.xp       = ru.xp      ?? 0;
-        u.level    = ru.level   ?? 1;
-        u.bonusHp  = ru.bonusHp ?? 0;
-        u.bonusDmg = ru.bonusDmg ?? 0;
+        u.xp          = ru.xp      ?? 0;
+        u.level       = ru.level   ?? 1;
+        u._startLevel = u.level;
+        u.bonusHp     = ru.bonusHp ?? 0;
+        u.bonusDmg    = ru.bonusDmg ?? 0;
         u.isInReserve  = true;
         u.isStationary = true;
         u.reserveSlot  = slot;
@@ -327,10 +371,10 @@ export class BattleScene extends Phaser.Scene {
     const WALL_SECTION_TYPES = ['archer', 'archer', 'archer', 'healer'];
     const SECTION_START_COLS = [0, WALL_SECTION_W, WALL_SECTION_W * 2];
     const SECTION_NAMES      = ['left', 'center', 'right'];
-    const wallY = WALL_ROW + 0.5;
 
     for (let si = 0; si < 3; si++) {
       const seg      = this.walls.find(w => w.section === SECTION_NAMES[si]);
+      const wallY    = seg.topTile + 0.5;
       const startCol = SECTION_START_COLS[si];
       const n        = WALL_SECTION_TYPES.length;
       for (let k = 0; k < n; k++) {
@@ -386,11 +430,21 @@ export class BattleScene extends Phaser.Scene {
       for (const { type, count } of lanes[li])
         for (let k = 0; k < count; k++) flat.push(type);
       flat.sort((a, b) => (b === 'general' ? 1 : 0) - (a === 'general' ? 1 : 0));
-      flat.forEach((type, idx) => {
+
+      // Catapults always spawn at a fixed row just below the enemy reserve zone
+      const catapults = flat.filter(t => t === 'catapult');
+      const others    = flat.filter(t => t !== 'catapult');
+
+      others.forEach((type, idx) => {
         const col = idx % WALL_SECTION_W;
         const row = Math.floor(idx / WALL_SECTION_W);
         this._spawnUnit(type, this._scaledEnemyDef(type), 'enemy',
           startCol + col + 0.5, ENEMY_SPAWN_ROW + row * ENEMY_SPAWN_SPACING);
+      });
+
+      catapults.forEach((type, ci) => {
+        const x = startCol + (ci + 0.5) * (WALL_SECTION_W / Math.max(catapults.length, 1));
+        this._spawnUnit(type, this._scaledEnemyDef(type), 'enemy', x, ENEMY_RESERVE_ROW + 2);
       });
     }
 
@@ -411,7 +465,7 @@ export class BattleScene extends Phaser.Scene {
         this._spawnUnit(type, def, 'enemy', (i + 0.5) * (MAP_W / count), y);
     };
 
-    spread(5, ENEMY_SPAWN_ROW, 'catapult');
+    spread(5, ENEMY_RESERVE_ROW + 2, 'catapult');
     for (let row = 0; row < 5; row++)
       spread(5, ENEMY_SPAWN_ROW + 0.7 + row * 0.5, 'goblin');
     for (let row = 0; row < 5; row++)
@@ -606,7 +660,7 @@ export class BattleScene extends Phaser.Scene {
           u.waypoint      = { x: targetWall.x, y: wallY };
           u.reinforceWall = targetWall;
         } else if (u.type === 'healer') {
-          u.waypoint = { x: targetWall.x, y: WALL_ROW + 1 };
+          u.waypoint = { x: targetWall.x, y: targetWall.topTile + 1.5 };
         } else {
           // Warriors/Captains: hold just behind wall until breach releases them
           u.waypoint         = { x: targetWall.x, y: WALL_ROW + 1 };
@@ -765,9 +819,23 @@ export class BattleScene extends Phaser.Scene {
         // Enemy wall targets become stale the moment player pressure is active
         (unit.team === 'enemy' && unit.target.isWall &&
           (this.walls.some(w => w.isBreached) ||
-           this.units.some(u => u.team === 'player' && !u.isDead && u.y < WALL_ROW)))
+           this.units.some(u => u.team === 'player' && !u.isDead && u.y < WALL_ROW && !u.isOnWall)))
       )) {
         unit.target = null;
+      }
+
+      // Player units: clear target if it no longer matches the active targeting preference
+      // (handles mid-battle preference changes and any initial mismatch)
+      if (unit.target && !unit.target.isWall && unit.team === 'player') {
+        const PREF_GROUP = { warrior:'melee', captain:'melee', archer:'ranged', mage:'ranged', engineer:'siege' };
+        const group = PREF_GROUP[unit.type];
+        const pref  = group && GameState.targetingPreference[group];
+        if (pref && pref !== 'default' && unit.target.type !== pref) {
+          const hasPreferred = this.units.some(u =>
+            u.team === 'enemy' && !u.isDead && !u.isInReserve && u.y >= 0 && u.type === pref
+          );
+          if (hasPreferred) unit.target = null;
+        }
       }
 
       // Mage: yield current non-elite target when an elite enters range (default pref only)
@@ -782,6 +850,14 @@ export class BattleScene extends Phaser.Scene {
 
       if (!unit.target) {
         unit.target = findTarget(unit, this.units, this.walls);
+      }
+
+      // Catapults anchor as soon as they have a target in range — they always spawn
+      // at the fixed forward row (ENEMY_RESERVE_ROW + 2) so no advance is needed
+      if (unit.team === 'enemy' && unit.type === 'catapult' && !unit.isStationary &&
+          unit.target && tileDist(unit, unit.target) <= unit.range &&
+          unit.y >= ENEMY_RESERVE_ROW + 2) {
+        unit.isStationary = true;
       }
 
       // Move toward target (non-stationary units)
@@ -872,10 +948,9 @@ export class BattleScene extends Phaser.Scene {
     let newY = unit.y + dy * step;
 
     // Wall blocks enemies only while all sections are intact — one breach compromises the line
-    if (unit.team === 'enemy' && newY > WALL_ROW - WALL_BLOCK_Y &&
-        !this.walls.some(w => w.isBreached)) {
+    if (unit.team === 'enemy' && !this.walls.some(w => w.isBreached)) {
       const seg = this._wallAtX(newX);
-      if (seg) newY = WALL_ROW - WALL_BLOCK_Y;
+      if (seg && newY > seg.blockY) newY = seg.blockY;
     }
 
     unit.x = newX;
@@ -921,8 +996,8 @@ export class BattleScene extends Phaser.Scene {
 
       if (a.team === 'enemy' && !this.walls.some(w => w.isBreached)) {
         const seg = this._wallAtX(a.x);
-        if (seg && !seg.isBreached && a.y > WALL_ROW - WALL_BLOCK_Y) {
-          a.y = WALL_ROW - WALL_BLOCK_Y;
+        if (seg && !seg.isBreached && a.y > seg.blockY) {
+          a.y = seg.blockY;
         }
       }
     }
@@ -1058,10 +1133,13 @@ export class BattleScene extends Phaser.Scene {
       const ru = GameState.roster.find(r => r.id === unit.rosterId);
       if (ru) {
         ru.dead     = true;
+        ru.diedYear = GameState.year;
+        const startLevel = unit._startLevel ?? ru.level;
         ru.xp       = unit.xp;
         ru.bonusHp  = unit.bonusHp;
         ru.bonusDmg = unit.bonusDmg;
         applyLevelUpsToRosterUnit(ru);
+        if (ru.class === 'engineer') ru.level = Math.min(ru.level, startLevel + 1);
       }
     }
 
@@ -1204,10 +1282,12 @@ export class BattleScene extends Phaser.Scene {
       if (u.team !== 'player' || u.rosterId == null) continue;
       const ru = GameState.roster.find(r => r.id === u.rosterId);
       if (!ru || ru.dead) continue;
+      const startLevel = u._startLevel ?? ru.level;
       ru.xp       = u.xp;
       ru.bonusHp  = u.bonusHp;
       ru.bonusDmg = u.bonusDmg;
       applyLevelUpsToRosterUnit(ru);
+      if (ru.class === 'engineer') ru.level = Math.min(ru.level, startLevel + 1);
     }
 
     // Write wall HP back to GameState so off-season gold and repair screens

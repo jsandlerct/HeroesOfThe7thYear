@@ -113,6 +113,17 @@ export class Unit {
       .setOrigin(0, 0.5).setDepth(5);
     this.hpBarFg = scene.add.rectangle(px - sw / 2, barY, sw, HP_BAR_H, COLOR_HP_HIGH)
       .setOrigin(0, 0.5).setDepth(5);
+
+    // Shot / heal timer bar below the icon — archers, mages, healers only
+    this.shotBarBg = null;
+    this.shotBarFg = null;
+    if (team === 'player' && (type === 'archer' || type === 'mage' || type === 'healer' || type === 'engineer')) {
+      const shotY = py + this._spriteHalfH + HP_BAR_Y_GAP;
+      this.shotBarBg = scene.add.rectangle(px - sw / 2, shotY, sw, HP_BAR_H, COLOR_HP_BAR_BG)
+        .setOrigin(0, 0.5).setDepth(5);
+      this.shotBarFg = scene.add.rectangle(px - sw / 2, shotY, sw, HP_BAR_H, 0xffffff)
+        .setOrigin(0, 0.5).setDepth(5);
+    }
   }
 
   syncSprite() {
@@ -138,6 +149,19 @@ export class Unit {
                 : pct > HP_THRESH_LOW ? COLOR_HP_MED
                 : COLOR_HP_LOW;
     this.hpBarFg.setFillStyle(color);
+
+    if (this.shotBarBg) {
+      const shotY = py + this._spriteHalfH + HP_BAR_Y_GAP;
+      this.shotBarBg.setPosition(px - this._barW / 2, shotY);
+      this.shotBarFg.setPosition(px - this._barW / 2, shotY);
+      // Healers show heal-cycle progress; others show attack-cycle progress
+      const elapsed = this.isHealer
+        ? this.healInterval - Math.max(0, this.healTimer)
+        : this.atkSpeed    - Math.max(0, this.atkTimer);
+      const total   = this.isHealer ? this.healInterval : this.atkSpeed;
+      const shotPct = Math.min(1, Math.max(0, elapsed / total));
+      this.shotBarFg.setDisplaySize(Math.floor(shotPct * this._barW), HP_BAR_H);
+    }
   }
 
   destroySprites() {
@@ -147,6 +171,8 @@ export class Unit {
     if (this.icon) this.icon.destroy();
     this.hpBarBg.destroy();
     this.hpBarFg.destroy();
+    if (this.shotBarBg) this.shotBarBg.destroy();
+    if (this.shotBarFg) this.shotBarFg.destroy();
   }
 
   setAuraGlow(active) {

@@ -28,15 +28,26 @@ export function makePortraitElement(portrait, unit, size = 72) {
   if (!portrait) img.style.background = '#251a08';
   wrapper.appendChild(img);
 
-  // i=1 = innermost ring (oldest completed year), i=years = outermost (most recent year)
-  // Outermost is brightest — most recently earned.
+  // Rainbow color per year: ring 1 (year 1) = red → violet at ring 7
+  const RING_COLORS = [
+    '220,30,30',   // red      (year 1)
+    '230,100,20',  // orange   (year 2)
+    '200,180,0',   // yellow   (year 3)
+    '30,160,30',   // green    (year 4)
+    '20,80,200',   // blue     (year 5)
+    '60,0,180',    // indigo   (year 6)
+    '130,0,160',   // violet   (year 7)
+  ];
+
+  // i=1 = innermost ring (year 1), i=years = outermost (most recent year)
   for (let i = 1; i <= years; i++) {
     const ring  = document.createElement('div');
     const inset = (years - i) * RING_STEP;
     const alpha = (0.35 + (i / years) * 0.40).toFixed(2);
+    const color = RING_COLORS[(i - 1) % RING_COLORS.length];
     ring.style.cssText =
       `position:absolute;inset:${inset}px;` +
-      `border:${RING_W}px solid rgba(180,140,60,${alpha});` +
+      `border:${RING_W}px solid rgba(${color},${alpha});` +
       `pointer-events:none;`;
     wrapper.appendChild(ring);
   }

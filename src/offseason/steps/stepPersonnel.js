@@ -129,7 +129,9 @@ function showDetailModal(unit, gs) {
   greetDiv.style.cssText =
     'font-style:italic;color:#9a8a6a;font-size:14px;line-height:1.6;' +
     'border-left:2px solid #3a2a10;padding-left:14px;margin-bottom:20px;';
-  greetDiv.textContent = `"Commander ${gs.commanderName ?? 'Commander'}, ${greeting}"`;
+  const addr = (gs.commanderName && gs.commanderName !== 'Commander')
+    ? `Commander ${gs.commanderName}` : 'Commander';
+  greetDiv.textContent = `"${addr}, ${greeting}"`;
   box.appendChild(greetDiv);
 
   // Divider
@@ -208,7 +210,11 @@ export function render(gs, wizardState, contentEl, wizard) {
   const countLabel = document.createElement('span');
   countLabel.style.cssText = 'font-size:12px;color:#6a5a3a;margin-left:auto;';
 
+  // "Assign unassigned" button lives in the controls bar (wired up later after assignBtn is declared)
+  const assignBtnPlaceholder = document.createElement('span');
+
   controls.appendChild(filterInput);
+  controls.appendChild(assignBtnPlaceholder);
   controls.appendChild(countLabel);
   contentEl.appendChild(controls);
 
@@ -452,11 +458,12 @@ export function render(gs, wizardState, contentEl, wizard) {
     renderRows();
   };
 
-  // ── "Assign unassigned units" button ──────────────────────────────────────
+  // ── "Assign unassigned units" button (placed in controls bar) ─────────────
   const assignBtn = document.createElement('button');
   assignBtn.className = 'os-btn';
-  assignBtn.textContent = 'Assign unassigned units';
-  assignBtn.style.cssText = 'margin-top:18px;';
+  assignBtn.textContent = 'Assign unassigned';
+  assignBtn.style.cssText = 'white-space:nowrap;padding:5px 10px;font-size:12px;';
+  assignBtnPlaceholder.replaceWith(assignBtn);
   assignBtn.onclick = () => {
     const wallOpts     = ['wallLeft', 'wallCenter', 'wallRight'];
     const reserveOpts  = ['reserveLeft', 'reserveCenter', 'reserveRight'];
@@ -473,7 +480,6 @@ export function render(gs, wizardState, contentEl, wizard) {
     updateWarnings();
     refreshNextButton();
   };
-  contentEl.appendChild(assignBtn);
 
   // Initial render
   renderRows();

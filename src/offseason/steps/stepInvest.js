@@ -215,7 +215,8 @@ export function render(gs, wizardState, contentEl) {
         const upgrades = spending.wallUpgrades[sec] || 0;
         const effLevel = seg.level + upgrades;
         const effMaxHp = WALL_HP_BY_LEVEL[effLevel] || seg.maxHp;
-        const effHp    = Math.min(seg.hp + repair, effMaxHp);
+        // Upgrade fills wall to full HP — show projected full HP when one is committed
+        const effHp    = upgrades > 0 ? effMaxHp : Math.min(seg.hp + repair, seg.maxHp);
         const damage   = seg.maxHp - seg.hp;
         const dr       = WALL_DR[effLevel] ?? 0;
 
@@ -292,7 +293,7 @@ export function render(gs, wizardState, contentEl) {
           const alreadyBought = upgrades > 0;
           // Upgrade requires the wall to be fully repaired (pending repairs count)
           const isFullyRepaired = (seg.hp + repair) >= seg.maxHp;
-          upgradeBtn.textContent  = alreadyBought ? `Upgrade committed (Lv ${seg.level} → ${nextLevel})` : `Upgrade → Lv ${nextLevel}`;
+          upgradeBtn.textContent  = alreadyBought ? `Upgrade committed (Lv ${seg.level} → ${effLevel})` : `Upgrade → Lv ${nextLevel}`;
           upgradeBtn.disabled     = !canAffordUpg || alreadyBought || !isFullyRepaired;
           upgradeBtn.className    = `os-btn-sm${alreadyBought ? ' committed' : ''}`;
           upgradeBtn.title        = !isFullyRepaired ? 'Wall must be fully repaired before upgrading' : '';

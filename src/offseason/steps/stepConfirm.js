@@ -3,7 +3,7 @@
 // triggers recruit generation, and advances the wizard.
 
 import { BUILDING_DEFS }                               from '../../data/buildings.js';
-import { WALL_UPGRADE_COST_BY_LEVEL, WALL_REPAIR_COST_PER_HP } from '../../data/constants.js';
+import { WALL_UPGRADE_COST_BY_LEVEL, WALL_REPAIR_COST_PER_HP, WALL_HP_BY_LEVEL } from '../../data/constants.js';
 import { generateRecruits }                            from '../recruitGenerator.js';
 
 const BUILDING_LABELS = {
@@ -110,12 +110,11 @@ export function render(gs, wizardState, contentEl, wizard) {
     }
 
     // Wall upgrades — only allowed on fully-repaired walls; upgraded wall starts at full HP
-    const HP_BY_LV = [0, 200, 300, 400, 500, 600];
     for (const seg of gs.wallSegments) {
       const levels = sp.wallUpgrades[seg.section] || 0;
       if (levels > 0) {
         seg.level = Math.min(seg.level + levels, 5);
-        seg.maxHp = HP_BY_LV[seg.level] ?? seg.maxHp;
+        seg.maxHp = WALL_HP_BY_LEVEL[seg.level] ?? seg.maxHp;
         seg.hp    = seg.maxHp;  // upgrade fills to new max
       }
     }
