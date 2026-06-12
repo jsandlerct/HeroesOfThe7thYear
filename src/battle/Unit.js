@@ -7,7 +7,7 @@ import {
   HEAL_GLOW_MS, HEAL_GLOW_COLOR, HEAL_GLOW_OUTER,
   AURA_GLOW_COLOR, AURA_GLOW_OUTER,
   CRIT_GLOW_COLOR, CRIT_GLOW_OUTER, CRIT_GLOW_MS,
-  HEALER_HEAL_S,
+  HEALER_HEAL_S, CRIT_CHANCE,
 } from '../data/constants.js';
 
 let _nextId = 0;
@@ -58,6 +58,12 @@ export class Unit {
     this.hasGeneralAura = def.hasGeneralAura ?? false;
     this.auraRadius     = def.auraRadius     ?? 0;
     this.auraDmgBonus   = def.auraDmgBonus   ?? 0;
+
+    // Specialization
+    this.specialization = def.specialization ?? null;
+    this.rapidFire      = def.rapidFire      ?? false;
+    this.areaHeal       = def.areaHeal       ?? false;
+    this.critChance     = def.critChance      ?? CRIT_CHANCE;
 
     this._auraGlowFX       = null;
     this._suppressAuraGlow = false;
@@ -217,7 +223,8 @@ export class Unit {
   }
 
   _applyLevelUps() {
-    while (this.level < MAX_LEVEL && this.xp >= XP_THRESHOLDS[this.level]) {
+    const cap = this.type === 'engineer' ? (this._startLevel ?? 0) + 1 : MAX_LEVEL;
+    while (this.level < cap && this.xp >= XP_THRESHOLDS[this.level]) {
       this.level++;
       this.maxHp += this.lvlHp;
       this.hp    += this.lvlHp;

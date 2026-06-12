@@ -99,7 +99,10 @@
 - [2025-05-27] All blank building costs default to 200 gold per level
 - [2025-05-27] Armory: +7% armor per level (additive, all units)
 - [2025-05-27] Weaponsmith: +10% DMG multiplier per level (Warriors, Archers, Captains only)
-- [2025-05-27] Monument tracks hero names for bonus accounting; stores up to 5 heroes' worth of attack speed bonus (-0.1s per hero, max -0.5s total)
+- [2025-05-27] Monument tracks hero names for bonus accounting; attack speed bonus is -0.1s per inscribed hero
+- [2026-06-10] Monument is now 3 levels at 300g each; each level adds +5 to the hero inscription cap (Lv1: up to 5, Lv2: up to 10, Lv3: up to 15). Max attack speed bonus scales accordingly (Lv3 full = -1.5s)
+- [2026-06-10] Building groups: Military (Barracks, Archery Range, Sparring Ground, Officer Academy, Siege Workshop); Arcane (Library, Mage Workshop, Hospital); Infrastructure & Support (Artisan Workshop, Armory, Weaponsmith, Scout Academy, Monument). Monument moved from Military to Infrastructure & Support. Scout Academy moved from Military to Infrastructure & Support.
+- [2026-06-10] Investment screen UI: full-width Canvas 2D wall preview above control cards (mirrors Wall.js geometry exactly — same crack data, merlons, HP bar, mortar courses); buildings displayed as cards with teal built-state styling, not a table
 - [2025-05-27] Hospital: -1.0s heal interval per level (applies to healer healing cooldown, not attack speed)
 - [2025-05-27] Mason: repairs/builds 50 HP of wall damage per Mason per off-season
 - [2026-06-02] Artisan Workshop: automatically repairs 50 HP per wall segment per level at off-season start (before gold breakdown is computed for display); shown as a notice on the investment screen
@@ -135,6 +138,12 @@
 - [2025-05-27] Veterans who stay become super units (exact advantages TBD — see Open Questions)
 - [2025-05-27] Legacy/mentorship system: departing heroes leave passive buff to future recruits in their archetype (exact mechanics TBD)
 - [2025-05-27] Goblin stats kept as-is for now; armor scaling to be evaluated during playtesting
+- [2026-06-10] Hero ceremony (stepHeroes) uses two visually distinct card types: "Homeward Bound" (amber/gold, #1a1000 bg) for departing heroes shows Monument inscription and cumulative bonus; "Sworn to the Wall" (blue/silver, #06101e bg) for staying heroes shows +1 XP per veteran per off-season note
+- [2026-06-10] `GameState.departedHeroes` added — mirrors graduatedHeroes but for heroes who went home; populated in `onOffSeasonComplete` alongside graduated push; each entry: { id, name, class, specialization, portraitId, yearGraduated }
+- [2026-06-10] `graduatedHeroes` entries now include `specialization` field (was omitted before)
+- [2026-06-10] Training step (stepTraining) shows one row per staying veteran under "Veteran Inspiration" — name, class/spec, year of service, and the "+1 XP to all N units" effect; replaces the single summary paragraph
+- [2026-06-10] Training step shows a stone monument tablet at the bottom listing all inscribed hero names with class, specialization, and graduation year; footer shows monument level + cumulative attack speed bonus; shown when graduatedHeroes.length > 0 OR monument level > 0
+- [2026-06-10] Campaign end screen expanded to a full hero gallery — staying heroes in blue tiles, departed heroes in amber tiles, each showing name/class/spec/graduation year and "Sworn to the Wall" or "Homeward Bound" badge; monument legacy line at bottom
 
 ---
 
@@ -157,7 +166,7 @@
 - [2026-05-28] 3 reserve slots per side (left/center/right), each aligned with its wall section center; capacity 25 units per slot
 - [2026-05-28] Reserve zones are rows 0–1 (enemy, red highlight) and rows 14–15 (player, blue highlight); no label
 - [2026-05-28] Reserve units are stationary and inert until deployed — skipped by targeting, movement, and attack tick
-- [2026-05-28] Enemy reserve deployment logics: wait_for_breach (any breach triggers); left/center/right_after_Xs (real-clock 20 s OR any wall breach — whichever comes first, advance on that wall section)
+- [2026-05-28] Enemy reserve deployment logics: left/center/right_after_delay (real-clock 20 s OR any wall breach — whichever comes first, advance on that wall section); wait_for_breach retired 2026-06-10 — all former breach-only slots now use center_after_delay
 - [2026-05-28] Alarm condition: any player unit crosses into rows 0–7 instantly releases all undeployed enemy reserves
 - [2026-05-28] Rout threshold uses total starting enemy count (all units including reserves); alive count also includes reserves — rout requires all elites dead AND fewer than 50% of all starting enemies still alive
 - [2026-05-28] When rout triggers, any enemy reserves deployed afterward are immediately set to routing; round-end checks still operate on active (non-reserve) enemies only
@@ -327,6 +336,69 @@
 
 - [2026-05-29] Two HTML entry points: `index.html` = clean production experience (no test UI, auto-starts Year 1 with randomly selected composition); `testversion.html` = dev/test experience with scenario chooser, key/legend sidebar, and stress test button — both import the same JS modules
 - [2026-05-29] Random composition selection in `index.html` uses `Math.floor(Math.random() * 3)` at page load for Year 1
+
+---
+
+## Class Specialization
+
+- [2026-06-10] Specialization unlocks at level 3; each class has two paths named as adjectives (e.g. "Mounted Warrior", "Sharpshooter Archer")
+- [2026-06-10] When a unit levels to 3 in battle, a brief announcement fires ("[Name] reached Veteran rank!"); the actual choice is deferred to the off-season Training & Specialization step
+- [2026-06-10] Specialization is a one-time, permanent choice — no respec
+- [2026-06-10] Specialization stats are applied at battle spawn time alongside building bonuses in `computeEffectiveDef`; stored as `specialization` string on the roster unit
+- [2026-06-10] Specialization paths per class:
+  - Warrior: **Mounted** (double move speed) | **Heavy** (armor 20% → 40%)
+  - Archer: **Longbow** (+2 range) | **Sharpshooter** (+25% crit chance, stacks with base 5%)
+  - Mage: **Explosive** (hits deal AoE, 0.75 tile radius) | **Rapid-fire** (fires a simultaneous second projectile at a second valid target using standard Mage targeting)
+  - Healer: **Area** (heal radiates 0.75 tiles from the primary lowest-HP% target, hitting all friendlies in radius) | **Combat** (armor 10% → 30%)
+  - Captain: **Inspiring** (aura radius 1.5 → 2.0 tiles) | **Heroic** (+50% DMG, +50% HP)
+  - Engineer: **Flameshot** (+25% AoE radius) | **Anti-siege** (−25% AoE radius, +50% DMG)
+- [2026-06-10] Specialization color tints (applied via setTint on unit sprite):
+  - Warrior: base 0x4472C4 | Mounted 0x6AABFF | Heavy 0x1A3A7A
+  - Archer: base 0x70AD47 | Longbow 0xAAE040 | Sharpshooter 0x2D6B1A
+  - Mage: base 0x9B30FF | Explosive 0xCC88FF | Rapid-fire 0x4A0080
+  - Healer: base 0xEEEEEE | Area 0xFFFF88 | Combat 0xFFAA33
+  - Captain: base 0xFFD700 | Inspiring 0xFFF0A0 | Heroic 0xB87333
+  - Engineer: base 0xFF6600 | Flameshot 0xFF3300 | Anti-siege 0x8B3A00
+
+---
+
+## Surprise Tactics
+
+- [2026-06-10] Feature name: Surprise Tactics. The king sends one of his generals to train the wall units in a surprise tactic — awarded once per year during the Gold Summary step, starting Year 2's off-season (Year 1 battle has no tactics; the stockpile begins empty)
+- [2026-06-10] Gold Summary step flavor text for the award references last year's battle outcome (e.g. acknowledges losses or difficulty); tone is the king trying to help
+- [2026-06-10] The awarded tactic is randomly selected from the complete V1 set of 5; added to `GameState.tactics` array (stockpile); cap is 3 — if already at 3, no new tactic is awarded that year
+- [2026-06-10] Unused tactics carry over between battles; single-use per activation (consumed when triggered)
+- [2026-06-10] All available tactics shown simultaneously as buttons in a strip below the battle canvas (same visual language as the targeting controls bar); each has a visually distinct icon; button is removed on use
+- [2026-06-10] Complete V1 Surprise Tactic set (5 total):
+  - **Mass Sortie** — All non-Engineer units not currently on the wall receive a 50% move speed boost; reserve units are immediately force-deployed as a sortie; units already in the field but not on the wall also receive the speed boost
+  - **Covering Fire** — All Archers fire one immediate free volley (does not consume or reset their attack timer)
+  - **Barrage** — All Engineers and Mages fire one immediate free shot (does not consume or reset their attack timer)
+  - **Healing Grace** — All Healers immediately fire their heal regardless of cooldown (cooldown resets after)
+  - **Shield Wall** — All Warriors and Captains gain +40% armor for 10 seconds
+- [2026-06-10] Tactic data lives in `src/data/tactics.js`; `GameState.tactics` holds the current stockpile as an array of tactic keys
+
+---
+
+## Training & Specialization (Implementation — 2026-06-10)
+
+- [2026-06-10] Specialization color is applied by overriding `def.color` in `computeEffectiveDef`; the Unit constructor uses `def.color` for the sprite circle fill, so no separate setTint call is needed at spawn
+- [2026-06-10] Per-unit `critChance` property added to Unit (default = `CRIT_CHANCE` constant 0.05); Sharpshooter archers get 0.30; BattleScene reads `attacker.critChance` instead of the constant
+- [2026-06-10] Veteran XP is applied in `OffSeasonUI.applyVeteranXp()` at wizard start (alongside `computeGoldBreakdown` and `applyArtisanFreeRepairs`); counts prior roster veterans (`isVeteran = true`) plus newly staying heroes from `newHeroesThisBattle`; removed from `onOffSeasonComplete` in index.html
+- [2026-06-10] Level-3 Veteran rank announcements trigger mid-battle via `_applyLevelUpAndAnnounce()` called after `awardXp` in `_handleDeath`; `_applyLevelUps()` now runs at XP-award time for the purpose of announcing L3, but level writeback to roster still happens in `_endBattle`
+- [2026-06-10] Rapid-fire Mage second projectile: `_findSecondMageTarget()` helper uses standard mage targeting logic excluding the primary target; no extra SFX for second shot
+- [2026-06-10] Area Healer splash: all friendlies (not in reserve, not dead, HP < max) within 0.75 tiles of the primary heal target also receive full heals; HP restored from AoE counts toward healer XP accumulation
+- [2026-06-10] Training step `_battleLevelUpSnapshot` is set on first render and the `gs.leveledUpThisBattle` array is cleared at that point; back-navigation replays without re-snapshotting
+
+## Training & Specialization (Off-Season Step)
+
+- [2026-06-10] New wizard step "Training & Specialization" inserted immediately before "Units and Deployment" (after Confirm Spending); wizard step formerly called "Personnel and Deployment" is renamed "Units and Deployment"
+- [2026-06-10] Step is conditional — shown when ANY of: a unit leveled up during last battle; veteran XP awards caused a level-up; a unit has a pending L3 specialization choice
+- [2026-06-10] Screen shows: battle level-ups ("Elara: L2 → L3"), veteran XP summary ("N staying veterans awarded 1 XP each to all units"), veteran-caused level-ups, and specialization choice cards for any unit that hit L3
+- [2026-06-10] Specialization choice cards block Next until all pending choices are made
+- [2026-06-10] Battle level-ups tracked via `GameState.leveledUpThisBattle` array (roster IDs); written in `_endBattle` alongside XP writeback; cleared at Training step render
+- [2026-06-10] Veteran XP (1 XP per staying veteran per off-season) is applied at Training step initialization, not in the Hero Departures step; level-ups from this XP are surfaced on the Training screen
+- [2026-06-10] Hero Departures step (Step 2) is scoped to year-7 ceremony and retention outcome only — no XP distribution
+- [2026-06-10] If veterans are on roster but their XP caused no level-ups and no specialization choices are pending, Training step is skipped
 
 ---
 

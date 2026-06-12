@@ -179,16 +179,17 @@ export function generateStarterRoster(gameState) {
     { cls: 'archer',  level: 2, xp: 5  },
     { cls: 'archer',  level: 2, xp: 5  },
     { cls: 'archer',  level: 2, xp: 5  },
-    { cls: 'warrior', level: 3, xp: 10 },
+    { cls: 'warrior', level: 3, xp: 10, specialization: 'heavy' },
   ];
 
-  const starters = specs.map(({ cls, level, xp }) => {
+  const starters = specs.map(({ cls, level, xp, specialization }) => {
     const unit = generateOne(cls, gameState);
-    unit.level         = level;
-    unit.xp            = xp;
-    unit.yearOfService = 1;
-    unit.isNewRecruit  = false;
-    unit.greeting      = pickSurvivorGreeting(cls);
+    unit.level          = level;
+    unit.xp             = xp;
+    unit.yearOfService  = 1;
+    unit.isNewRecruit   = false;
+    unit.greeting       = pickSurvivorGreeting(cls);
+    if (specialization) unit.specialization = specialization;
     return unit;
   });
 

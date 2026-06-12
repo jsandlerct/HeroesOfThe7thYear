@@ -33,8 +33,13 @@ export const GameState = {
   ],
 
   // Persistent unit roster. Each entry: { id, name, firstName, lastName, class,
-  // gender, age, portraitId, bio, level, xp, yearOfService, assignment, injured, isNewRecruit }
+  // gender, age, portraitId, bio, level, xp, yearOfService, assignment, isNewRecruit,
+  // specialization (null until chosen at L3), bonusHp, bonusDmg, hpBonus }
   roster: [],
+
+  // Roster IDs of units that gained at least one level during the last battle.
+  // Populated in BattleScene._endBattle; cleared when the Training step renders.
+  leveledUpThisBattle: [],
 
   commanderName: 'Commander',  // set on name-entry screen; used in unit greetings
 
@@ -63,11 +68,20 @@ export const GameState = {
 
   battleResult: null,
 
+  // Surprise Tactic stockpile — array of tactic key strings; max 3
+  // One tactic awarded per year (Year 2+) during the Gold Summary off-season step.
+  // Consumed on activation; unused tactics carry over between battles.
+  tactics: [],
+
   // ── Campaign ────────────────────────────────────────────────────────────────
   difficulty:      'easy',  // 'easy' | 'medium' | 'hard'
   campaignLength:  10,      // easy=10, medium=20, hard=30
 
   // Heroes who completed 7 years and chose to stay — tracked for Monument bonus
-  // Each entry: { id, name, class, yearGraduated }
+  // Each entry: { id, name, class, specialization, yearGraduated }
   graduatedHeroes: [],
+
+  // Heroes who completed 7 years and chose to go home — tracked for end screen
+  // Each entry: { id, name, class, specialization, portraitId, yearGraduated }
+  departedHeroes: [],
 };

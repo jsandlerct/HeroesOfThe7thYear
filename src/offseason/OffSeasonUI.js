@@ -6,9 +6,14 @@ import {
   HERO_RETENTION_CHANCE,
   GOLD_TAX_OPTIONS, GOLD_PER_MISSING_WALL_HP, GOLD_PER_DESTROYED_SEGMENT,
   ARTISAN_FREE_REPAIR_PER_LEVEL,
+  MAX_LEVEL, XP_THRESHOLDS,
+  TACTIC_MAX_STOCKPILE,
 } from '../data/constants.js';
-import { render as renderFallen }     from './steps/stepFallen.js';
-import { render as renderHeroes }     from './steps/stepHeroes.js';
+import { TACTIC_KEYS } from '../data/tactics.js';
+import { fadeOutMusic } from '../audio/MusicManager.js';
+import { render as renderFallen }   from './steps/stepFallen.js';
+import { render as renderHeroes }   from './steps/stepHeroes.js';
+import { render as renderTraining } from './steps/stepTraining.js';
 import { render as renderGold }       from './steps/stepGold.js';
 import { render as renderInvest }     from './steps/stepInvest.js';
 import { render as renderConfirm }    from './steps/stepConfirm.js';
@@ -56,8 +61,20 @@ const STEP_DEFS = [
     render: renderConfirm,
   },
   {
+    id: 'training',
+    label: 'Training & Specialization',
+    // Shown when units leveled up in battle, veteran XP caused level-ups,
+    // or any surviving unit has a pending L3 specialization choice.
+    conditional: (gs, ws) =>
+      (gs.leveledUpThisBattle?.length > 0) ||
+      (ws.veteranLevelUpIds?.length > 0) ||
+      gs.roster.some(u => !u.dead && u.level >= 3 && !u.specialization),
+    banner: 'assets/images/training banner.png',
+    render: renderTraining,
+  },
+  {
     id: 'personnel',
-    label: 'Personnel & Deployment',
+    label: 'Units & Deployment',
     conditional: null,
     banner: 'assets/images/deployment banner.png',
     render: renderPersonnel,
@@ -130,8 +147,10 @@ export function startOffSeason(gameState, onComplete) {
   }
 
   wizardState = buildFreshWizardState(gameState);
+  wizardState.tacticAwarded = awardTactic(gameState);
   resolveHeroRetention(gameState);
-  activeSteps = STEP_DEFS.filter(s => !s.conditional || s.conditional(gameState));
+  applyVeteranXp(gameState, wizardState);
+  activeSteps = STEP_DEFS.filter(s => !s.conditional || s.conditional(gameState, wizardState));
   stepIndex   = 0;
 
   showUI();
@@ -188,7 +207,21 @@ function buildFreshWizardState(gameState) {
     stayingHeroes:      [],
     scoutResult:        null,
     scoutedComposition: null,
+    veteranXpCount:     0,    // set by applyVeteranXp
+    veteranLevelUpIds:  [],   // roster IDs that leveled up from veteran XP
+    veteranDetails:     [],   // per-veteran { name, class, specialization, yearOfService }
   };
+}
+
+// Award one random Surprise Tactic (Year 2+ only; stockpile capped at TACTIC_MAX_STOCKPILE).
+// Returns the awarded tactic key, or null if Year 1 or stockpile is full.
+function awardTactic(gameState) {
+  if (gameState.year <= 1) return null;
+  if (!gameState.tactics) gameState.tactics = [];
+  if (gameState.tactics.length >= TACTIC_MAX_STOCKPILE) return null;
+  const key = TACTIC_KEYS[Math.floor(Math.random() * TACTIC_KEYS.length)];
+  gameState.tactics.push(key);
+  return key;
 }
 
 // Retention is resolved before the hero ceremony renders (GDD Section V).
@@ -197,6 +230,40 @@ function resolveHeroRetention(gameState) {
     if (hero.staying === undefined) {
       hero.staying = Math.random() < HERO_RETENTION_CHANCE;
     }
+  }
+}
+
+// Apply veteran XP bonus at wizard initialization (before steps render).
+// Each staying veteran on the active roster gives 1 XP to all surviving units.
+// Newly graduating heroes who are staying this season count too.
+function applyVeteranXp(gameState, wizardState) {
+  const priorVeterans  = gameState.roster.filter(u => !u.dead && u.isVeteran);
+  const newlyStaying   = gameState.newHeroesThisBattle.filter(h => h.staying);
+  const veteranCount   = priorVeterans.length + newlyStaying.length;
+  wizardState.veteranXpCount = veteranCount;
+
+  // Store per-veteran details for the Training step listing
+  wizardState.veteranDetails = [
+    ...priorVeterans.map(u => ({
+      name: u.name, class: u.class, specialization: u.specialization,
+      yearOfService: u.yearOfService,
+    })),
+    ...newlyStaying.map(u => ({
+      name: u.name, class: u.class, specialization: u.specialization,
+      yearOfService: u.yearOfService,
+    })),
+  ];
+
+  if (veteranCount === 0) return;
+
+  for (const ru of gameState.roster) {
+    if (ru.dead) continue;
+    const oldLevel = ru.level;
+    ru.xp = (ru.xp ?? 0) + veteranCount;
+    while (ru.level < MAX_LEVEL && ru.xp >= XP_THRESHOLDS[ru.level]) {
+      ru.level++;
+    }
+    if (ru.level > oldLevel) wizardState.veteranLevelUpIds.push(ru.id);
   }
 }
 
@@ -244,6 +311,7 @@ function advance(direction) {
 }
 
 function finish() {
+  fadeOutMusic(800);
   hideUI();
   if (onDone) onDone(wizardState);
 }

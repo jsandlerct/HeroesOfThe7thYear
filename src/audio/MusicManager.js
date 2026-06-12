@@ -87,6 +87,17 @@ export function setMusicEnabled(enabled) {
   if (_vo) _vo.volume = enabled ? 1.0 : 0;
 }
 
+// Sets playback rate of current track (1.0 = normal, 1.3 = 30% faster).
+// preservesPitch=false lets pitch rise with tempo for an urgency effect.
+// Resets automatically on next playMusic() call (new Audio element).
+export function setBattleRate(rate) {
+  if (!_current) return;
+  _current.playbackRate = rate;
+  _current.preservesPitch = false;
+  _current.mozPreservePitch = false;
+  _current.webkitPreservePitch = false;
+}
+
 function _stopImmediate() {
   clearInterval(_fadeTimer);
   if (_current) {

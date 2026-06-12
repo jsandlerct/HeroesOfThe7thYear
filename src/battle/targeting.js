@@ -53,15 +53,18 @@ function playerPressureActive(playerUnits, wallSegments) {
 }
 
 export function findTarget(unit, allUnits, wallSegments) {
-  const playerUnits = allUnits.filter(u => u.team === 'player' && !u.isDead && !u.isInReserve);
-  let   enemyUnits  = allUnits.filter(u => u.team === 'enemy'  && !u.isDead && !u.isInReserve && u.y >= 0);
+  const playerUnits    = allUnits.filter(u => u.team === 'player' && !u.isDead && !u.isInReserve);
+  const allEnemyUnits  = allUnits.filter(u => u.team === 'enemy'  && !u.isDead && !u.isInReserve && u.y >= 0);
+  let   enemyUnits     = allEnemyUnits;
 
-  // Apply targeting preference override for player units
+  // Apply targeting preference override for player units.
+  // Captured separately from allEnemyUnits so class-specific priority logic
+  // (engineer catapults, mage elites) can always see the full enemy pool.
   if (unit.team === 'player') {
     const group = TARGETING_GROUP[unit.type];
     const pref  = group && GameState.targetingPreference[group];
     if (pref && pref !== 'default') {
-      const preferred = enemyUnits.filter(e => e.type === pref);
+      const preferred = allEnemyUnits.filter(e => e.type === pref);
       if (preferred.length) enemyUnits = preferred;
     }
   }
@@ -77,11 +80,12 @@ export function findTarget(unit, allUnits, wallSegments) {
     }
 
     case 'engineer': {
-      const inRange = enemyUnits.filter(e => tileDist(unit, e) <= unit.range);
-      // 1. Catapults in range first
-      const catapultsInRange = inRange.filter(e => e.type === 'catapult');
+      // 1. Catapults in range — always checked against full enemy pool, immune to preference override
+      const allInRange = allEnemyUnits.filter(e => tileDist(unit, e) <= unit.range);
+      const catapultsInRange = allInRange.filter(e => e.type === 'catapult');
       if (catapultsInRange.length) return nearest(unit, catapultsInRange);
-      // 2. Largest clump — most enemies within aoeRadius of the candidate
+      // 2. Largest clump within preference-filtered pool
+      const inRange = enemyUnits.filter(e => tileDist(unit, e) <= unit.range);
       if (inRange.length) {
         const aoeR = unit.aoeRadius ?? 1.5;
         return inRange.reduce((best, c) => {
@@ -90,15 +94,15 @@ export function findTarget(unit, allUnits, wallSegments) {
           return cCount > bCount ? c : best;
         });
       }
-      return nearest(unit, enemyUnits);
+      return nearest(unit, allEnemyUnits);
     }
 
     case 'mage': {
-      const elites = enemyUnits.filter(e => e.isElite);
-      const elitesInRange = elites.filter(e => tileDist(unit, e) <= unit.range);
+      // Elite priority checked against full pool — immune to preference override
+      const elitesInRange = allEnemyUnits.filter(e => e.isElite && tileDist(unit, e) <= unit.range);
       if (elitesInRange.length) return nearest(unit, elitesInRange);
       const inRange = farthestInRange(unit, enemyUnits);
-      return inRange ?? nearest(unit, enemyUnits);
+      return inRange ?? nearest(unit, allEnemyUnits);
     }
 
     case 'healer':

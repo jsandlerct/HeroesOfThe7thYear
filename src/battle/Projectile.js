@@ -12,7 +12,8 @@ export class Projectile {
     this.scene       = scene;
     this.done        = false;
 
-    const style    = PROJECTILE_STYLES[attacker.type] ?? PROJ_DEFAULT_STYLE;
+    const styleKey = attacker.specialization ?? attacker.type;
+    const style    = PROJECTILE_STYLES[styleKey] ?? PROJECTILE_STYLES[attacker.type] ?? PROJ_DEFAULT_STYLE;
     this.speed     = style.speed;
     this.baseW     = style.w;
     this.baseH     = style.h;
@@ -35,7 +36,8 @@ export class Projectile {
       style.w, style.h, style.color
     ).setDepth(6).setRotation(Math.atan2(dy, dx));
 
-    this._trailColor = 0xcccccc;
+    this._trailColor = style.trailColor ?? 0xcccccc;
+    this._trailStyle = style.trailStyle ?? 'line';
     this._trail = scene.add.graphics().setDepth(5);
   }
 
@@ -52,15 +54,26 @@ export class Projectile {
       this.rect.setDisplaySize(this.baseW * scale, this.baseH * scale);
     }
 
-    // Trail — short fading line behind the projectile
+    // Trail — short fading line or ember scatter behind the projectile
     const trailTiles = Math.min(this.distTraveled, 0.35);
     this._trail.clear();
     if (trailTiles > 0.05) {
-      this._trail.lineStyle(2, this._trailColor, 0.5);
-      this._trail.beginPath();
-      this._trail.moveTo((this.x - this.vx * trailTiles) * TILE, (this.y - this.vy * trailTiles) * TILE);
-      this._trail.lineTo(this.x * TILE, this.y * TILE);
-      this._trail.strokePath();
+      if (this._trailStyle === 'flame') {
+        // Scattered orange ember dots along the trail
+        for (let i = 0; i < 5; i++) {
+          const t  = (i + 1) / 5;
+          const px = (this.x - this.vx * trailTiles * t) * TILE + (Math.random() - 0.5) * 5;
+          const py = (this.y - this.vy * trailTiles * t) * TILE + (Math.random() - 0.5) * 5;
+          this._trail.fillStyle(this._trailColor, 0.8 - t * 0.5);
+          this._trail.fillCircle(px, py, 1.5 + Math.random() * 1.5);
+        }
+      } else {
+        this._trail.lineStyle(2, this._trailColor, 0.5);
+        this._trail.beginPath();
+        this._trail.moveTo((this.x - this.vx * trailTiles) * TILE, (this.y - this.vy * trailTiles) * TILE);
+        this._trail.lineTo(this.x * TILE, this.y * TILE);
+        this._trail.strokePath();
+      }
     }
 
     const dx  = this.target.x - this.x;
@@ -76,9 +89,13 @@ export class Projectile {
       if (this.attacker.isAoe) {
         this.battleScene._applyAoeSplash(this.attacker, this.target, this.finalDmg);
       }
-    } else if (!this.target.isDead) {
-      this.battleScene._applyDamage(this.attacker, this.target, this.finalDmg, this.isCrit);
+    } else {
+      if (!this.target.isDead) {
+        this.battleScene._applyDamage(this.attacker, this.target, this.finalDmg, this.isCrit);
+      }
       if (this.attacker.isAoe) {
+        // AoE splash always fires — trebuchet/catapult explosions hit nearby enemies
+        // even if the primary target died before the slow projectile landed.
         this.battleScene._applyAoeSplash(this.attacker, this.target, this.finalDmg);
       }
     }

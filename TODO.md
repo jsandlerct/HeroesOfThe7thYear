@@ -199,12 +199,78 @@ Goal: Make the game actually playable end-to-end. Add enough visual and UX polis
 - [x] Music: intro theme (cinematic), offseason theme (off-season wizard), battle theme (starts on FIGHT!), victory (plays once), game over (plays on defeat after battle theme fades)
 - [ ] Responsive layout validation on mobile
 
-### Balance Tuning (Playtesting)
-- [ ] Validate Goblin armor scaling — flag if overwhelming at year 15+
-- [ ] Validate move speed values (Fast/Med/Slow in tiles/second)
-- [ ] Validate gold economy feel — is 100/year + wall damage enough?
-- [ ] Validate XP curve — does L5 feel earned after 7 years?
-- [ ] Validate elite threat level — do Ogres/Generals/Catapults feel scary?
+
+
+---
+
+## 🟣 Sprint 5 — Class Specialization
+
+Goal: Add a specialization choice at level 3 for all six player classes. Announced in battle, chosen in a new off-season Training & Specialization step. Adds visual distinction via color tints and meaningful stat/behavior divergence.
+
+### Data Layer
+- [x] Add `specialization` field to roster unit schema in `GameState.js` (null until chosen)
+- [x] Add `leveledUpThisBattle` array to `GameState.js` (roster IDs; cleared each off-season)
+- [x] Add specialization stat definitions to `src/data/units.js` (paths, stat deltas, color values)
+- [x] Extend `computeEffectiveDef` in `buildingBonuses.js` to apply specialization stats
+
+### Battle — Announcement & Tinting
+- [x] Write `leveledUpThisBattle` in `_endBattle` for all units that gained a level during the battle
+- [x] Add level-3 announcement in battle: "[Name] reached Veteran rank!" (brief on-screen text, same system as elite kill announcements)
+- [x] Apply specialization color tint (sprite fill color overridden via def.color in `computeEffectiveDef`) at spawn time when `specialization` is set
+
+### Battle — Specialization Behaviors
+- [x] Mounted Warrior: double move speed
+- [x] Heavy Warrior: armor 20% → 40%
+- [x] Longbow Archer: +2 range
+- [x] Sharpshooter Archer: +25% crit chance (stacks with base 5%)
+- [x] Explosive Mage: attacks deal AoE (0.75 tile radius) on impact
+- [x] Rapid-fire Mage: fires simultaneous second projectile at second valid target (standard Mage targeting)
+- [x] Area Healer: heal radiates 0.75 tiles from primary target, hitting all friendlies in radius
+- [x] Combat Healer: armor 10% → 30%
+- [x] Inspiring Captain: aura radius 1.5 → 2.0 tiles
+- [x] Heroic Captain: +50% DMG, +50% HP
+- [x] Flameshot Engineer: AoE radius +25%
+- [x] Anti-siege Engineer: AoE radius −25%, DMG +50%
+
+### Off-Season — Training & Specialization Step
+- [x] Create `src/offseason/steps/stepTraining.js`
+- [x] Insert as Step 3 in wizard (before Gold Summary); shift all subsequent step numbers
+- [x] Conditional: show when `leveledUpThisBattle.length > 0` OR veteran XP caused level-ups OR any unit has pending L3 choice
+- [x] Apply veteran XP at step init; collect resulting level-up IDs; clear `leveledUpThisBattle`
+- [x] Render battle level-up list, veteran XP summary line, veteran-caused level-ups
+- [x] Render specialization choice cards for units at L3 with no specialization; block Next until all resolved
+- [x] Remove veteran XP distribution from `stepHeroes.js`; scope Hero step to year-7 ceremony only
+- [x] Rename "Personnel and Deployment" → "Units and Deployment" throughout wizard and UI
+
+---
+
+## 🟤 Sprint 6 — Surprise Tactics
+
+Goal: Add the king's annual Surprise Tactic gift and the in-battle tactic activation system. Five one-time-use tactics add active decision-making to the battle phase without micromanagement.
+
+### Data Layer
+- [x] Create `src/data/tactics.js` — define all 5 Surprise Tactics (key, name, description, icon placeholder)
+- [x] Add `GameState.tactics` array (current stockpile, max 3)
+
+### Off-Season — Gold Summary Step
+- [x] Award 1 random Surprise Tactic at Gold Summary step (Year 2+ only; skip Year 1)
+- [x] Add tactic to `GameState.tactics` (cap at 3 — no award if already at max)
+- [x] Display flavor text on Gold Summary screen: king sends a general to train the wall units; reference last year's battle outcome; show which tactic was awarded
+
+### Battle — Surprise Tactic UI
+- [x] Add Surprise Tactic button strip below battle canvas (same row style as targeting controls bar)
+- [x] Render one button per available tactic, each with a distinct placeholder icon and label
+- [x] Remove button on activation (consumed); strip hidden if stockpile is empty
+
+### Battle — Tactic Behaviors
+- [x] **Mass Sortie** — apply 50% move speed boost to all non-Engineer units not on wall; force-deploy all reserve units as sortie; speed boost applies to already-deployed non-wall units too
+- [x] **Covering Fire** — all Archers fire one immediate free volley without consuming or resetting their attack timer
+- [x] **Barrage** — all Engineers and Mages fire one immediate free shot without consuming or resetting their attack timer
+- [x] **Healing Grace** — all Healers immediately trigger their heal regardless of cooldown; cooldown resets after
+- [x] **Shield Wall** — all Warriors and Captains gain +40% armor for 10 seconds; timed buff expires and reverts
+
+### Writeback
+- [x] Write surviving `GameState.tactics` (unused tactics) back to stockpile after battle ends
 
 ---
 
@@ -216,6 +282,13 @@ Goal: Make the game actually playable end-to-end. Add enough visual and UX polis
 - [ ] Enemy armor scaling curve — define year-over-year values
 - [ ] Monument bonus per level — define how much the hero retention/attack speed bonus increases per Monument level
 - [ ] Units per wall section cap — define hard limit or size-based
+
+### Balance Tuning (Playtesting)
+- [ ] Validate Goblin armor scaling — flag if overwhelming at year 15+
+- [ ] Validate move speed values (Fast/Med/Slow in tiles/second)
+- [ ] Validate gold economy feel — is 100/year + wall damage enough?
+- [ ] Validate XP curve — does L5 feel earned after 7 years?
+- [ ] Validate elite threat level — do Ogres/Generals/Catapults feel scary?
 
 ---
 

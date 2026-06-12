@@ -7,12 +7,12 @@ import { GameState } from '../state/GameState.js';
 import { findTarget, findHealTarget, tileDist } from './targeting.js';
 import { Projectile } from './Projectile.js';
 import { computeEffectiveDef, applyLevelUpsToRosterUnit } from './buildingBonuses.js';
-import { playMusic, fadeOutMusic } from '../audio/MusicManager.js';
+import { playMusic, fadeOutMusic, setBattleRate } from '../audio/MusicManager.js';
 import {
   TILE, MAP_W, MAP_H, WALL_ROW, WALL_SECTION_W,
   COLOR_WALL_FILL,
   RESERVE_ZONE_ROWS, ENEMY_RESERVE_ROW, PLAYER_RESERVE_ROW,
-  ENEMY_RESERVE_DEPLOY_S, RESERVE_ALARM_ROW,
+  ENEMY_RESERVE_DEPLOY_S, ENEMY_RESERVE_DEPLOY_JITTER, RESERVE_ALARM_ROW,
   ATK_RANGE_BUFFER, MAX_DR, ROUT_THRESHOLD,
   CRIT_CHANCE, CRIT_MULTIPLIER,
   WALL_BREACH_DROP, SLOMOER_SCALE, NUDGE_STOP_DIST,
@@ -22,6 +22,7 @@ import {
   COLOR_ENEMY_TERRITORY, COLOR_PLAYER_TERRITORY, ALPHA_GRID,
   COLOR_ENEMY_RESERVE_ZONE, ALPHA_ENEMY_RESERVE_ZONE,
   COLOR_PLAYER_RESERVE_ZONE, ALPHA_PLAYER_RESERVE_ZONE,
+  SHIELD_WALL_DURATION_S, SHIELD_WALL_ARMOR_BONUS,
 } from '../data/constants.js';
 
 export class BattleScene extends Phaser.Scene {
@@ -75,9 +76,15 @@ export class BattleScene extends Phaser.Scene {
     this.battleTime      = 0;
     this.playerReserve   = [];
     this.enemyReserve    = [];
-    this._alarmTriggered    = false;
-    this._routTriggered     = false;
-    this._enemyMoveStarted  = false;
+    this._alarmTriggered       = false;
+    this._routTriggered        = false;
+    this._enemyMoveStarted     = false;
+    this._catapultRushTriggered = false;  // set once when only catapults remain
+    GameState.battleResult     = null;   // reset from prior battle so tactic buttons work
+    // Randomize enemy reserve deploy time ±JITTER seconds so each battle feels different.
+    // All slots share the same value so the entire reserve wave deploys together.
+    this._reserveDeployTime = ENEMY_RESERVE_DEPLOY_S +
+      (Math.random() * 2 - 1) * ENEMY_RESERVE_DEPLOY_JITTER;
     this._deployMenu     = null;
 
     this._buildMap();
@@ -90,6 +97,11 @@ export class BattleScene extends Phaser.Scene {
 
     this.startingEnemyCount       = this.units.filter(u => u.team === 'enemy').length;
     this.startingActiveEnemyCount = this.units.filter(u => u.team === 'enemy' && !u.isInReserve).length;
+
+    this._tacticHandler = (e) => {
+      if (!this.battleOver && !this.countdownActive) this._activateTactic(e.detail.key);
+    };
+    document.addEventListener('activateTactic', this._tacticHandler);
 
     this._sfx('sfx_battle_start');
     this._startCountdown();
@@ -480,7 +492,7 @@ export class BattleScene extends Phaser.Scene {
 
     this._populateEnemyReserve(0, [{ type: 'orc',     count: 10 }], 'left_after_delay');
     this._populateEnemyReserve(1, [{ type: 'goblin',  count: 10 }], 'center_after_delay');
-    this._populateEnemyReserve(2, [{ type: 'general', count:  5 }], 'wait_for_breach');
+    this._populateEnemyReserve(2, [{ type: 'general', count:  5 }], 'center_after_delay');
   }
 
   // ─────────────────────────────────────────────
@@ -542,6 +554,8 @@ export class BattleScene extends Phaser.Scene {
     this.announceText = this.add.text(W / 2, MAP_H * TILE / 2 - 40, '', {
       fontSize: '22px', color: '#ffdd44', fontStyle: 'bold',
       stroke: '#000000', strokeThickness: 4,
+      wordWrap: { width: W - 32 },
+      align: 'center',
     }).setOrigin(0.5, 0.5).setDepth(11).setVisible(false);
 
     this.timerText = this.add.text(W / 2, 6, '0:00', {
@@ -586,26 +600,32 @@ export class BattleScene extends Phaser.Scene {
     const x_C     = W / 2;
     const x_R     = W * 3 / 4;
     const rowH    = 28;
-    const yBase   = PLAYER_RESERVE_ROW * TILE - 8;
+    // Anchor menu inside the reserve zone (bottom of canvas) so it doesn't cover the active battlefield
+    const yBase   = MAP_H * TILE - 20;
     const y_sort  = yBase - rowH * 2;
     const y_reinf = yBase - rowH;
     const y_cncl  = yBase;
 
     const ROWS = [
       [
-        { label: 'Sortie L',    action: 'sortie_left',      x: x_L },
-        { label: 'Sortie C',    action: 'sortie_center',    x: x_C },
-        { label: 'Sortie R',    action: 'sortie_right',     x: x_R },
+        { label: 'Sortie Left',      action: 'sortie_left',      x: x_L },
+        { label: 'Sortie Center',    action: 'sortie_center',    x: x_C },
+        { label: 'Sortie Right',     action: 'sortie_right',     x: x_R },
       ],
       [
-        { label: 'Reinforce L', action: 'reinforce_left',   x: x_L },
-        { label: 'Reinforce C', action: 'reinforce_center', x: x_C },
-        { label: 'Reinforce R', action: 'reinforce_right',  x: x_R },
+        { label: 'Reinforce Left',   action: 'reinforce_left',   x: x_L },
+        { label: 'Reinforce Center', action: 'reinforce_center', x: x_C },
+        { label: 'Reinforce Right',  action: 'reinforce_right',  x: x_R },
       ],
     ];
     const ROW_Y = [y_sort, y_reinf];
 
-    const bg = this.add.rectangle(W / 2, (y_sort + y_cncl) / 2, W - 24, rowH * 3 + 8, 0x000000, 0.80)
+    // Dim the whole canvas behind the menu and dismiss on outside click
+    const dismissZone = this.add.rectangle(W / 2, MAP_H * TILE / 2, W, MAP_H * TILE, 0x000000, 0.25)
+      .setDepth(18).setInteractive();
+    dismissZone.on('pointerdown', () => this._hideDeployMenu());
+
+    const bg = this.add.rectangle(W / 2, (y_sort + y_cncl) / 2, W - 24, rowH * 3 + 8, 0x000000, 0.90)
       .setDepth(19);
 
     const makeBtn = (opt, y) => {
@@ -628,6 +648,7 @@ export class BattleScene extends Phaser.Scene {
     cancel.on('pointerdown',  () => this._hideDeployMenu());
 
     this._deployMenu = [
+      dismissZone,
       bg,
       ...ROWS.flatMap((row, ri) => row.map(opt => makeBtn(opt, ROW_Y[ri]))),
       cancel,
@@ -712,16 +733,7 @@ export class BattleScene extends Phaser.Scene {
       if (slot.deployed) continue;
       if (slot.units.every(u => u.isDead)) continue;
 
-      let trigger = false;
-      switch (slot.logic) {
-        case 'wait_for_breach':          trigger = anyBreached; break;
-        case 'left_after_delay':
-        case 'center_after_delay':
-        case 'right_after_delay':
-          // Release on breach OR when timer expires
-          trigger = anyBreached || this.battleTime >= ENEMY_RESERVE_DEPLOY_S;
-          break;
-      }
+      const trigger = anyBreached || this.battleTime >= this._reserveDeployTime;
       if (trigger) this._deployEnemySlot(slot);
     }
   }
@@ -772,6 +784,7 @@ export class BattleScene extends Phaser.Scene {
 
     this._updateStatus();
     this._checkReserves();
+    this._checkCatapultRush();
     this._checkRout();
     this._checkRoundEnd();
   }
@@ -851,6 +864,17 @@ export class BattleScene extends Phaser.Scene {
         if (hasEliteInRange) unit.target = null;
       }
 
+      // Engineer: yield current non-catapult target when a catapult enters range (default pref only)
+      if (unit.type === 'engineer' && unit.target && !unit.target.isWall &&
+          unit.target.type !== 'catapult' &&
+          GameState.targetingPreference.siege === 'default') {
+        const hasCatapultInRange = this.units.some(e =>
+          e.team === 'enemy' && !e.isDead && !e.isInReserve && e.type === 'catapult' &&
+          e.y >= 0 && tileDist(unit, e) <= unit.range
+        );
+        if (hasCatapultInRange) unit.target = null;
+      }
+
       if (!unit.target) {
         unit.target = findTarget(unit, this.units, this.walls);
       }
@@ -908,10 +932,24 @@ export class BattleScene extends Phaser.Scene {
         if (unit.healTimer <= 0) {
           const healTgt = findHealTarget(unit, this.units);
           if (healTgt) {
-            const hpRestored = healTgt.maxHp - healTgt.hp;
+            let totalHpRestored = healTgt.maxHp - healTgt.hp;
             healTgt.hp = healTgt.maxHp;
             healTgt.triggerHealGlow(this);
-            unit.healXpAccum = (unit.healXpAccum ?? 0) + hpRestored;
+
+            // Area Healer: also restore allies within 0.75 tiles of the primary target
+            if (unit.areaHeal) {
+              const splash = this.units.filter(u =>
+                u !== healTgt && u.team === 'player' && !u.isDead && !u.isInReserve &&
+                u.hp < u.maxHp && tileDist(u, healTgt) <= 0.75
+              );
+              for (const ally of splash) {
+                totalHpRestored += ally.maxHp - ally.hp;
+                ally.hp = ally.maxHp;
+                ally.triggerHealGlow(this);
+              }
+            }
+
+            unit.healXpAccum = (unit.healXpAccum ?? 0) + totalHpRestored;
             const xpEarned = Math.floor(unit.healXpAccum / HEALER_XP_PER_HP);
             if (xpEarned > 0) {
               unit.awardXp(xpEarned);
@@ -1012,6 +1050,22 @@ export class BattleScene extends Phaser.Scene {
   // ─────────────────────────────────────────────
   // COMBAT
   // ─────────────────────────────────────────────
+
+  // Rapid-fire Mage: second valid target excluding `primaryTarget`.
+  // Uses standard Mage logic: nearest elite in range, else furthest in range.
+  _findSecondMageTarget(mage, primaryTarget) {
+    const enemies = this.units.filter(u =>
+      u.team === 'enemy' && !u.isDead && !u.isInReserve && u.y >= 0 && u !== primaryTarget
+    );
+    const elitesInRange = enemies.filter(e => e.isElite && tileDist(mage, e) <= mage.range);
+    if (elitesInRange.length) {
+      return elitesInRange.reduce((best, c) => tileDist(mage, c) < tileDist(mage, best) ? c : best);
+    }
+    const inRange = enemies.filter(e => tileDist(mage, e) <= mage.range);
+    if (!inRange.length) return null;
+    return inRange.reduce((best, c) => tileDist(mage, c) > tileDist(mage, best) ? c : best);
+  }
+
   _getAuraBonus(attacker) {
     const auraProviders = this.units.filter(u =>
       u.team === attacker.team && !u.isDead && u !== attacker &&
@@ -1032,7 +1086,7 @@ export class BattleScene extends Phaser.Scene {
     effectiveDR = Math.min(effectiveDR, MAX_DR);
     let finalDmg = Math.max(1, Math.floor(baseDmg * (1 - effectiveDR)));
 
-    const isCrit = attacker.team === 'player' && Math.random() < CRIT_CHANCE;
+    const isCrit = attacker.team === 'player' && Math.random() < attacker.critChance;
     if (isCrit) finalDmg = Math.floor(finalDmg * CRIT_MULTIPLIER);
 
     if (attacker.range > 1) {
@@ -1045,6 +1099,23 @@ export class BattleScene extends Phaser.Scene {
         case 'mage':     this._sfx('sfx_mage');     break;
         case 'engineer': this._sfx('sfx_catapult'); break;
         case 'catapult': this._sfx('sfx_catapult'); break;
+      }
+
+      // Rapid-fire Mage: fire a simultaneous second projectile at another valid target
+      if (attacker.rapidFire && attacker.type === 'mage') {
+        const secondTarget = this._findSecondMageTarget(attacker, target);
+        if (secondTarget && !secondTarget.isWall) {
+          const baseDmg2      = attacker.dmg * (1 + this._getAuraBonus(attacker));
+          let   dr2           = attacker.ignoresArmor ? 0 : secondTarget.armor +
+            (secondTarget.isOnWall && secondTarget.wallSection ? secondTarget.wallSection.getDamageReduction() : 0);
+          dr2 = Math.min(dr2, MAX_DR);
+          let finalDmg2 = Math.max(1, Math.floor(baseDmg2 * (1 - dr2)));
+          const isCrit2 = Math.random() < attacker.critChance;
+          if (isCrit2) finalDmg2 = Math.floor(finalDmg2 * CRIT_MULTIPLIER);
+          const proj2 = new Projectile(attacker, secondTarget, finalDmg2, this, this);
+          proj2.isCrit = isCrit2;
+          this.projectiles.push(proj2);
+        }
       }
     } else {
       this._applyDamage(attacker, target, finalDmg, isCrit);
@@ -1127,6 +1198,19 @@ export class BattleScene extends Phaser.Scene {
   // ─────────────────────────────────────────────
   // DEATH & XP
   // ─────────────────────────────────────────────
+
+  // Call after awardXp to resolve level-ups and announce reaching Veteran rank (L3).
+  _applyLevelUpAndAnnounce(unit) {
+    const prevLevel = unit.level;
+    unit._applyLevelUps();
+    if (prevLevel < 3 && unit.level >= 3) {
+      const ru         = unit.rosterId != null ? GameState.roster.find(r => r.id === unit.rosterId) : null;
+      const classLabel = unit.type.charAt(0).toUpperCase() + unit.type.slice(1);
+      const name       = ru?.name ?? classLabel;
+      this._showAnnouncement(`${name} (${classLabel}) reached Veteran rank!`, '#aaddff');
+    }
+  }
+
   _startDeathAnimation(unit) {
     // Greyscale sprite and icon via ColorMatrix postFX
     for (const obj of [unit.sprite, unit.icon]) {
@@ -1171,13 +1255,17 @@ export class BattleScene extends Phaser.Scene {
     if (killer && !killer.isDead) {
       const killXp = unit.isElite ? 6 : 2;
       killer.awardXp(killXp);
+      if (killer.team === 'player') this._applyLevelUpAndAnnounce(killer);
     }
     for (const [idStr, dmg] of Object.entries(unit.damageBy)) {
       const id = Number(idStr);
       if (killer && id === killer.id) continue;
       if (dmg / unit.maxHp >= 0.30) {
         const helper = this.units.find(u => u.id === id && !u.isDead);
-        if (helper) helper.awardXp(1);
+        if (helper) {
+          helper.awardXp(1);
+          if (helper.team === 'player') this._applyLevelUpAndAnnounce(helper);
+        }
       }
     }
 
@@ -1218,6 +1306,48 @@ export class BattleScene extends Phaser.Scene {
     }
     this._sfx('sfx_breach');
     this._showAnnouncement(`${seg.section.toUpperCase()} WALL BREACHED!`, '#ff4444');
+    if (!this._battleMusicBoosted) {
+      this._battleMusicBoosted = true;
+      setBattleRate(1.1);
+    }
+  }
+
+  // When only catapults remain (no other active enemy units), all player melee
+  // units (Warriors and Captains) sortie toward the nearest catapult.
+  // Triggered once per battle when the condition first becomes true.
+  _checkCatapultRush() {
+    if (this._catapultRushTriggered || this._routTriggered) return;
+
+    const activeEnemies = this.units.filter(u => u.team === 'enemy' && !u.isDead && !u.isInReserve);
+    if (activeEnemies.length === 0) return;
+    const onlyCatapults = activeEnemies.every(u => u.type === 'catapult');
+    if (!onlyCatapults) return;
+
+    this._catapultRushTriggered = true;
+    this._showAnnouncement('Only catapults remain — charge!', '#ff8844');
+
+    // Force-deploy all player melee reserves as sortie
+    for (const slot of this.playerReserve) {
+      if (!slot.deployed) {
+        const hasMelee = slot.units.some(u => !u.isDead && (u.type === 'warrior' || u.type === 'captain'));
+        if (hasMelee) this._deployPlayerSlot(slot, 'sortie_center');
+      }
+    }
+
+    // All living wall/field melee units: clear stationary/wall state and target nearest catapult
+    for (const u of this.units) {
+      if (u.team !== 'player' || u.isDead || u.isInReserve) continue;
+      if (u.type !== 'warrior' && u.type !== 'captain') continue;
+      const nearestCat = activeEnemies.reduce((best, c) =>
+        tileDist(u, c) < tileDist(u, best) ? c : best
+      );
+      u.target           = nearestCat;
+      u.isStationary     = false;
+      u.isOnWall         = false;
+      u.wallSection      = null;
+      u.reinforceSection = null;
+      u.waypoint         = null;
+    }
   }
 
   // ─────────────────────────────────────────────
@@ -1269,12 +1399,12 @@ export class BattleScene extends Phaser.Scene {
   // SFX HELPERS
   // ─────────────────────────────────────────────
   _sfx(key) {
-    if (!GameState.soundEnabled) return;
+    if (this.battleOver || !GameState.soundEnabled) return;
     this.sound.play(key);
   }
 
   _sfxMelee() {
-    if (!GameState.soundEnabled) return;
+    if (this.battleOver || !GameState.soundEnabled) return;
     const now = Date.now();
     this._sfxCooldowns ??= {};
     if (now - (this._sfxCooldowns.melee ?? 0) < 120) return;
@@ -1283,7 +1413,7 @@ export class BattleScene extends Phaser.Scene {
   }
 
   _sfxWallHit() {
-    if (!GameState.soundEnabled) return;
+    if (this.battleOver || !GameState.soundEnabled) return;
     const now = Date.now();
     this._sfxCooldowns ??= {};
     if (now - (this._sfxCooldowns.orc_wall ?? 0) < 250) return;
@@ -1291,17 +1421,127 @@ export class BattleScene extends Phaser.Scene {
     this.sound.play('sfx_orc_wall');
   }
 
+  // ─────────────────────────────────────────────
+  // SURPRISE TACTICS
+  // ─────────────────────────────────────────────
+  _activateTactic(key) {
+    switch (key) {
+      case 'massSortie':   this._tacticMassSortie();   break;
+      case 'coveringFire': this._tacticCoveringFire();  break;
+      case 'barrage':      this._tacticBarrage();       break;
+      case 'healingGrace': this._tacticHealingGrace();  break;
+      case 'shieldWall':   this._tacticShieldWall();    break;
+    }
+  }
+
+  // All non-Engineer, non-wall player units get a 50% move speed boost.
+  // All undeploy player reserves are force-deployed as a sortie toward their section.
+  _tacticMassSortie() {
+    for (const slot of this.playerReserve) {
+      if (!slot.deployed) this._deployPlayerSlot(slot, 'sortie_' + slot.section);
+    }
+    for (const u of this.units) {
+      if (u.team !== 'player' || u.isDead || u.isInReserve) continue;
+      if (u.isOnWall || u.type === 'engineer') continue;
+      u.moveSpeed *= 1.5;
+    }
+    this._showAnnouncement('⚔ Mass Sortie!', '#ffdd44');
+  }
+
+  // All Archers fire one immediate free volley (does not reset attack timer).
+  _tacticCoveringFire() {
+    const liveEnemies = this.units.filter(e => e.team === 'enemy' && !e.isDead && !e.isInReserve && e.y >= 0);
+    for (const u of this.units) {
+      if (u.team !== 'player' || u.isDead || u.isInReserve) continue;
+      if (u.type !== 'archer') continue;
+      // Only fire at enemies actually in range — farthest in range, matching normal archer priority
+      const inRange = liveEnemies.filter(e => tileDist(u, e) <= u.range + ATK_RANGE_BUFFER);
+      if (!inRange.length) continue;
+      const tgt = inRange.reduce((best, c) => tileDist(u, c) > tileDist(u, best) ? c : best);
+      this._attackUnit(u, tgt);
+    }
+    this._showAnnouncement('🏹 Covering Fire!', '#ffdd44');
+  }
+
+  // All Engineers and Mages fire one immediate free shot (does not reset attack timer).
+  _tacticBarrage() {
+    const liveEnemies = this.units.filter(e => e.team === 'enemy' && !e.isDead && !e.isInReserve && e.y >= 0);
+    for (const u of this.units) {
+      if (u.team !== 'player' || u.isDead || u.isInReserve) continue;
+      if (u.type !== 'engineer' && u.type !== 'mage') continue;
+      const inRange = liveEnemies.filter(e => tileDist(u, e) <= u.range + ATK_RANGE_BUFFER);
+      if (!inRange.length) continue;
+      // findTarget honors catapult/elite priority; if it returns out-of-range, fall back to inRange[0]
+      const ft = findTarget(u, this.units, this.walls);
+      const tgt = (ft && !ft.isWall && inRange.includes(ft)) ? ft : inRange[0];
+      this._attackUnit(u, tgt);
+    }
+    this._showAnnouncement('💥 Barrage!', '#ffdd44');
+  }
+
+  // All Healers immediately trigger their heal; cooldown resets to full after.
+  _tacticHealingGrace() {
+    for (const u of this.units) {
+      if (u.team !== 'player' || u.isDead || u.isInReserve) continue;
+      if (!u.isHealer) continue;
+      const healTgt = findHealTarget(u, this.units);
+      if (healTgt) {
+        let totalHpRestored = healTgt.maxHp - healTgt.hp;
+        healTgt.hp = healTgt.maxHp;
+        healTgt.triggerHealGlow(this);
+        if (u.areaHeal) {
+          const splash = this.units.filter(ally =>
+            ally !== healTgt && ally.team === 'player' && !ally.isDead && !ally.isInReserve &&
+            ally.hp < ally.maxHp && tileDist(ally, healTgt) <= 0.75
+          );
+          for (const ally of splash) {
+            totalHpRestored += ally.maxHp - ally.hp;
+            ally.hp = ally.maxHp;
+            ally.triggerHealGlow(this);
+          }
+        }
+        u.healXpAccum = (u.healXpAccum ?? 0) + totalHpRestored;
+        const xpEarned = Math.floor(u.healXpAccum / HEALER_XP_PER_HP);
+        if (xpEarned > 0) {
+          u.awardXp(xpEarned);
+          u.healXpAccum -= xpEarned * HEALER_XP_PER_HP;
+        }
+      }
+      u.healTimer = u.healInterval;
+    }
+    this._showAnnouncement('✦ Healing Grace!', '#88ccff');
+  }
+
+  // All Warriors and Captains gain +40% armor for 10 seconds, then revert.
+  _tacticShieldWall() {
+    const affected = [];
+    for (const u of this.units) {
+      if (u.team !== 'player' || u.isDead || u.isInReserve) continue;
+      if (u.type !== 'warrior' && u.type !== 'captain') continue;
+      u.armor += SHIELD_WALL_ARMOR_BONUS;
+      affected.push(u);
+    }
+    this.time.delayedCall(SHIELD_WALL_DURATION_S * 1000, () => {
+      for (const u of affected) {
+        if (!u.isDead) u.armor -= SHIELD_WALL_ARMOR_BONUS;
+      }
+    });
+    this._showAnnouncement('🛡 Shield Wall!', '#ffdd44');
+  }
+
   _endBattle(result) {
     if (this.battleOver) return;
     this.battleOver = true;
     this._hideDeployMenu();
+    document.removeEventListener('activateTactic', this._tacticHandler);
 
     // Award "took damage" XP to surviving (non-dead) player units
     for (const u of this.units) {
       if (u.team === 'player' && !u.isDead && u.damageTaken > 0) u.awardXp(1);
     }
 
-    // Write XP and level back to surviving roster units
+    // Write XP and level back to surviving roster units; track which leveled up
+    GameState.leveledUpThisBattle = GameState.leveledUpThisBattle ?? [];
     for (const u of this.units) {
       if (u.team !== 'player' || u.rosterId == null) continue;
       const ru = GameState.roster.find(r => r.id === u.rosterId);
@@ -1312,6 +1552,7 @@ export class BattleScene extends Phaser.Scene {
       ru.bonusDmg = u.bonusDmg;
       applyLevelUpsToRosterUnit(ru);
       if (ru.class === 'engineer') ru.level = Math.min(ru.level, startLevel + 1);
+      if (ru.level > startLevel) GameState.leveledUpThisBattle.push(ru.id);
     }
 
     // Write wall HP back to GameState so off-season gold and repair screens
@@ -1321,6 +1562,7 @@ export class BattleScene extends Phaser.Scene {
       if (seg) seg.hp = wall.hp;
     }
 
+    this.sound.stopAll();
     if (result === 'victory') {
       playMusic('victory', { loop: false });
     } else {

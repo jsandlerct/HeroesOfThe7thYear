@@ -419,7 +419,7 @@
     <h1 class="title">Heroes of the<br>Seventh Year</h1>
     <div class="subtitle">A Wall Defense &amp; Generational Strategy Game</div>
     <div class="ornament">⚔ ✦ ⚔</div>
-    <div class="header-meta">Version 0.6 &nbsp;·&nbsp; Sprint 1 Complete · Sprint 2 Design · World &amp; Culture · Off Season Detail</div>
+    <div class="header-meta">Version 0.8 &nbsp;·&nbsp; Sprint 1 Complete · Sprint 2 Design · World &amp; Culture · Off Season Detail · Class Specialization · Surprise Tactics</div>
   </header>
 
   <!-- Table of Contents -->
@@ -433,6 +433,8 @@
       <li><a href="#recruit-rules">Recruit Generation Rules</a></li>
       <li><a href="#battle">The Battle Phase</a></li>
       <li><a href="#units">Unit Archetypes</a></li>
+      <li><a href="#specialization">Class Specialization</a></li>
+      <li><a href="#surprise-tactics">Surprise Tactics</a></li>
       <li><a href="#enemies">Enemy Types &amp; Tactics</a></li>
       <li><a href="#progression">Progression &amp; Legacy Systems</a></li>
       <li><a href="#buildings">Buildings &amp; Infrastructure</a></li>
@@ -608,6 +610,7 @@
       <div class="phase-label">Step 3</div>
       <h4>Gold Summary</h4>
       <p>Displays the player's current gold total: carryover from the prior season plus any new gold earned from wall damage. Breakdowns for base income, missing-HP bonus, and destroyed-segment bonus are shown separately. This is an informational screen — no choices are made here.</p>
+      <p style="margin-top:12px;"><strong style="color:var(--gold-light);">Surprise Tactic Award (Year 2+):</strong> The king awards one Surprise Tactic per year, delivered at this step. The flavor text frames it as the king sending one of his generals to train the wall units — with wording that acknowledges last year's battle outcome. The awarded tactic is added to the player's stockpile (maximum 3). If the stockpile is already full, no new tactic is awarded. Year 1's battle begins with no tactics available. See <a href="#surprise-tactics" style="color:var(--gold-light);">Section VIII-C — Surprise Tactics</a> for the full tactic list and battle mechanics.</p>
     </div>
 
     <div class="phase">
@@ -630,8 +633,22 @@
     </div>
 
     <div class="phase">
-      <div class="phase-label">Step 6</div>
-      <h4>Personnel &amp; Deployment Assignment</h4>
+      <div class="phase-label">Step 6 (conditional)</div>
+      <h4>Training &amp; Specialization</h4>
+      <p>Shown when any of the following are true: a unit leveled up during the last battle; a staying veteran's XP bonus caused a level-up; a unit has a pending Level 3 specialization choice. If veterans are on the roster but their XP caused no level-ups and no specialization choices are pending, this step is skipped.</p>
+      <p style="margin-top:12px;">The screen shows three categories of information:</p>
+      <ul style="list-style:none; padding-left:0; color:var(--parchment-dark); margin-top:8px;">
+        <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--gold-light)">Battle Level-Ups</strong> — All units that gained a level during the last battle, shown with their old and new level (e.g. "Elara: L2 → L3").</li>
+        <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--gold-light)">Veteran XP</strong> — A summary line indicating how many staying veterans awarded XP and to whom, followed by any level-ups that resulted.</li>
+        <li style="padding:6px 0;">— <strong style="color:var(--gold-light)">Specialization Choices</strong> — Choice cards for every unit that has reached Level 3 without a specialization. The player must resolve all pending choices before advancing.</li>
+      </ul>
+      <p style="margin-top:12px;">Veteran XP (1 XP per staying veteran, awarded to all roster units each off season) is applied at the start of this step. The Hero Departures step (Step 2) handles only the year-7 ceremony — XP distribution happens here.</p>
+      <p style="margin-top:12px;">See <a href="#specialization" style="color:var(--gold-light);">Section VIII-B — Class Specialization</a> for full specialization rules.</p>
+    </div>
+
+    <div class="phase">
+      <div class="phase-label">Step 7</div>
+      <h4>Units &amp; Deployment Assignment</h4>
       <p>The core personnel management screen. Displays all soldiers — existing roster plus newly arrived recruits — in a single sortable, filterable table. Filter and sort state persists for the duration of this off season and resets at the start of the next.</p>
 
       <p style="margin-top:12px;"><strong style="color:var(--gold-light);">Table Columns:</strong> Name · Class · Year of Service · Level · Assignment</p>
@@ -650,25 +667,26 @@
     </div>
 
     <div class="phase">
-      <div class="phase-label">Step 7</div>
+      <div class="phase-label">Step 8</div>
       <h4>Deployment Preview</h4>
-      <p>A visual representation of the upcoming battle deployment based on the assignments set in Step 6. Shows all wall units in position across the three wall sections, and all reserve units staged in their respective reserve zones, mirroring the battle map layout. The player can review the composition visually and go back to Step 6 to revise assignments if needed. Proceeding from here advances to the scout phase (if applicable) or ends the off season.</p>
+      <p>A visual representation of the upcoming battle deployment based on the assignments set in Step 7. Shows all wall units in position across the three wall sections, and all reserve units staged in their respective reserve zones, mirroring the battle map layout. The player can review the composition visually and go back to Step 7 to revise assignments if needed. Proceeding from here advances to the scout phase (if applicable) or ends the off season.</p>
     </div>
 
     <div class="phase">
-      <div class="phase-label">Step 8 (conditional)</div>
+      <div class="phase-label">Step 9 (conditional)</div>
       <h4>Scout Deployment</h4>
       <p>Shown only if the player has one or more Scouts available. The player chooses whether to send Scouts out this year. If yes, results are returned after a brief delay (~3 seconds):</p>
       <ul style="list-style:none; padding-left:0; color:var(--parchment-dark); margin-top:8px;">
-        <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:#5a9e6f">Success (60%)</strong> — Enemy composition revealed. Player may return to Step 6 to revise deployments in light of the intel.</li>
+        <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:#5a9e6f">Success (60%)</strong> — Enemy composition revealed. Player may return to Step 7 to revise deployments in light of the intel.</li>
         <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— <strong style="color:var(--gold)">Fail (30%)</strong> — Scouts found nothing. No intel gained.</li>
         <li style="padding:6px 0;">— <strong style="color:var(--blood)">Captured (10%)</strong> — Scout is permanently removed from the roster.</li>
       </ul>
-      <p style="margin-top:12px;">If intel is successfully returned, the player is given the option to go back to Step 6 and revise assignments before proceeding. The Deployment Preview (Step 7) is shown again after any revision.</p>
+      <p style="margin-top:12px;">If intel is successfully returned, the player is given the option to go back to Step 7 to revise assignments before proceeding. The Deployment Preview (Step 8) is shown again after any revision.</p>
     </div>
 
     <h3>Character Generation</h3>
     <p>Recruit generation is triggered after building choices are confirmed in Step 5. The full rules governing class distribution, name assignment, portrait allocation, and bio selection are documented in <a href="#recruit-rules" style="color:var(--gold-light);">Section VI — Recruit Generation Rules</a>.</p>
+    <!-- Changelog: Step order revised — Training & Specialization moved from Step 3 to Step 6 (after Confirm Spending, before Units & Deployment). Steps 4–6 renumbered to 3–5. -->
   </section>
 
   <div class="divider">· · ·</div>
@@ -717,6 +735,7 @@
       <h4>The Hero Departures</h4>
       <p>All seven-year heroes are displayed together as a list. Each entry shows the soldier's portrait (at standard size), full name, class, and an indication of their outcome — departed or staying.</p>
       <p style="margin-top:12px;">Each hero has a 25% chance to stay and help train others, and a 75% chance to depart as a hero. Both outcomes count toward the Monument bonus. The outcome is determined at the moment this screen renders and is shown directly on each hero's entry.</p>
+      <p style="margin-top:12px;">The Hero Departures step covers only the year-7 ceremony and retention outcome. The XP bonus that staying veterans award to the roster each off season (1 XP per staying veteran) is applied and displayed in the Training &amp; Specialization step (Step 3), not here.</p>
       <p style="margin-top:12px;">Heroes who depart show:</p>
       <p style="margin-top:8px; font-style:italic; color:var(--parchment-dark);">"[Name]. [Class]. Seven years of service. A hero of the realm."</p>
       <p style="margin-top:12px;">Heroes who stay show:</p>
@@ -740,7 +759,7 @@
       <h2>Recruit Generation Rules</h2>
     </div>
 
-    <p>New recruits are generated at the moment the player confirms their building and spending choices (Off Season Step 3). Every empty housing slot across all buildings is filled. The process follows a strict sequence: determine class distribution first, then generate each individual recruit in that class.</p>
+    <p>New recruits are generated at the moment the player confirms their building and spending choices (Off Season Step 6). Every empty housing slot across all buildings is filled. The process follows a strict sequence: determine class distribution first, then generate each individual recruit in that class.</p>
 
     <h3>Step 1 — Determine Total Incoming Recruits</h3>
     <p>Count empty housing slots across all buildings after spending is confirmed. Each empty slot produces exactly one recruit. Slot counts are building-type-specific:</p>
@@ -855,7 +874,7 @@
     <h3>Greetings</h3>
     <p>Each soldier has a greeting drawn from a data table keyed by <strong style="color:var(--gold-light);">class × year of service</strong> (years 1–7). The greeting is selected randomly from the pool matching the soldier's current class and current year of service. A new greeting is selected each off season — it is not fixed at generation time.</p>
 
-    <p>Greetings are displayed on the character detail screen (accessed from the Personnel table in Step 6) in the format:</p>
+    <p>Greetings are displayed on the character detail screen (accessed from the Personnel table in Step 7) in the format:</p>
     <p style="font-style:italic; color:var(--parchment-dark); margin: 12px 0 12px 24px;">"Commander [playername], [greeting]"</p>
 
     <p>The greeting pool covers all eight classes across all seven years of service. Year 1 greetings reflect the uncertainty and ambition of a new recruit; later years reflect the weight of experience and survival. The same pool is used regardless of gender or age.</p>
@@ -975,6 +994,9 @@
 
     <h3>Slow Motion</h3>
     <p>A Slow Mo checkbox appears to the right of the targeting controls. When enabled, game time runs at 25% speed. Useful for studying unit behavior and making deployment decisions under pressure. State persists between sessions alongside targeting preferences.</p>
+
+    <h3>Surprise Tactics</h3>
+    <p>If the player has any tactics stockpiled, a button strip appears below the targeting controls bar. Each available tactic is shown as a button with a distinct icon and label. Buttons are visible from the start of the battle. Activating a tactic consumes it immediately — the button is removed and the effect fires at once. The strip is hidden if the stockpile is empty. See <a href="#surprise-tactics" style="color:var(--gold-light);">Section VIII-C — Surprise Tactics</a> for full effect descriptions.</p>
 
     <h3>Year Win Condition — Enemy Retreat</h3>
     <p>Enemies retreat (rout) when <strong>all Ogres, Generals, and Catapults are dead AND remaining enemy count is below 50% of the year's starting total AND player units outnumber remaining enemies</strong>. Retreating enemies run toward the top of the screen and can still be attacked as they flee. The round ends when either:</p>
@@ -1135,6 +1157,147 @@
 
     <h3>Attack Speed Floor</h3>
     <p>Minimum attack interval is <strong>0.5 seconds</strong> regardless of building bonuses.</p>
+
+  </section>
+
+  <div class="divider">· · ·</div>
+
+  <!-- VIII-B. Class Specialization -->
+  <section class="section" id="specialization">
+    <div class="section-header">
+      <span class="section-num">VIII-B</span>
+      <h2>Class Specialization</h2>
+    </div>
+
+    <p>When a unit reaches Level 3, they become eligible to specialize. Specialization is a permanent, one-time choice that meaningfully changes how a unit fights. There are two paths per class, each expressed as an adjective before the class name (e.g. <em>Mounted Warrior</em>, <em>Sharpshooter Archer</em>).</p>
+
+    <callout class="callout">
+      <strong>Design Intent</strong>
+      Specialization adds a planning and customization layer without overwhelming complexity. Two clear paths per class means the player always has a meaningful choice, and the naming convention ensures the unit's identity is still immediately readable in the field.
+    </callout>
+
+    <h3>How Specialization Works</h3>
+    <ul style="list-style:none; padding-left:0; color:var(--parchment-dark);">
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— When a unit levels to 3 in battle, a brief announcement fires: <em>"[Name] reached Veteran rank!"</em></li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— The actual specialization choice is deferred to the next off season's Training &amp; Specialization step (Step 3).</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— Specialization stats are applied at battle spawn time alongside building bonuses.</li>
+      <li style="padding:6px 0;">— The choice is permanent — no respec is available.</li>
+    </ul>
+
+    <h3>Visual Identity</h3>
+    <p>Specialized units use a distinct color tint on their sprite so they are recognizable in the field while their base class icon (bow, sword, staff, etc.) remains unchanged. The base class is always readable; the tint communicates which path was chosen.</p>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Class</th><th>Base Color</th><th>Path A Color</th><th>Path B Color</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Warrior</td><td>Steel Blue (0x4472C4)</td><td>Bright Cobalt (0x6AABFF)</td><td>Deep Navy (0x1A3A7A)</td></tr>
+        <tr><td>Archer</td><td>Forest Green (0x70AD47)</td><td>Lime Green (0xAAE040)</td><td>Dark Olive (0x2D6B1A)</td></tr>
+        <tr><td>Mage</td><td>Purple (0x9B30FF)</td><td>Lavender (0xCC88FF)</td><td>Deep Indigo (0x4A0080)</td></tr>
+        <tr><td>Healer</td><td>Near-White (0xEEEEEE)</td><td>Bright Yellow (0xFFFF88)</td><td>Amber (0xFFAA33)</td></tr>
+        <tr><td>Captain</td><td>Gold (0xFFD700)</td><td>Pale Gold (0xFFF0A0)</td><td>Bronze (0xB87333)</td></tr>
+        <tr><td>Engineer</td><td>Orange (0xFF6600)</td><td>Red-Orange (0xFF3300)</td><td>Dark Umber (0x8B3A00)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>Specialization Paths</h3>
+
+    <table class="data-table">
+      <thead>
+        <tr><th>Class</th><th>Path A</th><th>Effect</th><th>Path B</th><th>Effect</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Warrior</strong></td>
+          <td>Mounted</td><td>Double move speed</td>
+          <td>Heavy</td><td>Armor 20% → 40%</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Archer</strong></td>
+          <td>Longbow</td><td>+2 range</td>
+          <td>Sharpshooter</td><td>+25% crit chance (stacks with base 5%)</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Mage</strong></td>
+          <td>Explosive</td><td>Attacks deal AoE damage at 0.75 tile radius on impact</td>
+          <td>Rapid-fire</td><td>Fires a simultaneous second projectile at a second valid target (standard Mage targeting)</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Healer</strong></td>
+          <td>Area</td><td>Heal radiates 0.75 tiles from the primary target, hitting all friendlies in radius</td>
+          <td>Combat</td><td>Armor 10% → 30%</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Captain</strong></td>
+          <td>Inspiring</td><td>Aura radius 1.5 → 2.0 tiles</td>
+          <td>Heroic</td><td>+50% DMG, +50% HP</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Engineer</strong></td>
+          <td>Flameshot</td><td>AoE radius +25%</td>
+          <td>Anti-siege</td><td>AoE radius −25%, DMG +50%</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <div class="divider">· · ·</div>
+
+  <!-- VIII-C. Surprise Tactics -->
+  <section class="section" id="surprise-tactics">
+    <div class="section-header">
+      <span class="section-num">VIII-C</span>
+      <h2>Surprise Tactics</h2>
+    </div>
+
+    <p>Once per year, King Aldric sends one of his generals to the wall to train the defenders in a surprise tactic. This award is presented during the Gold Summary step of the off-season wizard (Step 4), starting with Year 2. The flavor text acknowledges last year's battle outcome — the king is paying attention, and his help is a direct response to what the wall endured.</p>
+
+    <callout class="callout">
+      <strong>Design Intent</strong>
+      Surprise Tactics give the player a meaningful active decision in battle beyond deployment and targeting. Each tactic is a one-time burst that can swing a moment — but because they carry over and stack up to three, the player also faces a resource management question: save them or use them now?
+    </callout>
+
+    <h3>Stockpile Rules</h3>
+    <ul style="list-style:none; padding-left:0; color:var(--parchment-dark);">
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— Year 1's battle begins with no tactics available. The stockpile starts empty.</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— One random tactic is awarded each year at the Gold Summary step (Year 2 onward).</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— Stockpile maximum is 3. If already at 3, no new tactic is awarded that year.</li>
+      <li style="padding:6px 0; border-bottom:1px solid var(--stone-light);">— Unused tactics carry over between battles.</li>
+      <li style="padding:6px 0;">— Each tactic is single-use: consumed immediately on activation.</li>
+    </ul>
+
+    <h3>Battle Activation</h3>
+    <p>All available tactics appear as buttons in a strip below the targeting controls bar. Each button has a distinct icon and label. When a tactic is activated, the button is removed and the effect fires immediately. The strip is hidden when the stockpile is empty.</p>
+
+    <h3>Surprise Tactic List (V1 — Complete Set)</h3>
+    <table class="data-table">
+      <thead>
+        <tr><th>Name</th><th>Effect</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Mass Sortie</strong></td>
+          <td>All non-Engineer units not currently on the wall receive a 50% move speed boost. Any reserve units still in the holding pattern are immediately force-deployed as a sortie. Units already in the field but not on the wall also receive the speed boost.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Covering Fire</strong></td>
+          <td>All Archers fire one immediate free volley. Does not consume or reset their attack timer.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Barrage</strong></td>
+          <td>All Engineers and Mages fire one immediate free shot. Does not consume or reset their attack timer.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Healing Grace</strong></td>
+          <td>All Healers immediately trigger their heal regardless of cooldown. The heal cooldown resets after firing.</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--gold-light)">Shield Wall</strong></td>
+          <td>All Warriors and Captains gain +40% armor for 10 seconds. Buff expires automatically and armor reverts.</td>
+        </tr>
+      </tbody>
+    </table>
   </section>
 
   <div class="divider">· · ·</div>
@@ -1597,6 +1760,38 @@
     <div class="section-header">
       <span class="section-num">XVIII</span>
       <h2>Changelog</h2>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version">v0.8 — Surprise Tactics</div>
+      <div class="changelog-date">2026-06-10</div>
+      <ul>
+        <li>New section VIII-C: Surprise Tactics — king awards one random tactic per year at Gold Summary (Year 2+); stockpile max 3; carry-over between battles; single-use on activation.</li>
+        <li>Complete V1 tactic set defined: Mass Sortie, Covering Fire, Barrage, Healing Grace, Shield Wall.</li>
+        <li>Mass Sortie clarified: force-deploys reserve units as sortie AND applies 50% move speed boost to all non-Engineer non-wall units (including those already in the field).</li>
+        <li>Battle UI: Surprise Tactic button strip added below targeting controls bar; all available tactics shown simultaneously; button removed on use.</li>
+        <li>Gold Summary step (Step 4) updated to describe the annual tactic award and flavor text.</li>
+        <li>Battle phase section updated to describe the Surprise Tactic strip.</li>
+        <li>TOC updated to include Section VIII-C.</li>
+        <li>Version header updated to v0.8.</li>
+      </ul>
+    </div>
+
+    <div class="changelog-entry">
+      <div class="changelog-version">v0.7 — Class Specialization</div>
+      <div class="changelog-date">2026-06-10</div>
+      <ul>
+        <li>New section VIII-B: Class Specialization — two paths per class unlocked at Level 3.</li>
+        <li>Specialization announced in battle ("reached Veteran rank!"); choice deferred to off-season Training &amp; Specialization step.</li>
+        <li>All 12 specialization paths defined with stats: Mounted/Heavy Warrior, Longbow/Sharpshooter Archer, Explosive/Rapid-fire Mage, Area/Combat Healer, Inspiring/Heroic Captain, Flameshot/Anti-siege Engineer.</li>
+        <li>Color tint system defined: two distinct shades per class to visually distinguish specialized units while preserving base class icon readability.</li>
+        <li>New off-season wizard step "Training &amp; Specialization" inserted as Step 3 (conditional); subsequent steps renumbered 4–9.</li>
+        <li>Training step shows: battle level-ups, veteran XP awards and resulting level-ups, specialization choice cards. Blocks Next until all L3 choices resolved.</li>
+        <li>Hero Departures step (Step 2) scoped to year-7 ceremony only; veteran XP distribution moved to Training step.</li>
+        <li>"Personnel &amp; Deployment Assignment" renamed "Units &amp; Deployment Assignment" (Step 7).</li>
+        <li>TOC updated to include Section VIII-B.</li>
+        <li>Version header updated to v0.7.</li>
+      </ul>
     </div>
 
     <div class="changelog-entry">

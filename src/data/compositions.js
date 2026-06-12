@@ -1,6 +1,6 @@
 // Enemy compositions by year.  Each year has 3 options (A=0, B=1, C=2).
 // Unit key -- type strings match ENEMY_DEFS keys: orc, goblin, ogre, general, catapult
-// Logic key: left_after_delay | center_after_delay | right_after_delay | wait_for_breach
+// Logic key: left_after_delay | center_after_delay | right_after_delay
 // (timer-based logics deploy at ENEMY_RESERVE_DEPLOY_S seconds OR on any breach)
 // Catapults always appear in main lane columns (never in reserves) and spawn at a fixed row.
 
@@ -13,7 +13,7 @@ export const ENEMY_COMPOSITIONS = {
       right:   [{ type: 'orc', count: 5 }],
       reserves: [
         { slot: 'left', units: [{ type: 'goblin', count: 5 }], logic: 'left_after_delay' },
-        { slot: 'center', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 3 }], logic: 'wait_for_breach' },
+        { slot: 'center', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 3 }], logic: 'center_after_delay' },
         { slot: 'right', units: [{ type: 'orc', count: 5 }], logic: 'right_after_delay' },
       ],
       scoutingReport: "Mix of orcs and goblins.  No catapults or ogres",
@@ -26,7 +26,7 @@ export const ENEMY_COMPOSITIONS = {
       reserves: [
         { slot: 'left', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 3 }], logic: 'left_after_delay' },
         { slot: 'center', units: [{ type: 'orc', count: 1 }], logic: 'left_after_delay' },
-        { slot: 'right', units: [{ type: 'orc', count: 1 }], logic: 'wait_for_breach' },
+        { slot: 'right', units: [{ type: 'orc', count: 1 }], logic: 'center_after_delay' },
       ],
       scoutingReport: "Mix of orcs and goblins.  No catapults or ogres",
     },
@@ -36,7 +36,7 @@ export const ENEMY_COMPOSITIONS = {
       center:   [{ type: 'goblin', count: 7 }, { type: 'general', count: 1 }],
       right:   [{ type: 'orc', count: 14 }],
       reserves: [
-        { slot: 'left', units: [{ type: 'goblin', count: 1 }], logic: 'wait_for_breach' },
+        { slot: 'left', units: [{ type: 'goblin', count: 1 }], logic: 'center_after_delay' },
         { slot: 'center', units: [{ type: 'goblin', count: 1 }], logic: 'right_after_delay' },
         { slot: 'right', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 3 }], logic: 'right_after_delay' },
       ],
@@ -52,7 +52,7 @@ export const ENEMY_COMPOSITIONS = {
       right:   [{ type: 'orc', count: 5 }],
       reserves: [
         { slot: 'left', units: [{ type: 'goblin', count: 7 }], logic: 'left_after_delay' },
-        { slot: 'center', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 5 }], logic: 'wait_for_breach' },
+        { slot: 'center', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 5 }], logic: 'center_after_delay' },
         { slot: 'right', units: [{ type: 'orc', count: 7 }], logic: 'right_after_delay' },
       ],
       scoutingReport: "Mix of orcs and goblins.  No catapults or ogres",
@@ -65,7 +65,7 @@ export const ENEMY_COMPOSITIONS = {
       reserves: [
         { slot: 'left', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 3 }, { type: 'orc', count: 2 }], logic: 'left_after_delay' },
         { slot: 'center', units: [{ type: 'orc', count: 3 }], logic: 'left_after_delay' },
-        { slot: 'right', units: [{ type: 'orc', count: 3 }], logic: 'wait_for_breach' },
+        { slot: 'right', units: [{ type: 'orc', count: 3 }], logic: 'center_after_delay' },
       ],
       scoutingReport: "Mix of orcs and goblins.  No catapults or ogres",
     },
@@ -75,7 +75,7 @@ export const ENEMY_COMPOSITIONS = {
       center:   [{ type: 'goblin', count: 8 }, { type: 'general', count: 1 }],
       right:   [{ type: 'orc', count: 16 }],
       reserves: [
-        { slot: 'left', units: [{ type: 'goblin', count: 3 }], logic: 'wait_for_breach' },
+        { slot: 'left', units: [{ type: 'goblin', count: 3 }], logic: 'center_after_delay' },
         { slot: 'center', units: [{ type: 'orc', count: 3 }], logic: 'right_after_delay' },
         { slot: 'right', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 3 }, { type: 'orc', count: 2 }], logic: 'right_after_delay' },
       ],
@@ -91,7 +91,7 @@ export const ENEMY_COMPOSITIONS = {
       right:   [{ type: 'orc', count: 5 }],
       reserves: [
         { slot: 'left', units: [{ type: 'goblin', count: 7 }], logic: 'left_after_delay' },
-        { slot: 'center', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 5 }], logic: 'wait_for_breach' },
+        { slot: 'center', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 5 }], logic: 'center_after_delay' },
         { slot: 'right', units: [{ type: 'orc', count: 7 }], logic: 'right_after_delay' },
       ],
       scoutingReport: "Mix of orcs and goblins.  No catapults or ogres",
@@ -104,7 +104,7 @@ export const ENEMY_COMPOSITIONS = {
       reserves: [
         { slot: 'left', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 3 }, { type: 'orc', count: 2 }], logic: 'left_after_delay' },
         { slot: 'center', units: [{ type: 'orc', count: 3 }], logic: 'left_after_delay' },
-        { slot: 'right', units: [{ type: 'orc', count: 3 }], logic: 'wait_for_breach' },
+        { slot: 'right', units: [{ type: 'orc', count: 3 }], logic: 'center_after_delay' },
       ],
       scoutingReport: "Mix of orcs and goblins.  And they have an ogre!",
     },
@@ -114,7 +114,7 @@ export const ENEMY_COMPOSITIONS = {
       center:   [{ type: 'goblin', count: 10 }],
       right:   [{ type: 'orc', count: 20 }, { type: 'ogre', count: 1 }, { type: 'general', count: 1 }],
       reserves: [
-        { slot: 'left', units: [{ type: 'goblin', count: 3 }], logic: 'wait_for_breach' },
+        { slot: 'left', units: [{ type: 'goblin', count: 3 }], logic: 'center_after_delay' },
         { slot: 'center', units: [{ type: 'orc', count: 3 }, { type: 'general', count: 1 }], logic: 'right_after_delay' },
         { slot: 'right', units: [{ type: 'general', count: 1 }, { type: 'goblin', count: 3 }, { type: 'orc', count: 2 }], logic: 'right_after_delay' },
       ],

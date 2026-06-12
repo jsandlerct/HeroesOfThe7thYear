@@ -54,6 +54,35 @@
       cursor: pointer;
     }
 
+    #tactic-controls {
+      display: none;
+      width: 100%;
+      background: #1a1208;
+      border: 1px solid #4a3010;
+      border-top: none;
+      padding: 7px 12px;
+      font-family: Georgia, serif;
+      font-size: 12px;
+      color: #8a7a5a;
+      box-sizing: border-box;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .tactic-btn {
+      background: #2a1a08;
+      border: 1px solid #8a5a18;
+      color: #f0c040;
+      font-family: Georgia, serif;
+      font-size: 12px;
+      padding: 4px 11px;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: background .12s, border-color .12s;
+      white-space: nowrap;
+    }
+    .tactic-btn:hover { background: #3a2810; border-color: #c9a84c; }
+
     /* ── Off-season wizard (full-screen) ──────────────────────────── */
     #offseason-ui {
       display: none;
@@ -219,6 +248,43 @@
       background: #1a1610;
     }
     .os-prereq-note { font-size: 11px; color: #5a4a2a; font-style: italic; }
+    /* ── Wall canvas ───────────────────────────────────────────────── */
+    .os-wall-canvas-wrap {
+      background: #1a1208;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 14px;
+    }
+    .os-wall-canvas { display: block; width: 100%; }
+    /* ── Building cards ────────────────────────────────────────────── */
+    .os-bcard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+    .os-bcard {
+      background: #181410;
+      border: 1px solid #2a1e08;
+      border-radius: 3px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      transition: border-color .15s, background .15s;
+    }
+    .os-bcard.built   { background: #0f1618; border-top: 2px solid #2a6a7a; }
+    .os-bcard.locked  { opacity: 0.45; }
+    .os-bcard.maxed   { border-top: 2px solid #6a5030; }
+    .os-bcard-name    { font-size: 13px; display: flex; justify-content: space-between; align-items: baseline; }
+    .os-bcard-level   { font-size: 11px; color: #5aabb8; letter-spacing: 0.04em; }
+    .os-bcard-pips    { display: flex; gap: 3px; }
+    .os-bcard-pip     { width: 14px; height: 5px; border-radius: 1px; background: #2a2010; }
+    .os-bcard-pip.filled { background: #3a9aaa; }
+    .os-bcard-pip.maxed  { background: #c9a84c; }
+    .os-bcard-desc    { font-size: 11px; color: #6a5a3a; line-height: 1.4; }
+    .os-bcard-desc.built { color: #7aabb8; }
+    .os-bcard-action  { margin-top: 4px; }
     .os-confirm-table { width: 100%; border-collapse: collapse; font-size: 14px; margin-bottom: 24px; }
     .os-confirm-table td { padding: 9px 12px; border-bottom: 1px solid #251a08; }
     .os-confirm-table tr:last-child td { border-bottom: none; }
@@ -654,6 +720,10 @@
         </label>
       </span>
     </div>
+
+    <div id="tactic-controls">
+      <span>Surprise Tactics:</span>
+    </div>
   </div>
 
   <!-- Phaser 3 — must load before the module so `Phaser` global is available -->
@@ -664,8 +734,182 @@
     import { generateStarterRoster } from './src/offseason/recruitGenerator.js';
     import './src/main.js';
     import { playMusic, stopMusic, setMusicEnabled, playVO, stopVO } from './src/audio/MusicManager.js';
+    import { TACTICS } from './src/data/tactics.js';
+    import { SPECIALIZATION_DEFS } from './src/data/units.js';
 
     initNavButtons();
+
+    // ── Surprise Tactic strip ────────────────────────────────────────────────────
+    // Renders one button per available tactic below the targeting controls.
+    // Each button dispatches 'activateTactic' for BattleScene to handle,
+    // then removes itself. Strip is hidden when the stockpile is empty.
+
+    function renderTacticButtons() {
+      const strip = document.getElementById('tactic-controls');
+      // Remove any existing tactic buttons (keep the label span)
+      strip.querySelectorAll('.tactic-btn').forEach(b => b.remove());
+
+      const stockpile = GameState.tactics ?? [];
+      if (stockpile.length === 0) {
+        strip.style.display = 'none';
+        return;
+      }
+      strip.style.display = 'flex';
+
+      for (const key of [...stockpile]) {
+        const tac = TACTICS[key];
+        if (!tac) continue;
+        const btn = document.createElement('button');
+        btn.className = 'tactic-btn';
+        btn.title     = tac.description;
+        btn.textContent = `${tac.icon} ${tac.name}`;
+        btn.onclick = () => {
+          // Guard: battle must still be active
+          if (GameState.battleResult !== null) return;
+          const idx = GameState.tactics.indexOf(key);
+          if (idx < 0) return;
+          GameState.tactics.splice(idx, 1);
+          btn.remove();
+          if (GameState.tactics.length === 0) strip.style.display = 'none';
+          document.dispatchEvent(new CustomEvent('activateTactic', { detail: { key } }));
+        };
+        strip.appendChild(btn);
+      }
+    }
+
+    // ── Campaign end screen ───────────────────────────────────────────────────
+    function buildCampaignEndScreen(gs) {
+      const staying   = gs.graduatedHeroes ?? [];
+      const departed  = gs.departedHeroes ?? [];
+      const allHeroes = staying.length + departed.length;
+
+      const screen = document.createElement('div');
+      screen.style.cssText =
+        'position:fixed;inset:0;background:#0a0a06;overflow-y:auto;z-index:999;' +
+        'font-family:Georgia,serif;color:#e0d4b0;';
+
+      const inner = document.createElement('div');
+      inner.style.cssText =
+        'max-width:720px;margin:0 auto;padding:48px 28px 64px;';
+
+      // Title
+      const title = document.createElement('div');
+      title.style.cssText = 'font-size:34px;color:#c9a84c;text-align:center;margin-bottom:8px;letter-spacing:0.02em;';
+      title.textContent   = 'Campaign Complete';
+      inner.appendChild(title);
+
+      const subtitle = document.createElement('div');
+      subtitle.style.cssText = 'font-size:16px;color:#8a7a5a;text-align:center;margin-bottom:40px;';
+      subtitle.textContent   =
+        `You defended the wall for ${gs.campaignLength} years. ` +
+        `${allHeroes} soldier${allHeroes !== 1 ? 's' : ''} served seven years and earned the name of hero.`;
+      inner.appendChild(subtitle);
+
+      function heroClassLabel(h) {
+        const c    = h.class ?? 'unknown';
+        const base = c.charAt(0).toUpperCase() + c.slice(1);
+        if (!h.specialization) return base;
+        const def  = SPECIALIZATION_DEFS[h.class];
+        const path = def?.paths.find(p => p.id === h.specialization);
+        return path ? `${path.label} ${base}` : base;
+      }
+
+      function makeHeroTile(hero, didStay) {
+        const tile = document.createElement('div');
+        tile.style.cssText =
+          `background:${didStay ? '#06101e' : '#100e00'};` +
+          `border:1px solid ${didStay ? '#2a4a8a' : '#5a4810'};` +
+          'border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;';
+
+        const nameLine = document.createElement('div');
+        nameLine.style.cssText = `font-size:14px;color:${didStay ? '#c0d8f8' : '#d0b060'};font-style:italic;`;
+        nameLine.textContent   = hero.name ?? '—';
+        tile.appendChild(nameLine);
+
+        const clsLine = document.createElement('div');
+        clsLine.style.cssText = `font-size:11px;color:${didStay ? '#3a6090' : '#6a5020'};letter-spacing:0.04em;`;
+        clsLine.textContent   = heroClassLabel(hero);
+        tile.appendChild(clsLine);
+
+        const yearLine = document.createElement('div');
+        yearLine.style.cssText = 'font-size:10px;color:#3a3020;margin-top:2px;';
+        yearLine.textContent   = `Graduated Year ${hero.yearGraduated ?? '?'}`;
+        tile.appendChild(yearLine);
+
+        const badge = document.createElement('div');
+        badge.style.cssText =
+          `font-size:9px;letter-spacing:0.12em;text-transform:uppercase;margin-top:4px;` +
+          `color:${didStay ? '#4070b0' : '#8a6820'};`;
+        badge.textContent = didStay ? '⟡ Sworn to the Wall' : '⟡ Homeward Bound';
+        tile.appendChild(badge);
+
+        return tile;
+      }
+
+      if (staying.length > 0) {
+        const stayHeader = document.createElement('div');
+        stayHeader.style.cssText =
+          'font-size:11px;color:#4070b0;letter-spacing:0.15em;text-transform:uppercase;' +
+          'margin-bottom:12px;border-bottom:1px solid #1a2a4a;padding-bottom:6px;';
+        stayHeader.textContent = `Sworn to the Wall — ${staying.length} stayed`;
+        inner.appendChild(stayHeader);
+
+        const stayGrid = document.createElement('div');
+        stayGrid.style.cssText =
+          'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:32px;';
+        for (const h of staying) stayGrid.appendChild(makeHeroTile(h, true));
+        inner.appendChild(stayGrid);
+      }
+
+      if (departed.length > 0) {
+        const depHeader = document.createElement('div');
+        depHeader.style.cssText =
+          'font-size:11px;color:#8a6820;letter-spacing:0.15em;text-transform:uppercase;' +
+          'margin-bottom:12px;border-bottom:1px solid #2a2010;padding-bottom:6px;';
+        depHeader.textContent = `Homeward Bound — ${departed.length} went home`;
+        inner.appendChild(depHeader);
+
+        const depGrid = document.createElement('div');
+        depGrid.style.cssText =
+          'display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:32px;';
+        for (const h of departed) depGrid.appendChild(makeHeroTile(h, false));
+        inner.appendChild(depGrid);
+      }
+
+      if (allHeroes === 0) {
+        const none = document.createElement('div');
+        none.style.cssText = 'text-align:center;color:#4a3a18;font-size:15px;font-style:italic;margin-bottom:32px;';
+        none.textContent   = 'No soldier lived long enough to be called a hero. The wall held, but at great cost.';
+        inner.appendChild(none);
+      }
+
+      // Monument legacy line
+      const monumentCount = Math.min(staying.length, 5);
+      if (monumentCount > 0 && (gs.buildings.monument ?? 0) > 0) {
+        const legacy = document.createElement('div');
+        legacy.style.cssText =
+          'text-align:center;font-size:13px;color:#6a5a2a;font-style:italic;' +
+          'border-top:1px solid #1e1808;padding-top:16px;margin-top:8px;';
+        legacy.innerHTML =
+          `The Monument bears ${monumentCount} name${monumentCount !== 1 ? 's' : ''}. ` +
+          `Their legacy blessed every soldier who stood watch — ` +
+          `<strong style="color:#c9a84c;">-${(monumentCount * 0.1).toFixed(1)}s attack speed</strong> in every battle.`;
+        inner.appendChild(legacy);
+      }
+
+      // Restart button
+      const restartBtn = document.createElement('button');
+      restartBtn.textContent = 'Start New Campaign';
+      restartBtn.style.cssText =
+        'display:block;margin:40px auto 0;background:#2a2010;border:1px solid #c9a84c;' +
+        'color:#f0e0a0;font-family:Georgia,serif;font-size:14px;padding:12px 36px;' +
+        'cursor:pointer;border-radius:3px;';
+      restartBtn.onclick = () => location.reload();
+      inner.appendChild(restartBtn);
+
+      screen.appendChild(inner);
+      return screen;
+    }
 
     // ── Shared off-season → battle handoff ───────────────────────────────────
     // Used by both Year 1 (page load) and every subsequent year (battleComplete).
@@ -676,19 +920,24 @@
         if (!unit.dead) unit.assignment = wizardState.assignments[unit.id] ?? null;
       }
 
-      // Handle heroes: staying heroes become veterans, others depart
+      // Handle heroes: staying heroes become veterans, others depart.
+      // Veteran XP bonus (1 XP per staying veteran to all units) is applied
+      // in OffSeasonUI.applyVeteranXp at the start of the next wizard.
       for (const hero of GameState.newHeroesThisBattle) {
         if (hero.staying) {
           hero.isVeteran = true;
           GameState.graduatedHeroes.push({
             id: hero.id, name: hero.name, class: hero.class,
+            specialization: hero.specialization ?? null,
             yearGraduated: GameState.year - 1,
           });
-          // Staying bonus: 1 XP to all remaining roster units
-          for (const ru of GameState.roster) {
-            if (!ru.dead) ru.xp = (ru.xp ?? 0) + 1;
-          }
         } else {
+          GameState.departedHeroes.push({
+            id: hero.id, name: hero.name, class: hero.class,
+            specialization: hero.specialization ?? null,
+            portraitId: hero.portraitId ?? null,
+            yearGraduated: GameState.year - 1,
+          });
           hero.dead = true;  // departed heroes leave the roster
         }
       }
@@ -699,28 +948,23 @@
 
       // Check campaign end
       if (GameState.year > GameState.campaignLength) {
-        const heroCount = GameState.graduatedHeroes.length;
         document.getElementById('battle-ui').style.display = '';
-        const endMsg = document.createElement('div');
-        endMsg.style.cssText =
-          'position:fixed;inset:0;background:#0d0d0d;display:flex;flex-direction:column;' +
-          'align-items:center;justify-content:center;z-index:999;font-family:Georgia,serif;color:#e0d4b0;';
-        endMsg.innerHTML =
-          `<div style="font-size:36px;color:#c9a84c;margin-bottom:24px;">Campaign Complete</div>` +
-          `<div style="font-size:18px;margin-bottom:8px;">You defended the wall for ${GameState.campaignLength} years.</div>` +
-          `<div style="font-size:16px;color:#8a7a5a;">Heroes who stayed: <strong style="color:#f0e0a0">${heroCount}</strong></div>`;
-        document.body.appendChild(endMsg);
+        document.body.appendChild(buildCampaignEndScreen(GameState));
         return;
       }
 
       // Pick enemy composition and launch battle
       GameState.enemyCompositionIndex = Math.floor(Math.random() * 3);
       document.getElementById('targeting-controls').style.display = 'flex';
+      renderTacticButtons();
       window.game.scene.start('BattleScene');
     }
 
     // ── After each battle: write results, advance year, start off-season ─────
     document.addEventListener('battleComplete', (e) => {
+      // Hide tactic strip now that battle is over
+      document.getElementById('tactic-controls').style.display = 'none';
+
       // Total wipe — show game over screen and offer a fresh campaign
       if (e.detail?.result === 'defeat') {
         const heroCount = GameState.graduatedHeroes.length;
@@ -823,9 +1067,9 @@
 
     // ── Opening cinematic ─────────────────────────────────────────────────────
 
-    const CIN_PANEL_DELAY  = 800;   // ms before first paragraph appears after panel fades in
-    const CIN_PARA_INTERVAL = 1500; // ms between each paragraph reveal
-    const CIN_BTN_AFTER    = 700;   // ms after last paragraph before continue button shows
+    const CIN_PANEL_DELAY  = 1000;  // ms before first paragraph appears after panel fades in
+    const CIN_PARA_INTERVAL = 3000; // ms between each paragraph reveal
+    const CIN_BTN_AFTER    = 1000;   // ms after last paragraph before continue button shows
 
     function revealParagraphs(panelTextId, afterAllFn) {
       const paras = document.querySelectorAll(`#${panelTextId} .cin-p`);

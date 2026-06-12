@@ -19,7 +19,8 @@ export const ALPHA_WALL_BREACH   = 0.4;
 export const RESERVE_ZONE_ROWS    = 2;           // rows each reserve zone occupies
 export const ENEMY_RESERVE_ROW    = 0;           // topmost row of enemy reserve zone
 export const PLAYER_RESERVE_ROW   = MAP_H - 2;   // = 14, topmost row of player reserve zone
-export const ENEMY_RESERVE_DEPLOY_S = 20;        // seconds until timed enemy reserves release
+export const ENEMY_RESERVE_DEPLOY_S       = 20;  // base seconds until timed enemy reserves release
+export const ENEMY_RESERVE_DEPLOY_JITTER  =  5;  // ±seconds of randomization applied per battle (15–25s range)
 export const RESERVE_ALARM_ROW    = 8;           // player crossing north of this triggers alarm
 
 // ── Combat ─────────────────────────────────────────────────────────────────
@@ -52,13 +53,14 @@ export const HP_BAR_Y_GAP    = 4;    // pixels between sprite top and HP bar
 export const PROJ_HIT_DIST = 0.2;   // tile distance that counts as a hit
 
 export const PROJECTILE_STYLES = {
-  archer:   { color: 0x111111, speed: 15, w:  9, h:  2, trebuchet: false },
-  goblin:   { color: 0x8B4513, speed: 10, w: 15, h:  2, trebuchet: false },
-  mage:     { color: 0xFF8C00, speed: 10, w: 15, h:  3, trebuchet: false },
-  catapult: { color: 0xCCCCCC, speed:  6, w: 15, h: 15, trebuchet: false },
-  engineer: { color: 0x555555, speed:  5, w: 15, h: 15, trebuchet: true  },
+  archer:    { color: 0x111111, speed: 15, w:  9, h:  2, trebuchet: false, trailColor: 0xcccccc, trailStyle: 'line' },
+  goblin:    { color: 0x8B4513, speed: 10, w: 15, h:  2, trebuchet: false, trailColor: 0xcccccc, trailStyle: 'line' },
+  mage:      { color: 0xFF8C00, speed: 10, w: 15, h:  3, trebuchet: false, trailColor: 0xcccccc, trailStyle: 'line' },
+  catapult:  { color: 0xCCCCCC, speed:  6, w: 15, h: 15, trebuchet: false, trailColor: 0xcccccc, trailStyle: 'line' },
+  engineer:  { color: 0x555555, speed:  5, w: 15, h: 15, trebuchet: true,  trailColor: 0xcccccc, trailStyle: 'line' },
+  flameshot: { color: 0xFF6600, speed:  5, w: 15, h: 15, trebuchet: true,  trailColor: 0xFF6600, trailStyle: 'flame' },
 };
-export const PROJ_DEFAULT_STYLE = { color: 0xffffff, speed: 10, w: 10, h: 2, trebuchet: false };
+export const PROJ_DEFAULT_STYLE = { color: 0xffffff, speed: 10, w: 10, h: 2, trebuchet: false, trailColor: 0xcccccc, trailStyle: 'line' };
 
 // ── Announcements ──────────────────────────────────────────────────────────
 export const ANNOUNCE_MS        = 2500;
@@ -129,6 +131,11 @@ export const GOLD_PER_DESTROYED_SEGMENT = 200;
 
 export const ARTISAN_FREE_REPAIR_PER_LEVEL = 50; // HP of free wall repair per segment per artisan level
 
+// ── Surprise Tactics ─────────────────────────────────────────────────────────
+export const TACTIC_MAX_STOCKPILE = 3;    // cap on stockpiled tactics
+export const SHIELD_WALL_DURATION_S  = 10;   // seconds Shield Wall armor bonus lasts
+export const SHIELD_WALL_ARMOR_BONUS = 0.40; // flat armor bonus during Shield Wall
+
 // ── Combat: critical hits ─────────────────────────────────────────────────────
 export const CRIT_CHANCE      = 0.05;        // 5% base crit chance for all player units
 export const CRIT_MULTIPLIER  = 3;           // crit deals triple damage
@@ -146,4 +153,5 @@ export const ARCHERY_RANGE_ATK_SPEED_PER_LEVEL = 0.20;  // atkSpeed reduction pe
 export const SPARRING_GROUND_ATK_SPEED_PER_LEVEL = 0.20; // atkSpeed reduction per sparring ground level (warriors, captains)
 export const MAGE_WORKSHOP_ATK_SPEED_PER_LEVEL = 0.50;  // atkSpeed reduction per mage workshop level (mages)
 export const HOSPITAL_HEAL_S_PER_LEVEL         = 1.0;   // heal interval reduction per hospital level
-export const MONUMENT_ATK_SPEED_PER_HERO       = 0.10;  // atkSpeed reduction per graduated hero who stayed (max 5)
+export const MONUMENT_ATK_SPEED_PER_HERO       = 0.10;  // atkSpeed reduction per graduated hero who stayed
+export const MONUMENT_HERO_CAP_PER_LEVEL       = 5;     // max heroes inscribed per monument level (Lv1=5, Lv2=10, Lv3=15)

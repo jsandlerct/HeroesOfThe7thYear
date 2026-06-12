@@ -24,9 +24,9 @@ export const BUILDING_DEFS = {
     description: '+1 Captain capacity per level (max 5)',
   },
   monument: {
-    maxLevel: 1, baseCost: 300,
+    maxLevel: 3, baseCost: 300,
     requires: ['officerAcademy'],
-    description: '-0.1s attack interval per graduated hero who stayed (up to 5)',
+    description: '-0.1s per inscribed hero. +5 hero cap per level (Lv1: up to 5, Lv2: 10, Lv3: 15).',
   },
   scoutAcademy: {
     maxLevel: 3, baseCost: 100,

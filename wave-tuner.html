@@ -395,7 +395,7 @@
 import { ENEMY_COMPOSITIONS } from './src/data/compositions.js';
 
 const ENEMY_TYPES   = ['orc', 'goblin', 'ogre', 'general', 'catapult'];
-const LOGIC_OPTIONS = ['left_after_delay', 'center_after_delay', 'right_after_delay', 'wait_for_breach'];
+const LOGIC_OPTIONS = ['left_after_delay', 'center_after_delay', 'right_after_delay'];
 const SLOTS         = ['left', 'center', 'right'];
 
 // Deep clone
@@ -443,7 +443,6 @@ function makeLogicSelect(current, onChange) {
     left_after_delay:   'Left / Delay',
     center_after_delay: 'Center / Delay',
     right_after_delay:  'Right / Delay',
-    wait_for_breach:    'Wait for Breach',
   };
   for (const v of LOGIC_OPTIONS) {
     const opt = document.createElement('option');
@@ -793,8 +792,8 @@ function serializeCompositions() {
   const labels = ['A', 'B', 'C'];
   let out = `// Enemy compositions by year.  Each year has 3 options (A=0, B=1, C=2).\n`;
   out += `// Unit key -- type strings match ENEMY_DEFS keys: orc, goblin, ogre, general, catapult\n`;
-  out += `// Logic key: left_after_delay | center_after_delay | right_after_delay | wait_for_breach\n`;
-  out += `// (timer-based logics deploy at ENEMY_RESERVE_DEPLOY_S seconds OR on any breach)\n\n`;
+  out += `// Logic key: left_after_delay | center_after_delay | right_after_delay\n`;
+  out += `// (all logics deploy at ENEMY_RESERVE_DEPLOY_S seconds OR on any breach)\n\n`;
   out += `export const ENEMY_COMPOSITIONS = {\n`;
 
   const years = Object.keys(data).map(Number).sort((a, b) => a - b);

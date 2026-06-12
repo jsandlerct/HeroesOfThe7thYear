@@ -5,8 +5,8 @@
 //
 // Returns a plain object shaped like a UNIT_DEFS entry — pass directly to Unit constructor.
 
-import { UNIT_DEFS }   from '../data/units.js';
-import { HEALER_HEAL_S, MAX_LEVEL, XP_THRESHOLDS } from '../data/constants.js';
+import { UNIT_DEFS, SPECIALIZATION_DEFS } from '../data/units.js';
+import { HEALER_HEAL_S, MAX_LEVEL, XP_THRESHOLDS, CRIT_CHANCE } from '../data/constants.js';
 import {
   ATK_SPEED_FLOOR,
   ARMORY_ARMOR_PER_LEVEL,
@@ -16,6 +16,7 @@ import {
   MAGE_WORKSHOP_ATK_SPEED_PER_LEVEL,
   HOSPITAL_HEAL_S_PER_LEVEL,
   MONUMENT_ATK_SPEED_PER_HERO,
+  MONUMENT_HERO_CAP_PER_LEVEL,
 } from '../data/constants.js';
 
 export function computeEffectiveDef(rosterUnit, gameState) {
@@ -53,8 +54,10 @@ export function computeEffectiveDef(rosterUnit, gameState) {
     atkSpeed -= (b.mageWorkshop ?? 0) * MAGE_WORKSHOP_ATK_SPEED_PER_LEVEL;
   }
 
-  // Monument: -0.1s per graduated hero who stayed (all units, max 5 heroes)
-  const heroCount = Math.min((gameState.graduatedHeroes ?? []).length, 5);
+  // Monument: -0.1s per graduated hero who stayed; cap scales with monument level
+  const monLevel  = b.monument ?? 0;
+  const heroCap   = monLevel * MONUMENT_HERO_CAP_PER_LEVEL;
+  const heroCount = Math.min((gameState.graduatedHeroes ?? []).length, heroCap);
   atkSpeed -= heroCount * MONUMENT_ATK_SPEED_PER_HERO;
 
   // Attack speed floor
@@ -66,6 +69,39 @@ export function computeEffectiveDef(rosterUnit, gameState) {
     healInterval = Math.max(ATK_SPEED_FLOOR, HEALER_HEAL_S - (b.hospital ?? 0) * HOSPITAL_HEAL_S_PER_LEVEL);
   }
 
+  // ── Specialization ─────────────────────────────────────────────────────────
+  let moveSpeed  = base.moveSpeed ?? 1.5;
+  let range      = base.range;
+  let aoeRadius  = base.aoeRadius ?? 0;
+  let isAoe      = base.isAoe ?? false;
+  let auraRadius = base.auraRadius ?? 0;
+  let rapidFire  = false;
+  let areaHeal   = false;
+  let critChance = CRIT_CHANCE;
+  let color      = base.color;
+
+  const spec = rosterUnit.specialization;
+  if (spec) {
+    const specPaths = SPECIALIZATION_DEFS[rosterUnit.class]?.paths ?? [];
+    const specPath  = specPaths.find(p => p.id === spec);
+    if (specPath) color = specPath.color;
+
+    switch (spec) {
+      case 'mounted':      moveSpeed *= 2; break;
+      case 'heavy':        armor += 0.20; break;
+      case 'longbow':      range += 2; break;
+      case 'sharpshooter': critChance += 0.25; break;
+      case 'explosive':    isAoe = true; aoeRadius = 0.75; break;
+      case 'rapidfire':    rapidFire = true; break;
+      case 'area':         areaHeal = true; break;
+      case 'combat':       armor += 0.20; break;
+      case 'inspiring':    auraRadius = 2.0; break;
+      case 'heroic':       hp = Math.round(hp * 1.5); dmg = Math.round(dmg * 1.5); break;
+      case 'flameshot':    aoeRadius = 1.5; break;
+      case 'antisiege':    aoeRadius = 0.75; dmg = Math.round(dmg * 1.5); break;
+    }
+  }
+
   return {
     ...base,
     hp,
@@ -73,6 +109,16 @@ export function computeEffectiveDef(rosterUnit, gameState) {
     armor,
     atkSpeed,
     healInterval,
+    moveSpeed,
+    range,
+    aoeRadius,
+    isAoe,
+    auraRadius,
+    rapidFire,
+    areaHeal,
+    critChance,
+    color,
+    specialization: spec ?? null,
   };
 }
 
