@@ -197,6 +197,7 @@ Goal: Make the game actually playable end-to-end. Add enough visual and UX polis
 - [x] Sound toggle: persistent checkbox fixed to top-right of every screen; state saved to localStorage; wires into GameState.soundEnabled for future audio implementation
 - [x] Battle SFX: melee1/2/3 (random both sides), archer, spear (goblin), catapult/engineer, ogre, orc-on-wall, breach, retreat, battle-start, enemy-start-move
 - [x] Music: intro theme (cinematic), offseason theme (off-season wizard), battle theme (starts on FIGHT!), victory (plays once), game over (plays on defeat after battle theme fades)
+- [x] Tutorial briefing: post-name-entry cinematic screen where the starter warrior briefs the commander on the Year 1 off-season flow (5 panels, portrait-focused layout, skip button)
 - [ ] Responsive layout validation on mobile
 
 

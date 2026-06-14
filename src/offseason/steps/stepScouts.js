@@ -28,22 +28,21 @@ function pickComposition(gs) {
   return { index: idx, data: yearComps[idx] };
 }
 
-function formatComposition(comp) {
-  if (!comp) return null;
-  const lines = [];
-  const fmt = (lane, arr) =>
-    arr.map(u => `${u.count}× ${classLabel(u.type)}`).join(', ');
-  if (comp.left?.length)   lines.push(`Left:    ${fmt('left',   comp.left)}`);
-  if (comp.center?.length) lines.push(`Center:  ${fmt('center', comp.center)}`);
-  if (comp.right?.length)  lines.push(`Right:   ${fmt('right',  comp.right)}`);
-  if (comp.reserves?.length) {
-    const rLines = comp.reserves.map(r =>
-      `  ${classLabel(r.slot)}: ${r.units.map(u => `${u.count}× ${classLabel(u.type)}`).join(', ')}`
-    );
-    lines.push('Reserves:');
-    lines.push(...rLines);
-  }
-  return lines.join('\n');
+const ELITE_TYPES = new Set(['ogre', 'general', 'catapult']);
+
+function totalsByType(comp) {
+  if (!comp) return [];
+  const totals = {};
+  const addUnits = arr => {
+    for (const u of arr ?? []) {
+      totals[u.type] = (totals[u.type] ?? 0) + u.count;
+    }
+  };
+  addUnits(comp.left);
+  addUnits(comp.center);
+  addUnits(comp.right);
+  for (const r of comp.reserves ?? []) addUnits(r.units);
+  return Object.entries(totals).sort((a, b) => b[1] - a[1]);
 }
 
 // ── Render states ─────────────────────────────────────────────────────────────
@@ -174,13 +173,24 @@ function renderResult(gs, wizardState, contentEl, wizard) {
     }
 
     if (comp) {
-      const detail = document.createElement('pre');
-      detail.style.cssText =
-        'font-family:Georgia,serif;font-size:13px;color:#6a7a5a;' +
-        'background:#0a100a;border:1px solid #1a2810;padding:12px 16px;' +
-        'margin-bottom:20px;white-space:pre-wrap;line-height:1.7;';
-      detail.textContent = formatComposition(comp) ?? 'Composition details unavailable.';
-      contentEl.appendChild(detail);
+      const totals = totalsByType(comp);
+      if (totals.length) {
+        const list = document.createElement('ul');
+        list.style.cssText =
+          'list-style:none;padding:12px 16px;margin:0 0 20px;' +
+          'background:#0a100a;border:1px solid #1a2810;' +
+          'font-family:Georgia,serif;font-size:14px;color:#9ab88a;line-height:2;';
+        for (const [type, count] of totals) {
+          const li = document.createElement('li');
+          const isElite = ELITE_TYPES.has(type);
+          li.innerHTML =
+            `<span style="min-width:90px;display:inline-block;color:#c8bfa0;">${classLabel(type)}</span>` +
+            `<span style="color:#6a9a5a;">×${count}</span>` +
+            (isElite ? `<span style="color:#c87040;font-size:12px;margin-left:10px;">elite</span>` : '');
+          list.appendChild(li);
+        }
+        contentEl.appendChild(list);
+      }
     }
 
     const reviseBtn = document.createElement('button');

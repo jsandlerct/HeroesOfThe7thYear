@@ -310,6 +310,14 @@
 
 ---
 
+## Tutorial Briefing
+
+- [2026-06-14] Tutorial interstitial steps are wizard steps, not a separate pre-wizard screen; three tutorial steps inserted in STEP_DEFS before Gold Summary, before Investment, and before Personnel; conditional on gs.year === 1 && wizardState.tutorialEnabled; rendered by createTutorialRenderer() in stepTutorial.js; each shows the starter warrior's portrait + dialogue; "Skip tutorial" link on each step calls wizard.skipTutorial() which sets tutorialEnabled=false, removes all remaining tutorial steps from activeSteps, and jumps to the next real step
+- [2026-06-14] wizard.skipTutorial() added to the wizard API; also removes tutorial steps from the Previous stack so back-navigation never returns to a skipped tutorial step
+- [2026-06-14] Wizard header label changed from "Off Season · Year X" to "Year X · Between Battles" (off-season is a game term, not in-world language)
+
+---
+
 ## Opening Cinematic
 
 - [2026-06-04] Opening cinematic replaces the simple title screen; three full-screen graphic novel panels play before the name-entry screen: (1) breach.png — commander (a returned seven-year hero, per GDD) narrates being recalled by King Aldric and arriving to a breached wall; (2) reinforcements.png — annual volunteers arriving, drawn by the hero's promise (land deed + tavern fame); (3) wall charcoal→color — short recruit text, title card "HEROES OF THE SEVENTH YEAR" revealed as color bleeds into the charcoal image; skip button always visible; cinematic ends at the existing name-entry screen

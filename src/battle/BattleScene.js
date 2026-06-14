@@ -1400,6 +1400,7 @@ export class BattleScene extends Phaser.Scene {
   // ─────────────────────────────────────────────
   _sfx(key) {
     if (this.battleOver || !GameState.soundEnabled) return;
+    if (!this.cache.audio.has(key)) return;
     this.sound.play(key);
   }
 

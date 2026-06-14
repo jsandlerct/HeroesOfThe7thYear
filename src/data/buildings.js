@@ -53,7 +53,7 @@ export const BUILDING_DEFS = {
   },
   artisanWorkshop: {
     maxLevel: 5, baseCost: 100,
-    description: 'Auto-repairs 50 HP per wall segment per level each off-season. Required for craft buildings.',
+    description: 'Auto-repairs 50 HP per wall segment per level before each battle. Required for manual wall repairs and craft buildings.',
   },
   armory: {
     maxLevel: 5, baseCost: 250,

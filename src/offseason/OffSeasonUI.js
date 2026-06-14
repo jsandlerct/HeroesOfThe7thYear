@@ -20,11 +20,26 @@ import { render as renderConfirm }    from './steps/stepConfirm.js';
 import { render as renderPersonnel }  from './steps/stepPersonnel.js';
 import { render as renderDeployment } from './steps/stepDeployment.js';
 import { render as renderScouts }     from './steps/stepScouts.js';
+import { createTutorialRenderer }     from './steps/stepTutorial.js';
 
 // ── Step definitions ──────────────────────────────────────────────────────────
 // conditional: function(gs) → bool; null means always shown.
 
 const STEP_DEFS = [
+  // ── Tutorial interstitials (Year 1 only, skippable) ────────────────────────
+  {
+    id: 'tutorial_arrival',
+    label: 'A Word Before We Begin',
+    isTutorial: true,
+    conditional: (gs, ws) => gs.year === 1 && ws?.tutorialEnabled,
+    render: createTutorialRenderer({
+      label: 'The Wall — Year 1',
+      paragraphs: [
+        '{commanderName}. Word came you were on your way. I\'m {name} — one of four still standing from last year. The center section breached for nearly two hours. We held it with nine soldiers and a prayer while the previous commander bought us time at the gap. Didn\'t survive to see morning. I watched it happen, and I know exactly what it means if that wall comes down — not for us, but for every town, every farm, every family between here and the capital. They know what this wall is. What they don\'t know is how close it got.',
+        'You know what it takes to survive here. What I need you to understand is this: we rebuild wisely, or the next attack may be the last. Every choice you make before they arrive again has to count.',
+      ],
+    }),
+  },
   {
     id: 'fallen',
     label: 'Roll Call of the Fallen',
@@ -40,11 +55,37 @@ const STEP_DEFS = [
     render: renderHeroes,
   },
   {
+    id: 'tutorial_resources',
+    label: 'The King\'s Gold',
+    isTutorial: true,
+    conditional: (gs, ws) => gs.year === 1 && ws?.tutorialEnabled,
+    render: createTutorialRenderer({
+      label: 'Between Battles — Resources',
+      paragraphs: [
+        'King Aldric sends funds each year. Base taxes, plus extra for any needed wall repairs. The next screen shows you that breakdown.',
+        'Know what you have before you spend anything. Gold you don\'t use carries over to the following year.',
+      ],
+    }),
+  },
+  {
     id: 'gold',
     label: 'Gold Summary',
     conditional: null,
     banner: 'assets/images/gold banner.png',
     render: renderGold,
+  },
+  {
+    id: 'tutorial_invest',
+    label: 'The Wall & Our Buildings',
+    isTutorial: true,
+    conditional: (gs, ws) => gs.year === 1 && ws?.tutorialEnabled,
+    render: createTutorialRenderer({
+      label: 'Between Battles — Investment',
+      paragraphs: [
+        'You can spend gold to repair wall damage or upgrade sections. Repairs require an Artisan Workshop first. Upgrades add HP and give defenders better cover.',
+        'The bigger decision is buildings. The barracks we already have brings in warriors and archers — upgrading it makes room for more of both. A library brings mages and healers. Some buildings unlock other unit types entirely — captains require an Officer Academy, engineers a Siege Workshop. Others improve what you already have: faster attacks, heavier armor. What you build now determines who arrives.',
+      ],
+    }),
   },
   {
     id: 'invest',
@@ -73,6 +114,19 @@ const STEP_DEFS = [
     render: renderTraining,
   },
   {
+    id: 'tutorial_deployment',
+    label: 'Your Soldiers',
+    isTutorial: true,
+    conditional: (gs, ws) => gs.year === 1 && ws?.tutorialEnabled,
+    render: createTutorialRenderer({
+      label: 'Between Battles — Deployment',
+      paragraphs: [
+        'While the buildings are being completed, new recruits arrive. The next screen shows every soldier — assign each one a position: a wall section or one of your three reserve slots.',
+        'Only ranged units and healers can stand on the walls. All unit types can go into reserve, for making real-time decisions during the battle. If you have engineers, they\'ll assemble their trebuchets just behind the wall.',
+      ],
+    }),
+  },
+  {
     id: 'personnel',
     label: 'Units & Deployment',
     conditional: null,
@@ -92,6 +146,22 @@ const STEP_DEFS = [
     conditional: gs => gs.roster.filter(u => u.class === 'scout' && !u.dead).length > 0,
     banner: 'assets/images/scout banner.png',
     render: renderScouts,
+  },
+  {
+    id: 'tutorial_battle',
+    label: 'Into Battle',
+    isTutorial: true,
+    conditional: (gs, ws) => gs.year === 1 && ws?.tutorialEnabled,
+    render: createTutorialRenderer({
+      label: 'The Battle',
+      paragraphs: [
+        'Your three reserve sections hold units ready to deploy on your command. You can Sortie — push them forward through the wall into open ground to attack — or Reinforce a wall section, where ranged units mount the wall and melee units hold position behind it, ready to counterattack if there\'s a breach. Use your reserves when the wall is under heavy pressure, or when you spot an elite that needs to be dealt with.',
+        'Below the battle you\'ll find targeting controls. Each unit group — melee, ranged, siege — can be directed to focus on a specific enemy type. By default they follow their own judgment. Override when you need precision.',
+        'Starting next year, King Aldric will occasionally send a trained general to teach your soldiers a surprise tactic — a one-time ability you can trigger mid-battle. You\'ll see them as buttons below the targeting controls when you have them. This year, you have none. In time, you will.',
+        'Things move fast out there. If you need more time to make decisions — when to deploy reserves, when to use a tactic — there\'s a Slow Mo toggle in the controls below the battle. Use it freely. The wall doesn\'t care how long it takes, as long as it holds.',
+        'Every person in this kingdom knows what this wall means. What they don\'t know — what they can never know — is how close last year came to ending all of it. That weight is ours to carry. I\'ll be right there in the fight with you, {commanderName}. Let\'s not waste what the previous commander bought us.',
+      ],
+    }),
   },
 ];
 
@@ -119,6 +189,19 @@ const wizard = {
   jumpTo(stepId) {
     const idx = activeSteps.findIndex(s => s.id === stepId);
     if (idx >= 0) { stepIndex = idx; renderStep(); }
+  },
+  skipTutorial() {
+    wizardState.tutorialEnabled = false;
+    // Find the next non-tutorial step after the current position, then remove
+    // all tutorial steps and jump to it.
+    const nextReal = activeSteps.slice(stepIndex + 1).find(s => !s.isTutorial);
+    activeSteps = activeSteps.filter(s => !s.isTutorial);
+    if (nextReal) {
+      stepIndex = activeSteps.indexOf(nextReal);
+    } else {
+      stepIndex = Math.min(stepIndex, activeSteps.length - 1);
+    }
+    renderStep();
   },
 };
 
@@ -197,6 +280,7 @@ function buildFreshWizardState(gameState) {
 
   return {
     goldAvailable:      gameState.gold + newGold,  // carryover + this season's income
+    tutorialEnabled:    gameState.year === 1,
     spendingConfirmed:  false,
     spending: {
       wallRepairs:  { left: 0, center: 0, right: 0 },
@@ -270,7 +354,7 @@ function applyVeteranXp(gameState, wizardState) {
 function renderStep() {
   const step = activeSteps[stepIndex];
 
-  document.getElementById('os-year-label').textContent     = `Off Season · Year ${gs.year}`;
+  document.getElementById('os-year-label').textContent     = `Year ${gs.year} · Between Battles`;
   document.getElementById('os-step-label').textContent     = step.label;
   document.getElementById('os-step-indicator').textContent =
     `Step ${stepIndex + 1} of ${activeSteps.length}`;

@@ -469,20 +469,6 @@ export function render(gs, wizardState, contentEl, wizard) {
     }
   }
 
-  if (gs.year === 1 && !wizardState.autoAssignedYear1) {
-    wizardState.autoAssignedYear1 = true;
-    const wallOpts     = ['wallLeft', 'wallCenter', 'wallRight'];
-    const reserveOpts  = ['reserveLeft', 'reserveCenter', 'reserveRight'];
-    const engineerOpts = ['engineerLeft', 'engineerCenter', 'engineerRight'];
-    const allOpts      = [...wallOpts, ...reserveOpts];
-    for (const u of allCombatants) {
-      if (!wizardState.assignments[u.id]) {
-        const opts = ENGINEER_ONLY_CLASSES.has(u.class) ? engineerOpts :
-                     RESERVE_ONLY_CLASSES.has(u.class)  ? reserveOpts  : allOpts;
-        wizardState.assignments[u.id] = opts[Math.floor(Math.random() * opts.length)];
-      }
-    }
-  }
 
   function allAssigned() {
     return allCombatants.every(u => !!wizardState.assignments[u.id]);

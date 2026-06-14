@@ -572,6 +572,7 @@
       caret-color: #c9a84c;
     }
     #commander-name-input::placeholder { color: #3a2a10; }
+
   </style>
 </head>
 <body>
@@ -1012,6 +1013,50 @@
       // Advance year before off-season
       GameState.year += 1;
 
+      // Campaign complete — player beat all 10 waves
+      if (GameState.year > 10) {
+        const heroCount = GameState.graduatedHeroes?.length ?? 0;
+        const screen = document.createElement('div');
+        screen.style.cssText =
+          'position:fixed;inset:0;background:#0a0c08;display:flex;flex-direction:column;' +
+          'align-items:center;justify-content:center;gap:0;z-index:999;' +
+          'font-family:Georgia,serif;color:#e0d4b0;text-align:center;padding:40px;';
+        screen.innerHTML = `
+          <div style="font-size:11px;letter-spacing:0.25em;text-transform:uppercase;color:#5a7a3a;margin-bottom:18px;">
+            The Wall Stands
+          </div>
+          <div style="font-size:42px;color:#f0e0a0;margin-bottom:8px;line-height:1.15;">
+            Ten Years Defended
+          </div>
+          <div style="font-size:17px;color:#8a9a6a;margin-bottom:32px;">
+            The kingdom endures.
+          </div>
+          <div style="max-width:520px;font-size:14px;color:#7a8a6a;line-height:1.8;margin-bottom:14px;">
+            Heroes who served: <strong style="color:#c9a84c;font-size:16px;">${heroCount}</strong>
+          </div>
+          <div style="max-width:520px;border:1px solid #2a3a1a;background:#0f1a0a;padding:24px 32px;
+                      font-size:14px;color:#8a9a6a;line-height:1.85;margin-bottom:32px;">
+            <div style="font-size:12px;letter-spacing:0.15em;text-transform:uppercase;color:#4a6a2a;margin-bottom:12px;">
+              Work in Progress
+            </div>
+            <em>Heroes of the Seventh Year</em> is still in active development.
+            You've reached the end of what's built so far — thank you for playing through it.<br><br>
+            If you have thoughts on unit balance, gold economy, difficulty, or anything else,
+            Jeff would love to hear it.  (If you're reading this, you know how to reach him!)
+            <br><br>
+            
+          </div>`;
+        const restartBtn = document.createElement('button');
+        restartBtn.textContent = 'Start New Campaign';
+        restartBtn.style.cssText =
+          'background:#1a2a10;border:1px solid #c9a84c;color:#f0e0a0;' +
+          'font-family:Georgia,serif;font-size:14px;padding:10px 28px;cursor:pointer;border-radius:3px;';
+        restartBtn.onclick = () => location.reload();
+        screen.appendChild(restartBtn);
+        document.body.appendChild(screen);
+        return;
+      }
+
       playMusic('offseason');
       startOffSeason(GameState, onOffSeasonComplete);
     });
@@ -1153,21 +1198,19 @@
     document.getElementById('cin-skip-btn').onclick = () => { stopVO(); endCinematic(); };
 
     // ── Intro screens → game start ────────────────────────────────────────────
-    function startGame(commanderName) {
-      GameState.commanderName = commanderName || 'Commander';
-      GameState.year = 1;
-      generateStarterRoster(GameState);
-      playMusic('offseason');
-      startOffSeason(GameState, onOffSeasonComplete);
-    }
-
     // Name entry screen — confirm or press Enter to start
+
     const nameInput   = document.getElementById('commander-name-input');
     const confirmBtn  = document.getElementById('name-confirm-btn');
 
     function confirmName() {
+      const rawName = nameInput.value.trim();
       document.getElementById('name-screen').classList.add('hidden');
-      startGame(nameInput.value.trim());
+      GameState.commanderName = rawName || 'Commander';
+      GameState.year = 1;
+      generateStarterRoster(GameState);
+      playMusic('offseason');
+      startOffSeason(GameState, onOffSeasonComplete);
     }
 
     confirmBtn.onclick = confirmName;
