@@ -134,7 +134,7 @@
 
 ## Progression & Legacy
 
-- [2025-05-27] Seven-year arc: recruits who survive 7 years leave as heroes (base 25% chance to stay; Monument and veteran stipend provide additional bonus — exact values TBD)
+- [2025-05-27] Seven-year arc: recruits who survive 7 years leave as heroes (base 15% chance to stay; Monument and veteran stipend provide additional bonus — exact values TBD)
 - [2025-05-27] Veterans who stay become super units (exact advantages TBD — see Open Questions)
 - [2025-05-27] Legacy/mentorship system: departing heroes leave passive buff to future recruits in their archetype (exact mechanics TBD)
 - [2025-05-27] Goblin stats kept as-is for now; armor scaling to be evaluated during playtesting
@@ -175,6 +175,7 @@
 - [2026-05-28] Sortie: units advance through/past wall into enemy territory; normal targeting applies
 - [2026-05-28] Reinforce: Archers/Mages/Healers target that wall section; Warriors/Captains advance and fight near the wall
 - [2026-05-28] Enemy reserve compositions come from a per-year spreadsheet (TBD); placeholder used in stress test
+- [2026-06-15] Ogres are never placed in enemy reserves -- they are always in a main lane (left/center/right) as shock troops; slow move speed means reserve deployment arrives too late to be effective
 
 ---
 
@@ -239,6 +240,7 @@
 - [2026-06-01] Wizard shell: `startOffSeason(gameState, onComplete)` in `OffSeasonUI.js`; `initNavButtons()` called once at page load to wire Previous/Next; step renderers receive `(gs, wizardState, contentEl, wizard)` where `wizard` exposes `setNextEnabled`, `setNextLabel`, `proceed`
 - [2026-06-01] Step files live in `src/offseason/steps/`; each exports a single `render` function; wizard imports all 8 and filters by conditionals at launch time
 - [2026-06-01] Hero retention resolved in `resolveHeroRetention()` before the ceremony step renders — `hero.staying` is set once and not re-rolled on back-navigation
+- [2026-06-15] Hero retention base chance changed from 25% to 15% (`HERO_RETENTION_CHANCE` in constants.js); updated in GDD and DECISIONS
 - [2026-06-01] `wizardState.spending` and `wizardState.assignments` are the authoritative in-wizard copies; final values written to GameState in `finish()` callback chain (steps write to wizardState; `onComplete` callback applies to GameState)
 - [2026-06-01] Off-season wizard is full-screen (position: fixed; inset: 0) — responsive to any viewport; header and nav are fixed strips; content area scrolls; step content centered at max-width 960px via .os-inner wrapper injected by OffSeasonUI.renderStep
 - [2026-06-02] Fallen ceremony: display yearOfService + 1 to include the year they fell in; "1 year of service" for singular, "N years of service" for N ≥ 2
@@ -407,6 +409,18 @@
 - [2026-06-10] Veteran XP (1 XP per staying veteran per off-season) is applied at Training step initialization, not in the Hero Departures step; level-ups from this XP are surfaced on the Training screen
 - [2026-06-10] Hero Departures step (Step 2) is scoped to year-7 ceremony and retention outcome only — no XP distribution
 - [2026-06-10] If veterans are on roster but their XP caused no level-ups and no specialization choices are pending, Training step is skipped
+
+---
+
+## Unit Career Stats
+
+- [2026-06-15] Four cumulative career stats tracked per roster unit: `statKills`, `statAssists`, `statSurvivedAttacks`, `statMajorHeals` (healer only displayed)
+- [2026-06-15] Stats accumulate across battles (added to roster totals in `_handleDeath` for fallen units and `_endBattle` for survivors)
+- [2026-06-15] `statSurvivedAttacks` increments once per hit that the player unit survives (hp > 0 after damage in `_applyDamage`)
+- [2026-06-15] `statMajorHeals` increments once per heal event (both normal heal tick and Healing Grace tactic); healer only
+- [2026-06-15] 4 starter veterans receive random 3–9 defaults for Kills, Assists, and Survived Attacks at campaign start; Major Heals defaults to 0 (none are healers)
+- [2026-06-15] Stats displayed in the unit detail modal (stepPersonnel); Major Heals row only shown for class === 'healer'; Ogres Slain and Generals Slain rows only shown when value > 0
+- [2026-06-15] `statOgresKilled` and `statGeneralsKilled` track killing blows only (not assists); killing blow on unit.type === 'ogre'/'general' by a player unit
 
 ---
 

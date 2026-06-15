@@ -23,7 +23,7 @@ export const TACTICS = {
   healingGrace: {
     key:         'healingGrace',
     name:        'Healing Grace',
-    description: 'All Healers immediately trigger their heal regardless of cooldown. Cooldown resets after.',
+    description: 'All Healers fire 3 rapid heals in quick succession, then resume their normal cooldown.',
     icon:        '✦',
   },
   shieldWall: {

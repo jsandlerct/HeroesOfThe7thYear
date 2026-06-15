@@ -13,6 +13,90 @@ function classLabel(cls) {
   return cls.charAt(0).toUpperCase() + cls.slice(1);
 }
 
+function showHeroDetailModal(hero) {
+  document.getElementById('os-detail-modal')?.remove();
+  const portrait = hero.portraitId ? PORTRAIT_BY_ID[hero.portraitId] : null;
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'os-detail-modal';
+  backdrop.style.cssText =
+    'position:fixed;inset:0;background:rgba(0,0,0,0.72);z-index:200;' +
+    'display:flex;align-items:center;justify-content:center;padding:20px;';
+  backdrop.onclick = e => { if (e.target === backdrop) backdrop.remove(); };
+
+  const box = document.createElement('div');
+  box.style.cssText =
+    'background:#1a1610;border:1px solid #5a4020;padding:28px;' +
+    'max-width:560px;width:100%;max-height:82vh;overflow-y:auto;' +
+    'font-family:Georgia,serif;color:#e0d4b0;position:relative;';
+
+  const closeBtn = document.createElement('button');
+  closeBtn.textContent = '✕';
+  closeBtn.style.cssText =
+    'position:absolute;top:14px;right:16px;background:none;border:none;' +
+    'color:#6a5a3a;font-size:18px;cursor:pointer;';
+  closeBtn.onclick = () => backdrop.remove();
+  box.appendChild(closeBtn);
+
+  const header = document.createElement('div');
+  header.style.cssText = 'display:flex;gap:20px;align-items:flex-start;margin-bottom:20px;';
+  header.appendChild(makePortraitElement(portrait, hero, 100));
+
+  const nameBlock = document.createElement('div');
+  nameBlock.style.paddingTop = '4px';
+  nameBlock.innerHTML = `
+    <div style="font-size:20px;color:#f0e0a0;margin-bottom:6px;">${hero.name ?? '—'}</div>
+    <div style="font-size:13px;color:#8a7a5a;margin-bottom:4px;">
+      ${specLabel(hero)} &nbsp;·&nbsp; Seven years of service &nbsp;·&nbsp; Level ${hero.level ?? 1}
+    </div>
+    <div style="font-size:12px;color:#6a5a3a;display:flex;gap:18px;margin-top:4px;">
+      <span>XP: ${hero.xp ?? 0}</span>
+    </div>`;
+  header.appendChild(nameBlock);
+  box.appendChild(header);
+
+  if (hero.bio) {
+    const hr = document.createElement('hr');
+    hr.style.cssText = 'border:none;border-top:1px solid #2a1e08;margin-bottom:16px;';
+    box.appendChild(hr);
+    const bioDiv = document.createElement('div');
+    bioDiv.style.cssText = 'font-size:14px;color:#8a7a5a;line-height:1.7;margin-bottom:16px;';
+    bioDiv.textContent = hero.bio;
+    box.appendChild(bioDiv);
+  }
+
+  const statHr = document.createElement('hr');
+  statHr.style.cssText = 'border:none;border-top:1px solid #2a1e08;margin-bottom:16px;';
+  box.appendChild(statHr);
+
+  const statsGrid = document.createElement('div');
+  statsGrid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;';
+  function statCell(label, value) {
+    const cell = document.createElement('div');
+    cell.style.cssText = 'display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #1e1408;';
+    cell.innerHTML =
+      `<span style="color:#6a5a3a;">${label}</span>` +
+      `<strong style="color:#c9a84c;">${value ?? 0}</strong>`;
+    return cell;
+  }
+  statsGrid.appendChild(statCell('Kills', hero.statKills ?? 0));
+  statsGrid.appendChild(statCell('Assists', hero.statAssists ?? 0));
+  statsGrid.appendChild(statCell('Survived Attacks', hero.statSurvivedAttacks ?? 0));
+  if (hero.class === 'healer') {
+    statsGrid.appendChild(statCell('Damage Healed', hero.statDamageHealed ?? 0));
+  }
+  if ((hero.statOgresKilled ?? 0) > 0) {
+    statsGrid.appendChild(statCell('Ogres Slain', hero.statOgresKilled));
+  }
+  if ((hero.statGeneralsKilled ?? 0) > 0) {
+    statsGrid.appendChild(statCell('Generals Slain', hero.statGeneralsKilled));
+  }
+  box.appendChild(statsGrid);
+
+  backdrop.appendChild(box);
+  document.body.appendChild(backdrop);
+}
+
 function specLabel(hero) {
   const base = classLabel(hero.class ?? 'unknown');
   if (!hero.specialization) return base;
@@ -32,7 +116,8 @@ function buildDepartingCard(hero, gs) {
   const card = document.createElement('div');
   card.style.cssText =
     'border:1px solid #a07828;border-radius:4px;background:#1a1000;' +
-    'padding:18px 20px;margin-bottom:16px;';
+    'padding:18px 20px;margin-bottom:16px;cursor:pointer;';
+  card.onclick = () => showHeroDetailModal(hero);
 
   // Banner label
   const banner = document.createElement('div');
@@ -83,7 +168,7 @@ function buildDepartingCard(hero, gs) {
       'font-size:12px;color:#6a5030;font-style:italic;' +
       'border-left:2px solid #4a3010;padding:5px 10px;';
     monumentNote.textContent =
-      'Build the Monument to honor the fallen heroes — and receive their blessing.';
+      'Build the Monument to honor the 7 year heroes — and inspire the troops.';
   }
   info.appendChild(monumentNote);
 
@@ -98,7 +183,8 @@ function buildStayingCard(hero, veteranCount) {
   const card = document.createElement('div');
   card.style.cssText =
     'border:1px solid #2a4a8a;border-radius:4px;background:#06101e;' +
-    'padding:18px 20px;margin-bottom:16px;';
+    'padding:18px 20px;margin-bottom:16px;cursor:pointer;';
+  card.onclick = () => showHeroDetailModal(hero);
 
   // Banner label
   const banner = document.createElement('div');

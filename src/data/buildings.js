@@ -26,7 +26,7 @@ export const BUILDING_DEFS = {
   monument: {
     maxLevel: 3, baseCost: 300,
     requires: ['officerAcademy'],
-    description: '-0.1s per inscribed hero. +5 hero cap per level (Lv1: up to 5, Lv2: 10, Lv3: 15).',
+    description: 'All units attack 0.1s faster per hero inscribed. +5 hero cap per level (Lv1: up to 5, Lv2: 10, Lv3: 15).',
   },
   scoutAcademy: {
     maxLevel: 3, baseCost: 100,

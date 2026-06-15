@@ -79,6 +79,34 @@ function showFallenDetailModal(unit, gs) {
   bioDiv.textContent = unit.bio || 'No record available.';
   box.appendChild(bioDiv);
 
+  const statHr = document.createElement('hr');
+  statHr.style.cssText = 'border:none;border-top:1px solid #2a1e08;margin:16px 0;';
+  box.appendChild(statHr);
+
+  const statsGrid = document.createElement('div');
+  statsGrid.style.cssText = 'display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;';
+  function statCell(label, value) {
+    const cell = document.createElement('div');
+    cell.style.cssText = 'display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #1e1408;';
+    cell.innerHTML =
+      `<span style="color:#6a5a3a;">${label}</span>` +
+      `<strong style="color:#c9a84c;">${value ?? 0}</strong>`;
+    return cell;
+  }
+  statsGrid.appendChild(statCell('Kills', unit.statKills ?? 0));
+  statsGrid.appendChild(statCell('Assists', unit.statAssists ?? 0));
+  statsGrid.appendChild(statCell('Survived Attacks', unit.statSurvivedAttacks ?? 0));
+  if (unit.class === 'healer') {
+    statsGrid.appendChild(statCell('Damage Healed', unit.statDamageHealed ?? 0));
+  }
+  if ((unit.statOgresKilled ?? 0) > 0) {
+    statsGrid.appendChild(statCell('Ogres Slain', unit.statOgresKilled));
+  }
+  if ((unit.statGeneralsKilled ?? 0) > 0) {
+    statsGrid.appendChild(statCell('Generals Slain', unit.statGeneralsKilled));
+  }
+  box.appendChild(statsGrid);
+
   backdrop.appendChild(box);
   document.body.appendChild(backdrop);
 }

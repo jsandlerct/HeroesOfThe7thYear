@@ -88,6 +88,14 @@ export class Unit {
     this.bonusHp      = 0;   // accumulated random HP bonuses from level-ups
     this.bonusDmg     = 0;   // accumulated random DMG bonuses from level-ups
 
+    // Per-battle combat stats (added to roster cumulative totals at battle end)
+    this.statKills           = 0;
+    this.statAssists         = 0;
+    this.statSurvivedAttacks = 0;
+    this.statDamageHealed    = 0;  // healer only — cumulative HP restored
+    this.statOgresKilled     = 0;
+    this.statGeneralsKilled  = 0;
+
     const px    = x * TILE;
     const py    = y * TILE;
     const scale = def.spriteScale ?? 1;

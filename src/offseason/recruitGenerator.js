@@ -190,6 +190,11 @@ export function generateStarterRoster(gameState) {
     unit.isNewRecruit   = false;
     unit.greeting       = pickSurvivorGreeting(cls);
     if (specialization) unit.specialization = specialization;
+    const rng = () => Math.floor(Math.random() * 7) + 3;
+    unit.statKills           = rng();
+    unit.statAssists         = rng();
+    unit.statSurvivedAttacks = rng();
+    unit.statDamageHealed    = 0;
     return unit;
   });
 

@@ -124,10 +124,6 @@ export function findTarget(unit, allUnits, wallSegments) {
     }
 
     case 'catapult': {
-      if (playerPressureActive(playerUnits, wallSegments)) {
-        const inRange = farthestInRange(unit, playerUnits);
-        return inRange ?? nearest(unit, playerUnits);
-      }
       const activeWalls = wallSegments.filter(w => !w.isBreached);
       return activeWalls.length ? nearestWall(unit, activeWalls) : nearest(unit, playerUnits);
     }

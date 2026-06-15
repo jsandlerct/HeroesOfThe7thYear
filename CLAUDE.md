@@ -126,8 +126,8 @@ When there is any conflict between files:
 |---|---|---|---|---|---|---|
 | Orc | 15 | 5 | 2s | Med | 20% | — |
 | Goblin | 10 | 4 | 3s | Fast | 10% | Cannot damage wall |
-| Ogre | 50 | 20 | 5s | Slow | 30% | Ignores player armor. Elite. |
-| General | 20 | 5 | 2s | Med | 20% | +25% DMG aura. Armor scales fast. Elite. |
+| Ogre | 100 | 25 | 5s | Slow | 30% | Ignores player armor. Elite. |
+| General | 30 | 7 | 2s | Med | 20% | +25% DMG aura. Armor scales fast. Elite. |
 | Catapult | 20 | 15 | 10s | Slow | 10% | AoE. Range 9. Elite. |
 
 ### Targeting Rules

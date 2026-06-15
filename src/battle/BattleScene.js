@@ -319,11 +319,12 @@ export class BattleScene extends Phaser.Scene {
         const x = ws.startCol + (k + 0.5) * (WALL_SECTION_W / n);
         const y = (ru.class === 'mage' || ru.class === 'healer') ? magWallY : wallY;
         const u = this._spawnUnit(ru.class, def, 'player', x, y);
-        u.xp          = ru.xp      ?? 0;
-        u.level       = ru.level   ?? 1;
-        u._startLevel = u.level;
-        u.bonusHp     = ru.bonusHp ?? 0;
-        u.bonusDmg    = ru.bonusDmg ?? 0;
+        u.xp           = ru.xp           ?? 0;
+        u.level        = ru.level        ?? 1;
+        u._startLevel  = u.level;
+        u.bonusHp      = ru.bonusHp      ?? 0;
+        u.bonusDmg     = ru.bonusDmg     ?? 0;
+        u.healXpAccum  = ru.healXpAccum  ?? 0;
         u.isStationary = true;
         u.rosterId     = ru.id;
         u.isOnWall    = true;
@@ -340,11 +341,12 @@ export class BattleScene extends Phaser.Scene {
         if (!def) return;
         const x = es.startCol + (k + 0.5) * (WALL_SECTION_W / n);
         const u = this._spawnUnit(ru.class, def, 'player', x, engineerY);
-        u.xp          = ru.xp      ?? 0;
-        u.level       = ru.level   ?? 1;
-        u._startLevel = u.level;
-        u.bonusHp     = ru.bonusHp ?? 0;
-        u.bonusDmg    = ru.bonusDmg ?? 0;
+        u.xp           = ru.xp           ?? 0;
+        u.level        = ru.level        ?? 1;
+        u._startLevel  = u.level;
+        u.bonusHp      = ru.bonusHp      ?? 0;
+        u.bonusDmg     = ru.bonusDmg     ?? 0;
+        u.healXpAccum  = ru.healXpAccum  ?? 0;
         u.isStationary = true;
         u.rosterId     = ru.id;
       });
@@ -366,11 +368,12 @@ export class BattleScene extends Phaser.Scene {
         const x = slot.startCol + (idxInRow + 0.5) * (WALL_SECTION_W / Math.max(nInRow, 1));
         const y = PLAYER_RESERVE_ROW + 0.5 + row;
         const u = this._spawnUnit(ru.class, def, 'player', x, y);
-        u.xp          = ru.xp      ?? 0;
-        u.level       = ru.level   ?? 1;
-        u._startLevel = u.level;
-        u.bonusHp     = ru.bonusHp ?? 0;
-        u.bonusDmg    = ru.bonusDmg ?? 0;
+        u.xp           = ru.xp           ?? 0;
+        u.level        = ru.level        ?? 1;
+        u._startLevel  = u.level;
+        u.bonusHp      = ru.bonusHp      ?? 0;
+        u.bonusDmg     = ru.bonusDmg     ?? 0;
+        u.healXpAccum  = ru.healXpAccum  ?? 0;
         u.isInReserve  = true;
         u.isStationary = true;
         u.reserveSlot  = slot;
@@ -540,6 +543,7 @@ export class BattleScene extends Phaser.Scene {
     this.time.delayedCall(COUNTDOWN_STEP_MS * 3 + COUNTDOWN_FIGHT_MS, () => {
       txt.destroy();
       this.countdownActive = false;
+      document.dispatchEvent(new CustomEvent('battleReady'));
     });
   }
 
@@ -949,6 +953,7 @@ export class BattleScene extends Phaser.Scene {
               }
             }
 
+            unit.statDamageHealed = (unit.statDamageHealed ?? 0) + totalHpRestored;
             unit.healXpAccum = (unit.healXpAccum ?? 0) + totalHpRestored;
             const xpEarned = Math.floor(unit.healXpAccum / HEALER_XP_PER_HP);
             if (xpEarned > 0) {
@@ -1168,30 +1173,24 @@ export class BattleScene extends Phaser.Scene {
     target.lastAttacker = attacker;
     target.damageBy[attacker.id] = (target.damageBy[attacker.id] ?? 0) + amount;
     if (isCrit) target.triggerCritGlow(this);
-    if (target.hp <= 0) this._handleDeath(target);
+    if (target.hp <= 0) {
+      this._handleDeath(target);
+    } else if (target.team === 'player') {
+      target.statSurvivedAttacks++;
+    }
   }
 
   _applyAoeSplash(attacker, primaryTarget, primaryDmg) {
-    if (!primaryTarget.isWall) {
-      const splashTargets = this.units.filter(u =>
-        !u.isDead && u !== primaryTarget &&
-        u.team === primaryTarget.team &&
-        !u.isOnWall &&
-        tileDist(u, primaryTarget) <= attacker.aoeRadius
-      );
-      for (const u of splashTargets) {
-        const dr  = attacker.ignoresArmor ? 0 : u.armor;
-        const dmg = Math.max(1, Math.floor(primaryDmg * (1 - dr)));
-        this._applyDamage(attacker, u, dmg);
-      }
-    }
-    if (attacker.type === 'catapult') {
-      for (const w of this.walls) {
-        if (!w.isBreached && w !== primaryTarget && tileDist(w, primaryTarget) <= attacker.aoeRadius) {
-          const just = w.takeDamage(Math.floor(primaryDmg * 0.5));
-          if (just) this._handleWallBreach(w);
-        }
-      }
+    if (primaryTarget.isWall) return;
+    const splashTargets = this.units.filter(u =>
+      !u.isDead && !u.isOnWall && u !== primaryTarget &&
+      u.team === primaryTarget.team &&
+      tileDist(u, primaryTarget) <= attacker.aoeRadius
+    );
+    for (const u of splashTargets) {
+      const dr  = attacker.ignoresArmor ? 0 : u.armor;
+      const dmg = Math.max(1, Math.floor(primaryDmg * (1 - dr)));
+      this._applyDamage(attacker, u, dmg);
     }
   }
 
@@ -1248,6 +1247,13 @@ export class BattleScene extends Phaser.Scene {
         ru.bonusDmg = unit.bonusDmg;
         applyLevelUpsToRosterUnit(ru);
         if (ru.class === 'engineer') ru.level = Math.min(ru.level, startLevel + 1);
+        ru.statKills           = (ru.statKills           ?? 0) + unit.statKills;
+        ru.statAssists         = (ru.statAssists         ?? 0) + unit.statAssists;
+        ru.statSurvivedAttacks = (ru.statSurvivedAttacks ?? 0) + unit.statSurvivedAttacks;
+        ru.statDamageHealed    = (ru.statDamageHealed    ?? 0) + unit.statDamageHealed;
+        ru.statOgresKilled     = (ru.statOgresKilled     ?? 0) + unit.statOgresKilled;
+        ru.statGeneralsKilled  = (ru.statGeneralsKilled  ?? 0) + unit.statGeneralsKilled;
+        ru.healXpAccum         = unit.healXpAccum ?? 0;
       }
     }
 
@@ -1255,7 +1261,12 @@ export class BattleScene extends Phaser.Scene {
     if (killer && !killer.isDead) {
       const killXp = unit.isElite ? 6 : 2;
       killer.awardXp(killXp);
-      if (killer.team === 'player') this._applyLevelUpAndAnnounce(killer);
+      if (killer.team === 'player') {
+        killer.statKills++;
+        if (unit.type === 'ogre')    killer.statOgresKilled++;
+        if (unit.type === 'general') killer.statGeneralsKilled++;
+        this._applyLevelUpAndAnnounce(killer);
+      }
     }
     for (const [idStr, dmg] of Object.entries(unit.damageBy)) {
       const id = Number(idStr);
@@ -1264,7 +1275,10 @@ export class BattleScene extends Phaser.Scene {
         const helper = this.units.find(u => u.id === id && !u.isDead);
         if (helper) {
           helper.awardXp(1);
-          if (helper.team === 'player') this._applyLevelUpAndAnnounce(helper);
+          if (helper.team === 'player') {
+            helper.statAssists++;
+            this._applyLevelUpAndAnnounce(helper);
+          }
         }
       }
     }
@@ -1436,11 +1450,23 @@ export class BattleScene extends Phaser.Scene {
   }
 
   // All non-Engineer, non-wall player units get a 50% move speed boost.
-  // All undeploy player reserves are force-deployed as a sortie toward their section.
+  // Deploy all reserves as sortie; release any melee units holding in Reinforce mode.
   _tacticMassSortie() {
+    // Deploy undeployed reserves
     for (const slot of this.playerReserve) {
       if (!slot.deployed) this._deployPlayerSlot(slot, 'sortie_' + slot.section);
     }
+    // Release melee units holding behind the wall in Reinforce mode
+    for (const u of this.units) {
+      if (u.team !== 'player' || u.isDead || u.isInReserve) continue;
+      if (!u.reinforceSection) continue;
+      if (u.type !== 'warrior' && u.type !== 'captain') continue;
+      const wall = u.reinforceSection;
+      u.reinforceSection = null;
+      u.isStationary     = false;
+      u.waypoint         = { x: wall.x, y: WALL_ROW };  // sortie north through wall
+    }
+    // Speed boost to all deployed non-wall non-engineer melee
     for (const u of this.units) {
       if (u.team !== 'player' || u.isDead || u.isInReserve) continue;
       if (u.isOnWall || u.type === 'engineer') continue;
@@ -1482,34 +1508,43 @@ export class BattleScene extends Phaser.Scene {
 
   // All Healers immediately trigger their heal; cooldown resets to full after.
   _tacticHealingGrace() {
-    for (const u of this.units) {
-      if (u.team !== 'player' || u.isDead || u.isInReserve) continue;
-      if (!u.isHealer) continue;
-      const healTgt = findHealTarget(u, this.units);
-      if (healTgt) {
-        let totalHpRestored = healTgt.maxHp - healTgt.hp;
-        healTgt.hp = healTgt.maxHp;
-        healTgt.triggerHealGlow(this);
-        if (u.areaHeal) {
-          const splash = this.units.filter(ally =>
-            ally !== healTgt && ally.team === 'player' && !ally.isDead && !ally.isInReserve &&
-            ally.hp < ally.maxHp && tileDist(ally, healTgt) <= 0.75
-          );
-          for (const ally of splash) {
-            totalHpRestored += ally.maxHp - ally.hp;
-            ally.hp = ally.maxHp;
-            ally.triggerHealGlow(this);
+    const BURST_MS = 600;  // ms between burst pulses
+
+    const firePulse = (isLast) => {
+      for (const u of this.units) {
+        if (u.team !== 'player' || u.isDead || u.isInReserve || !u.isHealer) continue;
+        const healTgt = findHealTarget(u, this.units);
+        if (healTgt) {
+          let totalHpRestored = healTgt.maxHp - healTgt.hp;
+          healTgt.hp = healTgt.maxHp;
+          healTgt.triggerHealGlow(this);
+          if (u.areaHeal) {
+            const splash = this.units.filter(ally =>
+              ally !== healTgt && ally.team === 'player' && !ally.isDead && !ally.isInReserve &&
+              ally.hp < ally.maxHp && tileDist(ally, healTgt) <= 0.75
+            );
+            for (const ally of splash) {
+              totalHpRestored += ally.maxHp - ally.hp;
+              ally.hp = ally.maxHp;
+              ally.triggerHealGlow(this);
+            }
+          }
+          u.statDamageHealed = (u.statDamageHealed ?? 0) + totalHpRestored;
+          u.healXpAccum = (u.healXpAccum ?? 0) + totalHpRestored;
+          const xpEarned = Math.floor(u.healXpAccum / HEALER_XP_PER_HP);
+          if (xpEarned > 0) {
+            u.awardXp(xpEarned);
+            u.healXpAccum -= xpEarned * HEALER_XP_PER_HP;
           }
         }
-        u.healXpAccum = (u.healXpAccum ?? 0) + totalHpRestored;
-        const xpEarned = Math.floor(u.healXpAccum / HEALER_XP_PER_HP);
-        if (xpEarned > 0) {
-          u.awardXp(xpEarned);
-          u.healXpAccum -= xpEarned * HEALER_XP_PER_HP;
-        }
+        if (isLast) u.healTimer = u.healInterval;
       }
-      u.healTimer = u.healInterval;
-    }
+    };
+
+    firePulse(false);
+    this.time.delayedCall(BURST_MS,     () => { if (!this.battleOver) firePulse(false); });
+    this.time.delayedCall(BURST_MS * 2, () => { if (!this.battleOver) firePulse(true);  });
+
     this._showAnnouncement('✦ Healing Grace!', '#88ccff');
   }
 
@@ -1554,6 +1589,13 @@ export class BattleScene extends Phaser.Scene {
       applyLevelUpsToRosterUnit(ru);
       if (ru.class === 'engineer') ru.level = Math.min(ru.level, startLevel + 1);
       if (ru.level > startLevel) GameState.leveledUpThisBattle.push(ru.id);
+      ru.statKills           = (ru.statKills           ?? 0) + u.statKills;
+      ru.statAssists         = (ru.statAssists         ?? 0) + u.statAssists;
+      ru.statSurvivedAttacks = (ru.statSurvivedAttacks ?? 0) + u.statSurvivedAttacks;
+      ru.statDamageHealed    = (ru.statDamageHealed    ?? 0) + u.statDamageHealed;
+      ru.statOgresKilled     = (ru.statOgresKilled     ?? 0) + u.statOgresKilled;
+      ru.statGeneralsKilled  = (ru.statGeneralsKilled  ?? 0) + u.statGeneralsKilled;
+      ru.healXpAccum         = u.healXpAccum ?? 0;
     }
 
     // Write wall HP back to GameState so off-season gold and repair screens

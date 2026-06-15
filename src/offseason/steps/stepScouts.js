@@ -103,21 +103,9 @@ function renderPending(gs, wizardState, contentEl, wizard) {
   msg.textContent = 'Scouts are out. Awaiting their return…';
   contentEl.appendChild(msg);
 
-  const countdown = document.createElement('div');
-  countdown.style.cssText = 'font-size:32px;color:#4a3a2a;font-family:Georgia,serif;';
-  countdown.textContent = '3';
-  contentEl.appendChild(countdown);
-
-  let remaining = 3;
-  const tick = setInterval(() => {
-    remaining--;
-    if (remaining > 0) {
-      countdown.textContent = String(remaining);
-    } else {
-      clearInterval(tick);
-      resolve(gs, wizardState, contentEl, wizard);
-    }
-  }, 1000);
+  setTimeout(() => {
+    resolve(gs, wizardState, contentEl, wizard);
+  }, DELAY_MS);
 }
 
 function resolve(gs, wizardState, contentEl, wizard) {

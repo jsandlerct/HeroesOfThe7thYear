@@ -8,6 +8,8 @@
 
 import { SPECIALIZATION_DEFS } from '../../data/units.js';
 import { MONUMENT_ATK_SPEED_PER_HERO, MONUMENT_HERO_CAP_PER_LEVEL } from '../../data/constants.js';
+import { PORTRAIT_BY_ID }      from '../../data/portraits.js';
+import { makePortraitElement } from '../portraitHelper.js';
 
 function classLabel(cls) {
   return cls.charAt(0).toUpperCase() + cls.slice(1);
@@ -37,7 +39,7 @@ function levelTag(level) {
 }
 
 function pendingSpecUnits(gs) {
-  return gs.roster.filter(u => !u.dead && u.level >= 3 && !u.specialization);
+  return gs.roster.filter(u => !u.dead && u.level >= 3 && !u.specialization && !!SPECIALIZATION_DEFS[u.class]);
 }
 
 export function render(gs, wizardState, contentEl, wizard) {
@@ -166,7 +168,9 @@ export function render(gs, wizardState, contentEl, wizard) {
 
   // ── Monument block ────────────────────────────────────────────────────────
   const graduated = gs.graduatedHeroes ?? [];
-  if (graduated.length > 0 || (gs.buildings.monument ?? 0) > 0) {
+  const departed  = gs.departedHeroes  ?? [];
+  const newHeroes = gs.newHeroesThisBattle ?? [];
+  if (graduated.length > 0 || departed.length > 0 || newHeroes.length > 0 || (gs.buildings.monument ?? 0) > 0) {
     contentEl.appendChild(buildMonumentBlock(gs));
   }
 
@@ -174,12 +178,27 @@ export function render(gs, wizardState, contentEl, wizard) {
 }
 
 function buildMonumentBlock(gs) {
-  const graduated    = gs.graduatedHeroes ?? [];
-  const monLevel     = gs.buildings.monument ?? 0;
-  const hasMonument  = monLevel > 0;
-  const heroCap      = monLevel * MONUMENT_HERO_CAP_PER_LEVEL;
-  const heroCount    = Math.min(graduated.length, heroCap);
-  const speedBonus   = (heroCount * MONUMENT_ATK_SPEED_PER_HERO).toFixed(1);
+  const graduated   = gs.graduatedHeroes ?? [];
+  const departed    = gs.departedHeroes  ?? [];
+  // Also include this year's heroes (not yet moved into graduated/departed arrays until wizard ends)
+  const thisYear    = (gs.newHeroesThisBattle ?? []).map(h => ({
+    id: h.id, name: h.name, class: h.class,
+    specialization: h.specialization ?? null,
+    portraitId: h.portraitId ?? null,
+    yearGraduated: gs.year - 1,
+    stayed: h.staying === true,
+  }));
+  const allHeroes   = [
+    ...graduated.map(h => ({ ...h, stayed: true  })),
+    ...departed.map( h => ({ ...h, stayed: false })),
+    ...thisYear,
+  ].sort((a, b) => (a.yearGraduated ?? 0) - (b.yearGraduated ?? 0));
+
+  const monLevel    = gs.buildings.monument ?? 0;
+  const hasMonument = monLevel > 0;
+  const heroCap     = monLevel * MONUMENT_HERO_CAP_PER_LEVEL;
+  const heroCount   = Math.min(graduated.length, heroCap);
+  const speedBonus  = (heroCount * MONUMENT_ATK_SPEED_PER_HERO).toFixed(1);
 
   const wrap = document.createElement('div');
   wrap.style.cssText =
@@ -200,34 +219,49 @@ function buildMonumentBlock(gs) {
   tabletHeader.textContent = '⸻  In Honor of the Seven  ⸻';
   tablet.appendChild(tabletHeader);
 
-  if (graduated.length === 0) {
+  if (allHeroes.length === 0) {
     const empty = document.createElement('div');
     empty.style.cssText = 'font-size:13px;color:#4a3a18;font-style:italic;text-align:center;padding:8px 0 4px;';
-    empty.textContent   = 'No heroes have been inscribed yet.';
+    empty.textContent   = 'No heroes have completed their seven years yet.';
     tablet.appendChild(empty);
   } else {
     const namesList = document.createElement('div');
-    namesList.style.cssText = 'display:flex;flex-direction:column;gap:8px;margin-bottom:16px;';
+    namesList.style.cssText = 'display:flex;flex-direction:column;gap:6px;margin-bottom:16px;';
 
-    for (const hero of graduated) {
+    for (const hero of allHeroes) {
+      // Look up portrait: stayers still on roster; departers have portraitId on entry
+      const portraitId = hero.portraitId
+        ?? gs.roster.find(r => r.id === hero.id)?.portraitId
+        ?? null;
+      const portrait   = portraitId ? PORTRAIT_BY_ID[portraitId] : null;
+
       const heroRow = document.createElement('div');
       heroRow.style.cssText =
-        'display:flex;justify-content:space-between;align-items:baseline;' +
+        'display:flex;align-items:center;gap:10px;' +
         'border-bottom:1px solid #1e1808;padding-bottom:6px;';
 
-      const heroName = document.createElement('span');
+      heroRow.appendChild(makePortraitElement(portrait, hero, 36));
+
+      const textBlock = document.createElement('div');
+      textBlock.style.cssText = 'flex:1;min-width:0;';
+
+      const heroName = document.createElement('div');
       heroName.style.cssText = 'font-size:14px;color:#d0b060;font-style:italic;';
       heroName.textContent   = hero.name ?? '—';
 
-      const heroDetail = document.createElement('span');
+      const heroDetail = document.createElement('div');
       heroDetail.style.cssText = 'font-size:11px;color:#5a4820;letter-spacing:0.03em;';
       const cls = hero.specialization
         ? `${hero.specialization.charAt(0).toUpperCase() + hero.specialization.slice(1)} ${classLabel(hero.class)}`
         : classLabel(hero.class ?? 'unknown');
-      heroDetail.textContent = `${cls} · Graduated Year ${hero.yearGraduated ?? '?'}`;
+      const badge = hero.stayed
+        ? '<span style="color:#4070b0;"> · Sworn to the Wall</span>'
+        : '<span style="color:#6a5030;"> · Homeward Bound</span>';
+      heroDetail.innerHTML = `${cls} · Year ${hero.yearGraduated ?? '?'}${badge}`;
 
-      heroRow.appendChild(heroName);
-      heroRow.appendChild(heroDetail);
+      textBlock.appendChild(heroName);
+      textBlock.appendChild(heroDetail);
+      heroRow.appendChild(textBlock);
       namesList.appendChild(heroRow);
     }
     tablet.appendChild(namesList);
@@ -242,24 +276,23 @@ function buildMonumentBlock(gs) {
   if (hasMonument) {
     const leftSide = document.createElement('span');
     leftSide.style.cssText = 'font-size:11px;color:#5a4820;';
-    leftSide.textContent   = `Monument Lv ${monLevel} · ${heroCount} of ${heroCap} heroes inscribed`;
+    leftSide.textContent   = `Monument Lv ${monLevel} · ${heroCount} of ${heroCap} staying heroes inscribed`;
 
     const rightSide = document.createElement('span');
     rightSide.style.cssText = 'font-size:12px;color:#c9a84c;';
     rightSide.innerHTML =
       heroCount > 0
-        ? `Wall units attack <strong>${speedBonus}s faster</strong>`
-        : 'No bonus yet — heroes still serving';
+        ? `All units attack <strong>${speedBonus}s faster</strong>`
+        : allHeroes.some(h => h.stayed)
+          ? 'Staying heroes not yet inscribed'
+          : 'No heroes stayed — no speed bonus';
 
     footer.appendChild(leftSide);
     footer.appendChild(rightSide);
   } else {
     const noMonument = document.createElement('span');
     noMonument.style.cssText = 'font-size:12px;color:#4a3818;font-style:italic;width:100%;text-align:center;';
-    noMonument.textContent   =
-      graduated.length > 0
-        ? 'Build the Monument to honor these heroes and receive their blessing.'
-        : 'Build the Monument to honor your veterans.';
+    noMonument.textContent   = 'Build the Monument to honor the 7 year heroes — and inspire the troops.';
     footer.appendChild(noMonument);
   }
 

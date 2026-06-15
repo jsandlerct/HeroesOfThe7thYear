@@ -116,7 +116,7 @@ export const SCOUT_SLOTS_PER_LEVEL     = 1;   // scout slots per scout academy l
 // ── Off-season: repair & hero ─────────────────────────────────────────────────
 export const MASON_REPAIR_PER_SEASON   = 50;  // HP per repair click (kept as block size)
 export const WALL_REPAIR_COST_PER_HP   = 1;   // gold cost per HP of wall repair
-export const HERO_RETENTION_CHANCE     = 0.25;// base probability a seven-year hero stays on
+export const HERO_RETENTION_CHANCE     = 0.15;// base probability a seven-year hero stays on
 
 // ── Off-season: gold ──────────────────────────────────────────────────────────
 // ── Off-season: deployment capacity ──────────────────────────────────────────

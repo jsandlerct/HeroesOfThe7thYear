@@ -81,7 +81,8 @@
       transition: background .12s, border-color .12s;
       white-space: nowrap;
     }
-    .tactic-btn:hover { background: #3a2810; border-color: #c9a84c; }
+    .tactic-btn:hover:not(:disabled) { background: #3a2810; border-color: #c9a84c; }
+    .tactic-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
     /* ── Off-season wizard (full-screen) ──────────────────────────── */
     #offseason-ui {
@@ -764,6 +765,7 @@
         btn.className = 'tactic-btn';
         btn.title     = tac.description;
         btn.textContent = `${tac.icon} ${tac.name}`;
+        btn.disabled  = true;  // enabled by battleReady event when countdown ends
         btn.onclick = () => {
           // Guard: battle must still be active
           if (GameState.battleResult !== null) return;
@@ -777,6 +779,11 @@
         strip.appendChild(btn);
       }
     }
+
+    // Enable tactic buttons when the battle countdown ends
+    document.addEventListener('battleReady', () => {
+      document.querySelectorAll('.tactic-btn').forEach(b => { b.disabled = false; });
+    });
 
     // ── Campaign end screen ───────────────────────────────────────────────────
     function buildCampaignEndScreen(gs) {
